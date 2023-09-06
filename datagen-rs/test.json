@@ -1,0 +1,198 @@
+{
+  "$schema": "./schema.json",
+  "options": {
+    "plugins": {
+      "openaddresses_plugin": {
+        "files": "us_ak_haines.geojson",
+        "backend": {
+          "type": "sqlite",
+          "databaseName": "addresses.db"
+        }
+      }
+    }
+  },
+  "type": "array",
+  "length": {
+    "value": 1000
+  },
+  "items": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "generator": {
+          "type": "uuid"
+        }
+      },
+      "idCopy": "ref:./id",
+      "firstName": {
+        "type": "string",
+        "generator": {
+          "type": "firstName"
+        }
+      },
+      "lastName": {
+        "type": "string",
+        "generator": {
+          "type": "lastName"
+        }
+      },
+      "fullName": {
+        "type": "string",
+        "generator": {
+          "type": "format",
+          "format": "{{firstName}} {{lastName}}",
+          "args": {
+            "firstName": "ref:./firstName",
+            "lastName": "ref:./lastName"
+          }
+        }
+      },
+      "userName": {
+        "type": "string",
+        "generator": {
+          "type": "username"
+        }
+      },
+      "email": {
+        "type": "string",
+        "generator": {
+          "type": "email"
+        }
+      },
+      "age": {
+        "type": "integer",
+        "min": 0,
+        "max": 100
+      },
+      "addresses": {
+        "type": "array",
+        "length": {
+          "min": 0,
+          "max": 3
+        },
+        "items": {
+          "type": "object",
+          "properties": {
+            "street": {
+              "type": "string",
+              "generator": {
+                "type": "street"
+              }
+            },
+            "city": {
+              "type": "string",
+              "generator": {
+                "type": "city"
+              }
+            },
+            "state": {
+              "type": "string",
+              "generator": {
+                "type": "state"
+              }
+            },
+            "zip": {
+              "type": "string",
+              "generator": {
+                "type": "zipCode"
+              }
+            },
+            "country": {
+              "type": "string",
+              "generator": {
+                "type": "country"
+              }
+            },
+            "countryCode": {
+              "type": "string",
+              "generator": {
+                "type": "countryCode"
+              }
+            },
+            "fullAddress": {
+              "type": "string",
+              "generator": {
+                "type": "format",
+                "format": "{{street}}, {{city}}, {{state}} {{zip}}, {{country}}",
+                "args": {
+                  "street": "ref:./addresses.street",
+                  "city": "ref:./addresses.city",
+                  "state": "ref:./addresses.state",
+                  "zip": "ref:./addresses.zip",
+                  "country": "ref:./addresses.country"
+                },
+                "serialize_refs": false
+              }
+            }
+          }
+        }
+      },
+      "relatedPersons": {
+        "type": "array",
+        "length": {
+          "min": 0,
+          "max": 3
+        },
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "generator": {
+                "type": "uuid"
+              }
+            },
+            "relationshipType": {
+              "type": "anyOf",
+              "values": [
+                "parent",
+                "child",
+                "sibling",
+                "spouse",
+                "friend"
+              ]
+            },
+            "relatedParty": {
+              "type": "reference",
+              "reference": "id",
+              "except": [
+                "ref:../../relatedPersons.relatedParty",
+                "ref:../../id"
+              ]
+            }
+          }
+        }
+      },
+      "openaddr": {
+        "type": "flatten",
+        "values": [
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "generator": {
+                  "type": "uuid"
+                }
+              }
+            }
+          },
+          {
+            "type": "generator",
+            "pluginName": "openaddresses_plugin",
+            "args": {
+              "street": "street",
+              "houseNumber": "number",
+              "city": "city",
+              "coordinates": {
+                "latitude": "latitude",
+                "longitude": "longitude"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

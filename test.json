@@ -1,0 +1,119 @@
+{
+  "$schema": "./base/schema.json",
+  "type": "array",
+  "options": {
+    "doNotReferenceSelf": true
+  },
+  "length": 400000,
+  "items": {
+    "type": "object",
+    "transform": "../../plugins/log-plugin",
+    "properties": {
+      "id": {
+        "type": "string",
+        "generator": {
+          "type": "uuid"
+        },
+        "unique": true
+      },
+      "otherId": "ref:id",
+      "firstName": {
+        "type": "string",
+        "generator": {
+          "type": "firstName"
+        }
+      },
+      "lastName": {
+        "type": "string",
+        "generator": {
+          "type": "lastName"
+        }
+      },
+      "name": {
+        "type": "string",
+        "generator": {
+          "type": "format",
+          "format": "{1} {2}",
+          "args": [
+            "ref:./firstName",
+            "ref:./lastName"
+          ]
+        }
+      },
+      "salutation": {
+        "type": "oneOf",
+        "elements": [
+          "Mr",
+          "Mrs",
+          "Ms",
+          "Dr"
+        ]
+      },
+      "username": {
+        "type": "string",
+        "generator": {
+          "type": "username",
+          "lastName": "ref:./lastName",
+          "firstName": "ref:./firstName"
+        }
+      },
+      "email": {
+        "type": "string",
+        "generator": {
+          "type": "email",
+          "lastName": "ref:./lastName",
+          "firstName": "ref:./firstName"
+        }
+      },
+      "age": {
+        "type": "number",
+        "min": 0,
+        "max": 100,
+        "decimalPlaces": 0
+      },
+      "addresses": {
+        "type": "array",
+        "length": {
+          "min": 0,
+          "max": 3
+        },
+        "items": {
+          "type": "generator",
+          "name": "../../plugins/plugin-openaddress"
+        }
+      },
+      "relatedPersons": {
+        "type": "array",
+        "length": 3,
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "generator": {
+                "type": "uuid"
+              }
+            },
+            "relationshipType": {
+              "type": "oneOf",
+              "elements": [
+                "Mother",
+                "Father",
+                "Brother",
+                "Sister"
+              ]
+            },
+            "relatedParty": {
+              "type": "reference",
+              "ref": "ref:id",
+              "except": [
+                "ref:../../id",
+                "ref:../../relatedPersons.relatedParty"
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

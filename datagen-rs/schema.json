@@ -1,0 +1,1003 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Schema",
+  "type": "object",
+  "anyOf": [
+    {
+      "$ref": "#/definitions/Any"
+    },
+    {
+      "type": "string"
+    },
+    {
+      "type": "number",
+      "format": "double"
+    },
+    {
+      "type": "boolean"
+    }
+  ],
+  "properties": {
+    "options": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/SchemaOptions"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "definitions": {
+    "Any": {
+      "oneOf": [
+        {
+          "type": "object",
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "max": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "format": "double"
+                },
+                "min": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "format": "double"
+                },
+                "precision": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "format": "uint8",
+                  "minimum": 0.0
+                },
+                "transform": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/Transform"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "value"
+              ],
+              "properties": {
+                "transform": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/Transform"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "value": {
+                  "type": "number",
+                  "format": "double"
+                }
+              },
+              "additionalProperties": false
+            }
+          ],
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "number"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "max": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "format": "int32"
+                },
+                "min": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "format": "int32"
+                },
+                "transform": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/Transform"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "value"
+              ],
+              "properties": {
+                "transform": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/Transform"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "value": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              },
+              "additionalProperties": false
+            }
+          ],
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "integer"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "anyOf": [
+            {
+              "type": "object",
+              "required": [
+                "probability"
+              ],
+              "properties": {
+                "probability": {
+                  "type": "number",
+                  "format": "double"
+                },
+                "transform": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/Transform"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "value"
+              ],
+              "properties": {
+                "transform": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/Transform"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "value": {
+                  "type": "boolean"
+                }
+              }
+            }
+          ],
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "bool"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "anyOf": [
+            {
+              "type": "object",
+              "required": [
+                "generator"
+              ],
+              "properties": {
+                "generator": {
+                  "$ref": "#/definitions/StringGenerator"
+                },
+                "transform": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/Transform"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "value"
+              ],
+              "properties": {
+                "transform": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/Transform"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "value": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          ],
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "string"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "type",
+            "values"
+          ],
+          "properties": {
+            "num": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int32"
+            },
+            "transform": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Transform"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "anyOf"
+              ]
+            },
+            "values": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/AnyOfValue"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "reference",
+            "type"
+          ],
+          "properties": {
+            "except": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "$ref": "#/definitions/StringOrNumber"
+              }
+            },
+            "keepAll": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "reference": {
+              "type": "string"
+            },
+            "transform": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Transform"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "reference"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "pluginName",
+            "type"
+          ],
+          "properties": {
+            "args": true,
+            "pluginName": {
+              "type": "string"
+            },
+            "transform": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Transform"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "generator"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "items",
+            "length",
+            "type"
+          ],
+          "properties": {
+            "items": {
+              "$ref": "#/definitions/AnyValue"
+            },
+            "length": {
+              "$ref": "#/definitions/ArrayLength"
+            },
+            "transform": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Transform"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "array"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "properties",
+            "type"
+          ],
+          "properties": {
+            "properties": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/definitions/AnyValue"
+              }
+            },
+            "transform": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Transform"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "object"
+              ]
+            }
+          }
+        },
+        {
+          "description": "Flatten is a special case of Object that allows you to flatten multiple objects into one.",
+          "type": "object",
+          "required": [
+            "type",
+            "values"
+          ],
+          "properties": {
+            "transform": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Transform"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "flatten"
+              ]
+            },
+            "values": {
+              "description": "The values to flatten. These can be objects, references, or generators. These values **must** return objects, otherwise an error will be thrown.",
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/FlattenableValue"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "AnyOfValue": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "$ref": "#/definitions/Reference"
+        },
+        true
+      ]
+    },
+    "AnyValue": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/Any"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "number",
+          "format": "double"
+        },
+        {
+          "type": "boolean"
+        }
+      ]
+    },
+    "ArrayLength": {
+      "anyOf": [
+        {
+          "type": "object",
+          "required": [
+            "value"
+          ],
+          "properties": {
+            "value": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "max",
+            "min"
+          ],
+          "properties": {
+            "max": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "min": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "FlattenableValue": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/Object"
+        },
+        {
+          "$ref": "#/definitions/Reference"
+        },
+        {
+          "$ref": "#/definitions/Generator"
+        }
+      ]
+    },
+    "FormatArg": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number",
+          "format": "float"
+        },
+        {
+          "$ref": "#/definitions/Reference"
+        }
+      ]
+    },
+    "Generator": {
+      "type": "object",
+      "required": [
+        "pluginName"
+      ],
+      "properties": {
+        "args": true,
+        "pluginName": {
+          "type": "string"
+        },
+        "transform": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Transform"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "Object": {
+      "type": "object",
+      "required": [
+        "properties"
+      ],
+      "properties": {
+        "properties": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/AnyValue"
+          }
+        },
+        "transform": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Transform"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "Reference": {
+      "type": "object",
+      "required": [
+        "reference"
+      ],
+      "properties": {
+        "except": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/StringOrNumber"
+          }
+        },
+        "keepAll": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "reference": {
+          "type": "string"
+        },
+        "transform": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Transform"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "SchemaOptions": {
+      "type": "object",
+      "properties": {
+        "ignoreNotFoundLocalRefs": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "maxRefCacheSize": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "plugins": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": true
+        },
+        "serializeRefs": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        }
+      }
+    },
+    "StringGenerator": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "uuid"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "email"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "firstName"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "lastName"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "fullName"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "username"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "city"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "country"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "countryCode"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "street"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "state"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "zipCode"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "latitude"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "longitude"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "phone"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "args",
+            "format",
+            "type"
+          ],
+          "properties": {
+            "args": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/definitions/FormatArg"
+              }
+            },
+            "format": {
+              "type": "string"
+            },
+            "serialize_refs": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "format"
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "StringOrNumber": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number",
+          "format": "double"
+        }
+      ]
+    },
+    "Transform": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "args": {
+          "description": "The arguments which will be passed to the plugin"
+        },
+        "name": {
+          "description": "The path of the plugin which will be used to transform the data",
+          "type": "string"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,7 @@
+[workspace]
+resolver = "2"
+members = [
+    "./datagen-rs",
+    "./plugins/log-plugin",
+    "./plugins/openaddresses-plugin"
+]
