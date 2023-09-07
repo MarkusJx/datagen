@@ -3,7 +3,7 @@
   "options": {
     "plugins": {
       "openaddresses_plugin": {
-        "files": "../../datagen-rs/us_ak_haines.geojson",
+        "files": "./datagen-rs/us_ak_haines.geojson",
         "backend": {
           "type": "sqlite",
           "databaseName": "addresses.db"

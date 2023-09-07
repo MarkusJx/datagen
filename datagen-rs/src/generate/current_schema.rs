@@ -140,10 +140,7 @@ impl CurrentSchema {
     }
 
     #[cfg(feature = "map_schema")]
-    pub(in crate::generate) fn finalize(
-        &self,
-        schema: Arc<GeneratedSchema>,
-    ) -> Arc<GeneratedSchema> {
+    pub fn finalize(&self, schema: Arc<GeneratedSchema>) -> Arc<GeneratedSchema> {
         let path = self.value.lock().unwrap().path().clone();
         self.finalize_inner(schema.clone(), &path, (path.normalized_len() as i32) - 1);
 

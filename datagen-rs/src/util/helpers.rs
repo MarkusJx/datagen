@@ -3,6 +3,8 @@ use crate::generate::current_schema::CurrentSchema;
 #[cfg(feature = "generate")]
 use crate::generate::generated_schema::IntoRandom;
 #[cfg(feature = "generate")]
+use crate::plugins::plugin::Plugin;
+#[cfg(feature = "generate")]
 use crate::plugins::plugin_list::PluginList;
 #[cfg(any(feature = "schema", any(feature = "serialize", feature = "generate")))]
 use crate::schema::schema_definition::Schema;
@@ -14,6 +16,8 @@ use crate::util::types::Result;
 use schemars::schema_for;
 #[cfg(feature = "generate")]
 use serde_json::Value;
+#[cfg(feature = "generate")]
+use std::collections::HashMap;
 #[cfg(any(feature = "schema", feature = "serialize"))]
 use std::fs::File;
 #[cfg(any(feature = "schema", feature = "serialize"))]
@@ -38,8 +42,11 @@ pub fn read_schema<P: AsRef<Path>>(path: P) -> Result<Schema> {
 }
 
 #[cfg(feature = "generate")]
-pub fn generate_random_data(schema: Schema) -> Result<String> {
-    let plugins = PluginList::from_schema(&schema)?;
+pub fn generate_random_data(
+    schema: Schema,
+    additional_plugins: Option<HashMap<String, Box<dyn Plugin>>>,
+) -> Result<String> {
+    let plugins = PluginList::from_schema(&schema, additional_plugins)?;
     let options = Arc::new(schema.options.unwrap_or_default());
     let root = CurrentSchema::root(options.clone(), plugins.clone());
     let generated = schema.value.into_random(root)?;
