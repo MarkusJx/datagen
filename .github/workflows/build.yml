@@ -33,5 +33,5 @@ jobs:
           target/release/cli.exe
           target/release/cli
           target/release/openaddresses_plugin.dll
-          target/release/openaddresses_plugin.dylib
-          target/release/openaddresses_plugin.so
+          target/release/libopenaddresses_plugin.dylib
+          target/release/libopenaddresses_plugin.so
