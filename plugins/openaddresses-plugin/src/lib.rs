@@ -40,15 +40,6 @@ impl Plugin for OpenAddressesPlugin {
 
         args.into_generated(&schema, &feature)
     }
-
-    fn transform(
-        &self,
-        _schema: Arc<CurrentSchema>,
-        _value: Arc<GeneratedSchema>,
-        _args: Value,
-    ) -> Result<Arc<GeneratedSchema>> {
-        Err("Operation 'transform' is not supported".into())
-    }
 }
 
 impl PluginConstructor for OpenAddressesPlugin {

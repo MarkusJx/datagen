@@ -3,11 +3,11 @@ use crate::plugins::plugin::Plugin;
 use crate::util::types::Result;
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
-use std::sync::Arc;
+use std::rc::Rc;
 
 pub(crate) struct PluginError {
     inner: Box<dyn Error>,
-    _plugin: Arc<PluginData>,
+    _plugin: Rc<PluginData>,
 }
 
 impl PluginError {

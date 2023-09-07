@@ -471,7 +471,7 @@
           }
         },
         {
-          "description": "Flatten is a special case of Object that allows you to flatten multiple objects into one.",
+          "description": "Flatten is a special case of Object that allows you to flatten multiple objects or arrays into one.",
           "type": "object",
           "required": [
             "type",
@@ -495,7 +495,7 @@
               ]
             },
             "values": {
-              "description": "The values to flatten. These can be objects, references, or generators. These values **must** return objects, otherwise an error will be thrown.",
+              "description": "The values to flatten. These can be objects, references, or generators. These values must all return either objects or arrays (not both), otherwise an error will be thrown. If no values are provided, null will be returned.",
               "type": "array",
               "items": {
                 "$ref": "#/definitions/FlattenableValue"
@@ -532,6 +532,31 @@
           "type": "boolean"
         }
       ]
+    },
+    "Array": {
+      "type": "object",
+      "required": [
+        "items",
+        "length"
+      ],
+      "properties": {
+        "items": {
+          "$ref": "#/definitions/AnyValue"
+        },
+        "length": {
+          "$ref": "#/definitions/ArrayLength"
+        },
+        "transform": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Transform"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
     },
     "ArrayLength": {
       "anyOf": [
@@ -575,6 +600,9 @@
       "anyOf": [
         {
           "$ref": "#/definitions/Object"
+        },
+        {
+          "$ref": "#/definitions/Array"
         },
         {
           "$ref": "#/definitions/Reference"
@@ -705,12 +733,105 @@
           "additionalProperties": true
         },
         "serializeRefs": {
+          "description": "Whether to serialize references to strings when referencing non-strings in a string schema. If not specified, the default is false and an error will be thrown if a non-string is referenced in a string schema.",
           "type": [
             "boolean",
             "null"
           ]
+        },
+        "serializer": {
+          "description": "The serializer to use when serializing the generated data. If not specified, the default is JSON.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Serializer"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       }
+    },
+    "Serializer": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "pretty": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "json"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "pretty": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "yaml"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "rootElement",
+            "type"
+          ],
+          "properties": {
+            "rootElement": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "xml"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "pluginName",
+            "type"
+          ],
+          "properties": {
+            "args": true,
+            "pluginName": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "plugin"
+              ]
+            }
+          }
+        }
+      ]
     },
     "StringGenerator": {
       "oneOf": [

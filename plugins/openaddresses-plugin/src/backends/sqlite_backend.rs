@@ -116,8 +116,15 @@ impl Backend for SQLiteBackend {
 
 impl BackendConstructor for SQLiteBackend {
     fn new(paths: Vec<String>, args: PluginArgs) -> Result<Self> {
-        let BackendType::SQLite {database_name, batch_size, cache_size} = args.backend.unwrap_or_default() else {
-            return Err("Unable to create SQLite backend: The selected backend type is not SQLite".into());
+        let BackendType::SQLite {
+            database_name,
+            batch_size,
+            cache_size,
+        } = args.backend.unwrap_or_default()
+        else {
+            return Err(
+                "Unable to create SQLite backend: The selected backend type is not SQLite".into(),
+            );
         };
 
         #[cfg(feature = "log")]

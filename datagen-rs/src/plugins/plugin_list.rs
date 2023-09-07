@@ -7,13 +7,22 @@ use crate::plugins::plugin::Plugin;
 use crate::schema::any::Any;
 #[cfg(feature = "plugin")]
 use crate::schema::any_value::AnyValue;
-use crate::schema::flatten::FlattenableValue;
+#[cfg(feature = "plugin")]
+use crate::schema::array::Array;
+#[cfg(feature = "plugin")]
+use crate::schema::flatten::{Flatten, FlattenableValue};
+#[cfg(feature = "plugin")]
+use crate::schema::object::Object;
 #[cfg(feature = "plugin")]
 use crate::schema::schema_definition::Schema;
+#[cfg(feature = "plugin")]
+use crate::schema::schema_definition::Serializer;
 use crate::util::types::Result;
 #[cfg(feature = "plugin")]
 use serde_json::Value;
 use std::collections::HashMap;
+#[cfg(feature = "plugin")]
+use std::sync::Arc;
 
 #[derive(Debug)]
 pub struct PluginList {
@@ -22,7 +31,7 @@ pub struct PluginList {
 
 impl PluginList {
     #[cfg(feature = "plugin")]
-    pub fn from_schema(schema: &Schema) -> Result<Self> {
+    pub fn from_schema(schema: &Schema) -> Result<Arc<Self>> {
         let mut plugins = schema
             .options
             .as_ref()
@@ -39,7 +48,21 @@ impl PluginList {
         Self::add_plugins(&mut plugins, schema, Self::find_transformers)?;
         Self::add_plugins(&mut plugins, schema, Self::find_generators)?;
 
-        Ok(Self { plugins })
+        if let Serializer::Plugin { plugin_name, .. } = schema
+            .options
+            .as_ref()
+            .and_then(|o| o.serializer.as_ref())
+            .unwrap_or_default()
+        {
+            if !plugins.contains_key(plugin_name) {
+                plugins.insert(
+                    plugin_name.clone(),
+                    Box::new(ImportedPlugin::load(plugin_name, Value::Null)?),
+                );
+            }
+        }
+
+        Ok(Self { plugins }.into())
     }
 
     #[cfg(feature = "plugin")]
@@ -67,59 +90,64 @@ impl PluginList {
         Ok((name.clone(), Box::new(ImportedPlugin::load(name, args)?)))
     }
 
+    #[cfg(feature = "plugin")]
+    fn find_object_transformers(object: &Object) -> Vec<String> {
+        let mut props = object
+            .properties
+            .iter()
+            .flat_map(|(_, val)| Self::find_transformers(val))
+            .collect::<Vec<String>>();
+        if let Some(transform) = &object.transform {
+            props.push(transform.name.clone())
+        }
+
+        props
+    }
+
+    #[cfg(feature = "plugin")]
+    fn find_array_transformers(array: &Array) -> Vec<String> {
+        let mut props = Self::find_transformers(&array.items);
+        if let Some(transform) = &array.transform {
+            props.push(transform.name.clone())
+        }
+
+        props
+    }
+
+    #[cfg(feature = "plugin")]
+    fn find_flatten_transformers(flatten: &Flatten) -> Vec<String> {
+        let mut props = flatten
+            .values
+            .iter()
+            .flat_map(|val| match val {
+                FlattenableValue::Object(obj) => Self::find_object_transformers(obj),
+                FlattenableValue::Reference(reference) => Self::map_transform(reference),
+                FlattenableValue::Generator(gen) => Self::map_transform(gen),
+                FlattenableValue::Array(array) => Self::find_array_transformers(array),
+            })
+            .collect::<Vec<String>>();
+        if let Some(transform) = &flatten.transform {
+            props.push(transform.name.clone())
+        }
+
+        props
+    }
+
+    #[cfg(feature = "plugin")]
+    fn map_transform<T: IntoGeneratedArc>(val: &T) -> Vec<String> {
+        val.get_transform()
+            .map(|t| vec![t.name])
+            .unwrap_or_default()
+    }
+
     /// I am Bumblebee, I am Bumblebee, I am Bumblebee
     #[cfg(feature = "plugin")]
     fn find_transformers(any: &AnyValue) -> Vec<String> {
         match any {
             AnyValue::Any(any) => match any {
-                Any::Object(object) => {
-                    let mut props = object
-                        .properties
-                        .iter()
-                        .flat_map(|(_, val)| Self::find_transformers(val))
-                        .collect::<Vec<String>>();
-                    if let Some(transform) = &object.transform {
-                        props.push(transform.name.clone())
-                    }
-
-                    props
-                }
-                Any::Array(array) => {
-                    let mut props = Self::find_transformers(&array.items);
-                    if let Some(transform) = &array.transform {
-                        props.push(transform.name.clone())
-                    }
-
-                    props
-                }
-                Any::Flatten(flatten) => {
-                    let mut props = flatten
-                        .values
-                        .iter()
-                        .flat_map(|val| match val {
-                            FlattenableValue::Object(obj) => obj
-                                .properties
-                                .iter()
-                                .flat_map(|(_, val)| Self::find_transformers(val))
-                                .collect::<Vec<_>>(),
-                            FlattenableValue::Reference(reference) => reference
-                                .transform
-                                .as_ref()
-                                .map(|t| vec![t.name.clone()])
-                                .unwrap_or_default(),
-                            FlattenableValue::Generator(generator) => generator
-                                .transform
-                                .as_ref()
-                                .map(|t| vec![t.name.clone()])
-                                .unwrap_or_default(),
-                        })
-                        .collect::<Vec<String>>();
-                    if let Some(transform) = &flatten.transform {
-                        props.push(transform.name.clone())
-                    }
-
-                    props
-                }
+                Any::Object(object) => Self::find_object_transformers(object),
+                Any::Array(array) => Self::find_array_transformers(array),
+                Any::Flatten(flatten) => Self::find_flatten_transformers(flatten),
                 rest => match rest {
                     Any::String(str) => str.get_transform(),
                     Any::AnyOf(any_of) => any_of.get_transform(),

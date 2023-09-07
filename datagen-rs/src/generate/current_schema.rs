@@ -28,15 +28,15 @@ pub struct CurrentSchema {
 
 impl CurrentSchema {
     #[cfg(feature = "generate")]
-    pub fn root(options: SchemaOptions, plugins: PluginList) -> Arc<Self> {
+    pub fn root(options: Arc<SchemaOptions>, plugins: Arc<PluginList>) -> Arc<Self> {
         Arc::new(Self {
             parent: None,
             value: Arc::new(Mutex::new(SchemaValue {
                 properties: Arc::new(Mutex::new(BTreeMap::new())),
                 path: SchemaPath::root(),
             })),
-            options: Arc::new(options),
-            plugins: Arc::new(plugins),
+            options,
+            plugins,
         })
     }
 

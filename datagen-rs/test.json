@@ -3,12 +3,17 @@
   "options": {
     "plugins": {
       "openaddresses_plugin": {
-        "files": "us_ak_haines.geojson",
+        "files": "../../datagen-rs/us_ak_haines.geojson",
         "backend": {
           "type": "sqlite",
           "databaseName": "addresses.db"
         }
       }
+    },
+    "serializeRefs": true,
+    "serializer": {
+      "type": "json",
+      "pretty": true
     }
   },
   "type": "array",
@@ -127,6 +132,11 @@
             }
           }
         }
+      },
+      "addressCopy": {
+        "type": "reference",
+        "reference": "ref:./addresses",
+        "keepAll": true
       },
       "relatedPersons": {
         "type": "array",

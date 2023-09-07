@@ -7,6 +7,7 @@ use libloading::{Library, Symbol};
 use serde_json::Value;
 use std::ffi::{c_char, CString, OsStr};
 use std::fmt::Display;
+use std::rc::Rc;
 use std::sync::Arc;
 
 type InitFn = unsafe extern "C" fn(args: *mut Value) -> PluginInitResult;
@@ -19,7 +20,7 @@ pub(crate) struct PluginData {
 }
 
 #[derive(Debug)]
-pub struct ImportedPlugin(Arc<PluginData>);
+pub struct ImportedPlugin(Rc<PluginData>);
 
 impl ImportedPlugin {
     pub fn load<T: AsRef<OsStr> + Display + Clone>(path: T, args: Value) -> Result<Self> {
@@ -35,11 +36,11 @@ impl ImportedPlugin {
         } else {
             let args_raw = Box::into_raw(Box::new(args));
             match unsafe { constructor(args_raw) } {
-                Ok(new_res) => {
+                PluginInitResult::Ok(new_res) => {
                     let plugin = unsafe { Box::from_raw(new_res) };
-                    Ok(Self(Arc::new(PluginData { plugin, _lib: lib })))
+                    Ok(Self(Rc::new(PluginData { plugin, _lib: lib })))
                 }
-                Err(err) => {
+                PluginInitResult::Err(err) => {
                     let err = unsafe { CString::from_raw(err) };
                     Err(format!("Failed to initialize plugin '{path}': {}", err.to_str()?).into())
                 }
@@ -47,7 +48,7 @@ impl ImportedPlugin {
         }
     }
 
-    pub(crate) fn get_data(&self) -> Arc<PluginData> {
+    pub(crate) fn get_data(&self) -> Rc<PluginData> {
         self.0.clone()
     }
 }
@@ -74,5 +75,12 @@ impl Plugin for ImportedPlugin {
             .plugin
             .transform(schema, value, args)
             .map_plugin_error(self, "transform")
+    }
+
+    fn serialize(&self, value: &Arc<GeneratedSchema>, args: Value) -> Result<String> {
+        self.0
+            .plugin
+            .serialize(value, args)
+            .map_plugin_error(self, "serialize")
     }
 }

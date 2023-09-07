@@ -5,17 +5,45 @@ use serde_json::Value;
 use std::fmt::Debug;
 use std::sync::Arc;
 
-pub type PluginInitResult = std::result::Result<*mut dyn Plugin, *mut std::ffi::c_char>;
+#[repr(C)]
+pub enum PluginInitResult {
+    Ok(*mut dyn Plugin),
+    Err(*mut std::ffi::c_char),
+}
+
+impl<T: Plugin + 'static> From<Result<T>> for PluginInitResult {
+    fn from(result: Result<T>) -> Self {
+        match result {
+            Ok(value) => PluginInitResult::Ok(Box::into_raw(Box::new(value))),
+            Err(err) => {
+                PluginInitResult::Err(std::ffi::CString::new(err.to_string()).unwrap().into_raw())
+            }
+        }
+    }
+}
 
 pub trait Plugin: Debug {
     fn name(&self) -> &'static str;
-    fn generate(&self, schema: Arc<CurrentSchema>, args: Value) -> Result<Arc<GeneratedSchema>>;
+
+    #[allow(unused_variables)]
+    fn generate(&self, schema: Arc<CurrentSchema>, args: Value) -> Result<Arc<GeneratedSchema>> {
+        Err("Operation 'generate' is not supported".into())
+    }
+
+    #[allow(unused_variables)]
     fn transform(
         &self,
         schema: Arc<CurrentSchema>,
         value: Arc<GeneratedSchema>,
         args: Value,
-    ) -> Result<Arc<GeneratedSchema>>;
+    ) -> Result<Arc<GeneratedSchema>> {
+        Err("Operation 'transform' is not supported".into())
+    }
+
+    #[allow(unused_variables)]
+    fn serialize(&self, value: &Arc<GeneratedSchema>, args: Value) -> Result<String> {
+        Err("Operation 'serialize' is not supported".into())
+    }
 }
 
 pub trait PluginConstructor: Plugin + Sized {
@@ -41,13 +69,7 @@ macro_rules! declare_plugin {
             // make sure the constructor is the correct type.
             let constructor: fn(args: Box<Value>) -> Result<$plugin_type> = <$plugin_type>::new;
 
-            match constructor(Box::from_raw(args)) {
-                Ok(object) => {
-                    let boxed: Box<dyn Plugin> = Box::new(object);
-                    Ok(Box::into_raw(boxed))
-                }
-                Err(err) => Err(std::ffi::CString::new(err.to_string()).unwrap().into_raw()),
-            }
+            constructor(Box::from_raw(args)).into()
         }
 
         #[no_mangle]
