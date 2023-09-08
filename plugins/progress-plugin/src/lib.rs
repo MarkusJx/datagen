@@ -18,6 +18,7 @@ use serde_json::Value;
 use std::fmt::Debug;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
+use rand::Rng;
 
 pub struct ProgressPlugin<F: Fn(usize, usize)> {
     total_elements: AtomicUsize,
@@ -101,9 +102,16 @@ impl<F: Fn(usize, usize)> ProgressPlugin<F> {
         mut any_of: AnyOf,
     ) -> Result<Arc<GeneratedSchema>> {
         any_of.values.shuffle(&mut rand::thread_rng());
+        let mut num = any_of.num.unwrap_or(1);
+        match num.cmp(&0) {
+            core::cmp::Ordering::Equal => num = any_of.values.len() as i64,
+            core::cmp::Ordering::Less => num = rand::thread_rng().gen_range(0..any_of.values.len() as i64),
+            _ => {}
+        }
+
         let values = any_of
             .values
-            .drain(0..any_of.num.unwrap_or(1))
+            .drain(0..num as usize)
             .map(|value| value.into_random(schema.clone()))
             .collect::<Result<Vec<_>>>()?;
 
@@ -136,9 +144,18 @@ impl<F: Fn(usize, usize)> ProgressPlugin<F> {
                 }
                 Any::AnyOf(any_of) => {
                     any_of.values.shuffle(&mut rand::thread_rng());
-                    any_of.values.drain(any_of.num.unwrap_or(1)..);
-                    let mut len = 0;
+                    let mut num = any_of.num.unwrap_or(1);
+                    match num.cmp(&0) {
+                        core::cmp::Ordering::Equal => num = - 1,
+                        core::cmp::Ordering::Less => num = rand::thread_rng().gen_range(0..any_of.values.len() as i64),
+                        _ => {}
+                    }
 
+                    if num >= 0 {
+                        any_of.values.drain(num as usize..);
+                    }
+
+                    let mut len = 0;
                     for val in &mut any_of.values {
                         len += Self::map_any(val);
                     }

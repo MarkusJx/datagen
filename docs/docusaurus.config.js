@@ -40,18 +40,9 @@ const config = {
       ({
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/MarkusJx/datagen/docs/',
+            'https://github.com/MarkusJx/datagen/docs/docs/content',
         },
-        /*blog: {
-          showReadingTime: true,
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
-        },*/
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
         },
@@ -72,12 +63,19 @@ const config = {
         },
         items: [
           {
-            type: 'docSidebar',
-            sidebarId: 'tutorialSidebar',
+            to: "/docs/intro",
+            //type: 'docSidebar',
+            sidebarId: 'docsSidebar',
             position: 'left',
             label: 'Docs',
           },
-          //{to: '/blog', label: 'Blog', position: 'left'},
+          {
+            to: '/docs/examples',
+            label: 'Examples',
+            sidebarId: 'docsSidebar',
+            //type: 'exampleSidebar',
+            position: 'left'
+          },
           {
             href: 'https://github.com/MarkusJx/datagen',
             label: 'GitHub',
@@ -89,21 +87,26 @@ const config = {
         style: 'dark',
         links: [
           {
+            title: 'Learn',
+            items: [
+              {
+                label: 'Examples',
+                to: '/docs/examples',
+              }
+            ]
+          },
+          {
             title: 'Docs',
             items: [
               {
-                label: 'Docs',
-                to: '/docs/intro',
-              },
+                label: 'Generators',
+                to: '/docs/content',
+              }
             ],
           },
           {
             title: 'More',
             items: [
-              {
-                label: 'Blog',
-                to: '/blog',
-              },
               {
                 label: 'GitHub',
                 href: 'https://github.com/MarkusJx/datagen',
@@ -111,7 +114,7 @@ const config = {
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} MarkusJx Built with Docusaurus.`,
+        copyright: `Copyright © ${new Date().getFullYear()} MarkusJx. Built with Docusaurus.`,
       },
       prism: {
         theme: lightCodeTheme,
