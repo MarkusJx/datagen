@@ -15,24 +15,39 @@ use datagen_rs::schema::object::Object;
 use datagen_rs::util::types::Result;
 use rand::prelude::SliceRandom;
 use serde_json::Value;
+use std::fmt::Debug;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
-#[derive(Debug)]
-pub struct ProgressPlugin {
+pub struct ProgressPlugin<F: Fn(usize, usize)> {
     total_elements: AtomicUsize,
     progress: AtomicUsize,
-    callback: fn(max: usize, current: usize),
+    callback: F,
 }
 
-impl ProgressPlugin {
+impl<F: Fn(usize, usize)> Debug for ProgressPlugin<F> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ProgressPlugin")
+            .field("total_elements", &self.total_elements)
+            .field("progress", &self.progress)
+            .finish()
+    }
+}
+
+impl<F: Fn(usize, usize)> ProgressPlugin<F> {
     #[cfg(not(feature = "plugin"))]
-    pub fn new(callback: fn(max: usize, current: usize)) -> Self {
+    pub fn new(callback: F) -> Self {
         Self {
             total_elements: AtomicUsize::new(0),
             progress: AtomicUsize::new(0),
             callback,
         }
+    }
+
+    fn increase_count(&self) {
+        let total = self.total_elements.load(Ordering::SeqCst);
+        let current = self.progress.fetch_add(1, Ordering::SeqCst) + 1;
+        (self.callback)(current, total);
     }
 
     fn convert_any_value(
@@ -56,16 +71,16 @@ impl ProgressPlugin {
         schema: Arc<CurrentSchema>,
         array: Array,
     ) -> Result<Arc<GeneratedSchema>> {
+        let len = array.length.get_length();
         schema.map_array(
-            array.length.get_length() as _,
+            len as _,
             array.items,
             array.transform,
             true,
             |cur, value| {
-                let progress = self.progress.fetch_add(1, Ordering::Relaxed);
-                let total = self.total_elements.load(Ordering::Relaxed);
-                (self.callback)(total, progress);
-                self.convert_any_value(cur.clone(), value)
+                let res = self.convert_any_value(cur.clone(), value)?;
+                self.increase_count();
+                Ok(res)
             },
         )
     }
@@ -107,35 +122,44 @@ impl ProgressPlugin {
         Ok(schema.finalize(res))
     }
 
-    pub fn map_any(&self, val: &mut AnyValue) {
+    pub fn map_any(val: &mut AnyValue) -> usize {
         if let AnyValue::Any(any) = val {
             match any {
-                Any::Array(array) => self.map_array(array.as_mut()),
+                Any::Array(array) => Self::map_array(array.as_mut()),
                 Any::Object(object) => {
+                    let mut len = 0;
                     for (_, value) in &mut object.properties {
-                        self.map_any(value);
+                        len += Self::map_any(value);
                     }
+
+                    len
                 }
                 Any::AnyOf(any_of) => {
+                    any_of.values.shuffle(&mut rand::thread_rng());
+                    any_of.values.drain(any_of.num.unwrap_or(1)..);
+                    let mut len = 0;
+
                     for val in &mut any_of.values {
-                        self.map_any(val);
+                        len += Self::map_any(val);
                     }
+                    len
                 }
-                _ => {}
+                _ => 0,
             }
+        } else {
+            0
         }
     }
 
-    fn map_array(&self, val: &mut Array) {
+    fn map_array(val: &mut Array) -> usize {
         let len = val.length.get_length();
         val.length = ArrayLength::Constant { value: len };
 
-        self.total_elements.fetch_add(len as _, Ordering::Relaxed);
-        self.map_any(&mut val.items);
+        Self::map_any(&mut val.items) * len as usize + len as usize
     }
 }
 
-impl Plugin for ProgressPlugin {
+impl<F: Fn(usize, usize)> Plugin for ProgressPlugin<F> {
     fn name(&self) -> &'static str {
         "progress"
     }
@@ -143,6 +167,8 @@ impl Plugin for ProgressPlugin {
     fn generate(&self, schema: Arc<CurrentSchema>, args: Value) -> Result<Arc<GeneratedSchema>> {
         let mut val: AnyValue = serde_json::from_value(args)?;
 
+        self.total_elements
+            .store(Self::map_any(&mut val), Ordering::SeqCst);
         self.convert_any_value(schema, val)
     }
 }

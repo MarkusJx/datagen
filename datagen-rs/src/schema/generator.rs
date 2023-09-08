@@ -28,7 +28,7 @@ impl IntoGeneratedArc for Generator {
     fn into_generated_arc(self, schema: Arc<CurrentSchema>) -> Result<Arc<GeneratedSchema>> {
         schema
             .get_plugin(&self.plugin_name)?
-            .generate(schema.clone(), self.args.unwrap_or(Value::Null))
+            .generate(schema.clone(), self.args.unwrap_or_default())
     }
 
     fn get_transform(&self) -> Option<Transform> {

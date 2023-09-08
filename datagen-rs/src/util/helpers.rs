@@ -15,8 +15,6 @@ use crate::util::types::Result;
 #[cfg(feature = "schema")]
 use schemars::schema_for;
 #[cfg(feature = "generate")]
-use serde_json::Value;
-#[cfg(feature = "generate")]
 use std::collections::HashMap;
 #[cfg(any(feature = "schema", feature = "serialize"))]
 use std::fs::File;
@@ -67,6 +65,6 @@ pub fn generate_random_data(
         }
         Serializer::Plugin { plugin_name, args } => plugins
             .get(plugin_name)?
-            .serialize(&generated, args.clone().unwrap_or(Value::Null)),
+            .serialize(&generated, args.clone().unwrap_or_default()),
     }
 }

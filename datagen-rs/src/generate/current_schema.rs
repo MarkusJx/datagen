@@ -7,11 +7,9 @@ use crate::generate::schema_path::SchemaPath;
 #[cfg(feature = "generate")]
 use crate::generate::schema_value::SchemaProperties;
 use crate::generate::schema_value::SchemaValue;
-#[cfg(feature = "generate")]
 use crate::plugins::plugin::Plugin;
 use crate::plugins::plugin_list::PluginList;
 use crate::schema::schema_definition::SchemaOptions;
-#[cfg(feature = "generate")]
 use crate::util::types::Result;
 #[cfg(feature = "generate")]
 use std::collections::BTreeMap;
@@ -147,7 +145,6 @@ impl CurrentSchema {
         schema
     }
 
-    #[cfg(feature = "generate")]
     pub fn get_plugin<'a>(&'a self, key: &String) -> Result<&'a dyn Plugin> {
         self.plugins.get(key)
     }

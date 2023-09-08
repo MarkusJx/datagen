@@ -4,11 +4,13 @@ use crate::generate::current_schema::CurrentSchema;
 use crate::generate::generated_schema::GeneratedSchema;
 #[cfg(feature = "generate")]
 use crate::generate::generated_schema::IntoGeneratedArc;
+#[cfg(feature = "generate")]
 use crate::generate::generated_schema::IntoRandom;
 use crate::schema::any_value::AnyValue;
 use crate::schema::transform::Transform;
 #[cfg(feature = "generate")]
 use crate::util::types::Result;
+#[cfg(feature = "generate")]
 use rand::seq::SliceRandom;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
@@ -22,7 +24,7 @@ use std::sync::Arc;
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 pub struct AnyOf {
     pub values: Vec<AnyValue>,
-    pub num: Option<i32>,
+    pub num: Option<usize>,
     pub transform: Option<Transform>,
 }
 
@@ -32,7 +34,7 @@ impl IntoGeneratedArc for AnyOf {
         self.values.shuffle(&mut rand::thread_rng());
         let values = self
             .values
-            .drain(0..self.num.unwrap_or(1) as usize)
+            .drain(0..self.num.unwrap_or(1))
             .map(|value| value.into_random(schema.clone()))
             .collect::<Result<Vec<_>>>()?;
 

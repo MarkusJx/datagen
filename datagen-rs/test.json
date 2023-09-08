@@ -18,7 +18,7 @@
   },
   "type": "array",
   "length": {
-    "value": 1000
+    "value": 100000
   },
   "items": {
     "type": "object",

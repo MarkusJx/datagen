@@ -25,6 +25,7 @@ pub enum AnyValue {
     String(String),
     Number(f64),
     Bool(bool),
+    Null,
 }
 
 #[cfg(feature = "generate")]
@@ -33,8 +34,9 @@ impl IntoGeneratedArc for AnyValue {
         match self {
             AnyValue::Any(any) => any.into_random(schema),
             AnyValue::String(string) => schema.resolve_ref(string)?.into_random(),
-            AnyValue::Number(number) => Ok(Arc::new(GeneratedSchema::Number(number))),
-            AnyValue::Bool(bool) => Ok(Arc::new(GeneratedSchema::Bool(bool))),
+            AnyValue::Number(number) => Ok(schema.finalize(GeneratedSchema::Number(number).into())),
+            AnyValue::Bool(bool) => Ok(schema.finalize(GeneratedSchema::Bool(bool).into())),
+            AnyValue::Null => Ok(schema.finalize(GeneratedSchema::None.into())),
         }
     }
 
