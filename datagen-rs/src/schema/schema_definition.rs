@@ -1,17 +1,17 @@
 use crate::schema::any_value::AnyValue;
+use indexmap::IndexMap;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Default)]
 #[cfg_attr(feature = "schema", derive(JsonSchema))]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serialize", serde(rename_all = "camelCase"))]
 pub struct SchemaOptions {
-    pub plugins: Option<BTreeMap<String, Value>>,
+    pub plugins: Option<IndexMap<String, Value>>,
     pub ignore_not_found_local_refs: Option<bool>,
     pub max_ref_cache_size: Option<usize>,
     /// Whether to serialize references to strings when

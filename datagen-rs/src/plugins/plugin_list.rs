@@ -31,7 +31,11 @@ pub struct PluginList {
 
 impl PluginList {
     #[cfg(feature = "plugin")]
-    pub fn from_schema(schema: &Schema) -> Result<Arc<Self>> {
+    pub fn from_schema(
+        schema: &Schema,
+        additional_plugins: Option<HashMap<String, Box<dyn Plugin>>>,
+    ) -> Result<Arc<Self>> {
+        let additional = additional_plugins.unwrap_or_default();
         let mut plugins = schema
             .options
             .as_ref()
@@ -39,12 +43,14 @@ impl PluginList {
             .map(|p| {
                 p.clone()
                     .into_iter()
+                    .filter(|(name, _)| !additional.contains_key(name))
                     .map(|(n, v)| Self::map_plugin(n, v))
                     .collect::<Result<HashMap<_, _>>>()
             })
             .map_or(Ok(None), |v| v.map(Some))?
             .unwrap_or_default();
 
+        plugins.extend(additional);
         Self::add_plugins(&mut plugins, schema, Self::find_transformers)?;
         Self::add_plugins(&mut plugins, schema, Self::find_generators)?;
 

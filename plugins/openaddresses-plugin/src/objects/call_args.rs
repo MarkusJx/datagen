@@ -17,7 +17,7 @@ impl IntoGenerated for CallArgs {
         feature: &GeoFeature,
     ) -> Result<Arc<GeneratedSchema>> {
         schema
-            .map_index_map(self, true, |schema, value| {
+            .map_index_map(self, None, true, |schema, value| {
                 value.into_generated(schema, feature)
             })
             .map(Into::into)

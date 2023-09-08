@@ -1,0 +1,16 @@
+[package]
+name = "progress-plugin"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["dylib", "rlib"]
+
+[dependencies]
+datagen-rs = { path = "../../datagen-rs", features = ["generate", "map_schema"] }
+serde_json = { version = "1.0", features = ["preserve_order"] }
+rand = "0.8"
+
+[features]
+default = ["plugin"]
+plugin = []

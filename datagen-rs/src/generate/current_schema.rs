@@ -7,11 +7,9 @@ use crate::generate::schema_path::SchemaPath;
 #[cfg(feature = "generate")]
 use crate::generate::schema_value::SchemaProperties;
 use crate::generate::schema_value::SchemaValue;
-#[cfg(feature = "generate")]
 use crate::plugins::plugin::Plugin;
 use crate::plugins::plugin_list::PluginList;
 use crate::schema::schema_definition::SchemaOptions;
-#[cfg(feature = "generate")]
 use crate::util::types::Result;
 #[cfg(feature = "generate")]
 use std::collections::BTreeMap;
@@ -140,17 +138,13 @@ impl CurrentSchema {
     }
 
     #[cfg(feature = "map_schema")]
-    pub(in crate::generate) fn finalize(
-        &self,
-        schema: Arc<GeneratedSchema>,
-    ) -> Arc<GeneratedSchema> {
+    pub fn finalize(&self, schema: Arc<GeneratedSchema>) -> Arc<GeneratedSchema> {
         let path = self.value.lock().unwrap().path().clone();
         self.finalize_inner(schema.clone(), &path, (path.normalized_len() as i32) - 1);
 
         schema
     }
 
-    #[cfg(feature = "generate")]
     pub fn get_plugin<'a>(&'a self, key: &String) -> Result<&'a dyn Plugin> {
         self.plugins.get(key)
     }

@@ -1,15 +1,11 @@
-#[cfg(feature = "generate")]
 use crate::generate::current_schema::CurrentSchema;
-#[cfg(feature = "generate")]
 use crate::generate::generated_schema::GeneratedSchema;
-#[cfg(feature = "generate")]
 use crate::util::types::Result;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-#[cfg(feature = "generate")]
 use std::sync::Arc;
 
 #[derive(Debug, Clone)]
@@ -22,7 +18,6 @@ pub struct Transform {
     pub args: Option<Value>,
 }
 
-#[cfg(feature = "generate")]
 impl Transform {
     pub fn transform(
         self,
@@ -32,7 +27,7 @@ impl Transform {
         schema.get_plugin(&self.name)?.transform(
             schema.clone(),
             value,
-            self.args.unwrap_or(Value::Null),
+            self.args.unwrap_or_default(),
         )
     }
 }

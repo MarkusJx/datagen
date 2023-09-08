@@ -4,5 +4,6 @@ members = [
     "./cli",
     "./datagen-rs",
     "./plugins/log-plugin",
-    "./plugins/openaddresses-plugin"
+    "./plugins/openaddresses-plugin",
+    "./plugins/progress-plugin"
 ]

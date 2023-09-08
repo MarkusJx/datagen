@@ -3,7 +3,9 @@ use crate::generate::current_schema::CurrentSchema;
 #[cfg(feature = "generate")]
 use crate::generate::generated_schema::IntoRandom;
 #[cfg(feature = "generate")]
-use crate::generate::generated_schema::{GeneratedSchema, IntoGenerated};
+use crate::generate::generated_schema::{GeneratedSchema, IntoGeneratedArc};
+#[cfg(feature = "generate")]
+use crate::generate::schema_mapper::MapSchema;
 use crate::schema::any_value::AnyValue;
 use crate::schema::transform::Transform;
 #[cfg(feature = "generate")]
@@ -49,39 +51,12 @@ pub struct Array {
 }
 
 #[cfg(feature = "generate")]
-impl IntoGenerated for Array {
-    fn into_generated(self, schema: Arc<CurrentSchema>) -> Result<GeneratedSchema> {
+impl IntoGeneratedArc for Array {
+    fn into_generated_arc(self, schema: Arc<CurrentSchema>) -> Result<Arc<GeneratedSchema>> {
         let length = self.length.get_length();
-        let mut res = Vec::with_capacity(length as _);
-        let mut current_schema: Option<Arc<CurrentSchema>> = None;
-
-        for i in 0..length {
-            //if i > 1 && i % 5 == 0 {
-            //    println!("Generated {} items", i);
-            //}
-
-            current_schema = if let Some(cur) = current_schema {
-                Some(Arc::new(CurrentSchema::child(
-                    schema.clone(),
-                    Some(cur),
-                    i.to_string(),
-                )))
-            } else {
-                Some(Arc::new(CurrentSchema::child(
-                    schema.clone(),
-                    None,
-                    i.to_string(),
-                )))
-            };
-
-            res.push(
-                self.items
-                    .clone()
-                    .into_random(current_schema.clone().unwrap())?,
-            );
-        }
-
-        Ok(GeneratedSchema::Array(res))
+        schema.map_array(length as _, self.items, None, false, |cur, value| {
+            value.into_random(cur.clone())
+        })
     }
 
     fn get_transform(&self) -> Option<Transform> {

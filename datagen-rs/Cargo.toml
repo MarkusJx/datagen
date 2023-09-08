@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-serde_json = "1.0"
+serde_json = { version = "1.0", features = ["preserve_order"] }
 indexmap = "2.0.0"
 serde_yaml = { version = "0.9", optional = true }
 serde = { version = "1.0", features = ["derive", "rc"], optional = true }
@@ -20,5 +20,5 @@ all = ["plugin", "serialize", "map_schema", "generate", "schema"]
 plugin = ["dep:libloading"]
 serialize = ["dep:serde", "indexmap/serde", "dep:serde_yaml", "dep:quick-xml"]
 map_schema = ["dep:rand"]
-generate = ["map_schema", "serialize", "dep:fake", "dep:handlebars"]
+generate = ["map_schema", "serialize", "plugin", "dep:fake", "dep:handlebars"]
 schema = ["dep:serde", "dep:schemars"]

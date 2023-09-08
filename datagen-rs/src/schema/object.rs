@@ -29,7 +29,7 @@ pub struct Object {
 #[cfg(feature = "generate")]
 impl IntoGeneratedArc for Object {
     fn into_generated_arc(self, schema: Arc<CurrentSchema>) -> Result<Arc<GeneratedSchema>> {
-        schema.map_index_map(self.properties, false, |schema, value| {
+        schema.map_index_map(self.properties, None, false, |schema, value| {
             value.into_random(schema.clone())
         })
     }
