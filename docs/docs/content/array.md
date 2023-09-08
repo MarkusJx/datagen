@@ -42,7 +42,7 @@ Generate an array with a random length between 5 and 10 elements:
 
 ## Example
 
-Generate an array full of [strings](string) with a random length:
+Generate an array full of [strings](string.md) with a random length:
 
 ```json
 {

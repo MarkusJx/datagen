@@ -260,9 +260,9 @@ The `phone` generator generates a random phone number.
 The `format` generator formats strings using [handlebars](https://handlebarsjs.com/guide/)
 templates. This generator requires the following inputs:
 
-* `format`: The format to to use
+* `format`: The format to use
 * `args`: An key-value object containing the values to fill in. The value may be
-a simple string a [`string` schema](string), a simple number or a [`reference`](reference).
+a simple string a [`string` schema](string.md), a simple number or a [`reference`](reference.md).
 * `serializeNonStrings`: Whether to serialize non-string values to strings if they are
 already not string values. If set to false and a non-string is passed in through
 a [reference](#references), an error will be returned. This does not
@@ -314,16 +314,16 @@ The result will look something like this:
 
 ## References
 
-Fixed string values may also be a [reference](reference). Reference strings start
+Fixed string values may also be a [reference](reference.md). Reference strings start
 with the value `"ref:"` and contain the normalized path to the field to reference.
 If found, the value of the referenced field will be inserted where the reference string
-was placed. Check the [reference](reference) page on further information on references.
+was placed. Check the [reference](reference.md) page on further information on references.
 The result is not limited to strings, it will have the type of the referenced field,
 whatever that may be.
 
 ### Example 1: Copy string
 
-Reference a field inside the [current object](reference#local-reference) using a
+Reference a field inside the [current object](reference.md#local-reference) using a
 shorthand string expression, copying its contents into its current position:
 
 ```json
@@ -353,7 +353,7 @@ Will result in:
 ### Example 2: Copy an object
 
 Copying any other value works just like copying strings.
-Copy an object to the current position using a [global reference](reference#global-reference)
+Copy an object to the current position using a [global reference](reference.md#global-reference)
 an not using a shorthand string value:
 
 ```json
