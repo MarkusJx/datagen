@@ -103,7 +103,7 @@ impl<F: Fn(usize, usize)> ProgressPlugin<F> {
         any_of.values.shuffle(&mut rand::thread_rng());
         let values = any_of
             .values
-            .drain(0..any_of.num.unwrap_or(1) as usize)
+            .drain(0..any_of.num.unwrap_or(1))
             .map(|value| value.into_random(schema.clone()))
             .collect::<Result<Vec<_>>>()?;
 
@@ -174,11 +174,17 @@ impl<F: Fn(usize, usize)> Plugin for ProgressPlugin<F> {
 }
 
 #[cfg(feature = "plugin")]
-impl PluginConstructor for ProgressPlugin {
-    fn new(args: Box<Value>) -> Result<Self> {
-        todo!()
+impl PluginConstructor for ProgressPlugin<fn(usize, usize)> {
+    fn new(_args: Box<Value>) -> Result<Self> {
+        Ok(Self {
+            total_elements: AtomicUsize::new(0),
+            progress: AtomicUsize::new(0),
+            callback: |current, total| {
+                println!("{current} / {total}");
+            },
+        })
     }
 }
 
 #[cfg(feature = "plugin")]
-declare_plugin!(ProgressPlugin);
+declare_plugin!(ProgressPlugin<fn(usize, usize)>);
