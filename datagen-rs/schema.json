@@ -15,6 +15,9 @@
     },
     {
       "type": "boolean"
+    },
+    {
+      "type": "null"
     }
   ],
   "properties": {
@@ -309,7 +312,8 @@
                 "integer",
                 "null"
               ],
-              "format": "int32"
+              "format": "uint",
+              "minimum": 0.0
             },
             "transform": {
               "anyOf": [
@@ -330,7 +334,7 @@
             "values": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/AnyOfValue"
+                "$ref": "#/definitions/AnyValue"
               }
             }
           }
@@ -505,17 +509,6 @@
         }
       ]
     },
-    "AnyOfValue": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "$ref": "#/definitions/Reference"
-        },
-        true
-      ]
-    },
     "AnyValue": {
       "anyOf": [
         {
@@ -530,6 +523,9 @@
         },
         {
           "type": "boolean"
+        },
+        {
+          "type": "null"
         }
       ]
     },
@@ -616,6 +612,9 @@
       "anyOf": [
         {
           "type": "string"
+        },
+        {
+          "$ref": "#/definitions/string"
         },
         {
           "type": "number",
@@ -1077,7 +1076,7 @@
             "format": {
               "type": "string"
             },
-            "serialize_refs": {
+            "serializeNonStrings": {
               "type": [
                 "boolean",
                 "null"
@@ -1119,6 +1118,54 @@
           "type": "string"
         }
       }
+    },
+    "string": {
+      "anyOf": [
+        {
+          "type": "object",
+          "required": [
+            "generator"
+          ],
+          "properties": {
+            "generator": {
+              "$ref": "#/definitions/StringGenerator"
+            },
+            "transform": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Transform"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "value"
+          ],
+          "properties": {
+            "transform": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Transform"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "value": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
     }
   }
 }
