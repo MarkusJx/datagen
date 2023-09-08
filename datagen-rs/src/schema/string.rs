@@ -57,10 +57,14 @@ pub enum StringGenerator {
     Latitude,
     Longitude,
     Phone,
+    #[cfg_attr(
+        feature = "serialize",
+        serde(rename_all = "camelCase")
+    )]
     Format {
         format: String,
         args: BTreeMap<String, FormatArg>,
-        serialize_refs: Option<bool>,
+        serialize_non_strings: Option<bool>,
     },
 }
 
@@ -70,6 +74,7 @@ pub enum StringGenerator {
 #[cfg_attr(feature = "serialize", serde(untagged, deny_unknown_fields))]
 pub enum FormatArg {
     String(String),
+    StringSchema(StringSchema),
     Number(f32),
     Reference(Reference),
 }
@@ -125,13 +130,13 @@ impl IntoGenerated for StringGenerator {
             StringGenerator::Street => GeneratedSchema::String(StreetName().fake()),
             StringGenerator::State => GeneratedSchema::String(StateName().fake()),
             StringGenerator::ZipCode => GeneratedSchema::String(ZipCode().fake()),
-            StringGenerator::Latitude => GeneratedSchema::String(Latitude().fake()),
-            StringGenerator::Longitude => GeneratedSchema::String(Longitude().fake()),
+            StringGenerator::Latitude => GeneratedSchema::Number(Latitude().fake()),
+            StringGenerator::Longitude => GeneratedSchema::Number(Longitude().fake()),
             StringGenerator::Phone => GeneratedSchema::String(PhoneNumber().fake()),
             StringGenerator::Format {
                 format,
                 args,
-                serialize_refs,
+                serialize_non_strings,
             } => {
                 let mut hbs = Handlebars::new();
                 hbs.register_template_string("template", format)?;
@@ -146,6 +151,14 @@ impl IntoGenerated for StringGenerator {
                                     Arc::new(GeneratedSchema::String(num.to_string()))
                                 }
                                 FormatArg::String(str) => schema.resolve_ref(str)?.into_random()?,
+                                FormatArg::StringSchema(str) => {
+                                    let res = str.into_generated_arc(schema.clone())?;
+                                    if let GeneratedSchema::Number(num) = res.as_ref() {
+                                        Arc::new(GeneratedSchema::String(num.to_string()))
+                                    } else {
+                                        res
+                                    }
+                                }
                                 FormatArg::Reference(reference) => {
                                     reference.into_generated_arc(schema.clone())?
                                 }
@@ -157,7 +170,7 @@ impl IntoGenerated for StringGenerator {
                     .map(|(name, arg)| -> Result<(String, String)> {
                         if let GeneratedSchema::String(str) = arg.as_ref() {
                             Ok((name, str.clone()))
-                        } else if serialize_refs
+                        } else if serialize_non_strings
                             .or(schema.options().serialize_refs)
                             .unwrap_or(false)
                         {

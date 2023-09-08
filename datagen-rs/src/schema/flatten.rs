@@ -30,8 +30,8 @@ use std::sync::Arc;
 pub struct Flatten {
     /// The values to flatten.
     /// These can be objects, references, or generators.
-    /// These values must all return either objects or arrays
-    /// (not both), otherwise an error will be thrown.
+    /// These values must all return either objects or arrays,
+    /// not both, otherwise an error will be thrown.
     /// If no values are provided, null will be returned.
     pub values: Vec<FlattenableValue>,
     pub transform: Option<Transform>,

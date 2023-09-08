@@ -20,7 +20,7 @@ use std::sync::Arc;
 #[cfg_attr(feature = "serialize", serde(untagged))]
 pub enum Bool {
     Random {
-        probability: f64,
+        probability: Option<f64>,
         transform: Option<Transform>,
     },
     Constant {
@@ -36,7 +36,7 @@ impl IntoGenerated for Bool {
             Bool::Constant { value, .. } => GeneratedSchema::Bool(value),
             Bool::Random { probability, .. } => {
                 let mut rng = rand::thread_rng();
-                let value = rng.gen_bool(probability);
+                let value = rng.gen_bool(probability.unwrap_or(0.5));
                 GeneratedSchema::Bool(value)
             }
         })

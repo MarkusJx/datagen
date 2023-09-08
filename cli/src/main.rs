@@ -127,7 +127,10 @@ fn main() {
             .unwrap();
 
             if let Some(out_file) = out_file {
-                progress_bar.lock().unwrap().set_message("Writing results to file");
+                progress_bar
+                    .lock()
+                    .unwrap()
+                    .set_message("Writing results to file");
                 std::fs::write(out_file, generated).unwrap();
             } else {
                 println!("{generated}");

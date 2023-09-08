@@ -18,7 +18,7 @@
   },
   "type": "array",
   "length": {
-    "value": 100000
+    "value": 10
   },
   "items": {
     "type": "object",
@@ -109,6 +109,26 @@
                 "type": "country"
               }
             },
+            "latitude": {
+              "type": "string",
+              "generator": {
+                "type": "latitude"
+              }
+            },
+            "latitudeAsString": {
+              "type": "string",
+              "generator": {
+                "type": "format",
+                "format": "{{latitude}}",
+                "args": {
+                  "latitude": {
+                    "generator": {
+                      "type": "latitude"
+                    }
+                  }
+                }
+              }
+            },
             "countryCode": {
               "type": "string",
               "generator": {
@@ -127,7 +147,7 @@
                   "zip": "ref:./addresses.zip",
                   "country": "ref:./addresses.country"
                 },
-                "serialize_refs": false
+                "serializeRefs": false
               }
             }
           }
