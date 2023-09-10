@@ -732,6 +732,24 @@
         }
       }
     },
+    "PluginInitArgs": {
+      "anyOf": [
+        {
+          "type": "object",
+          "required": [
+            "path"
+          ],
+          "properties": {
+            "args": true,
+            "path": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        true
+      ]
+    },
     "Reference": {
       "type": "object",
       "required": [
@@ -799,7 +817,9 @@
             "object",
             "null"
           ],
-          "additionalProperties": true
+          "additionalProperties": {
+            "$ref": "#/definitions/PluginInitArgs"
+          }
         },
         "serializeRefs": {
           "description": "Whether to serialize references to strings when referencing non-strings in a string schema. If not specified, the default is false and an error will be thrown if a non-string is referenced in a string schema.",

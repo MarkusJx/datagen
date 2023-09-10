@@ -2,7 +2,7 @@
 name: generator
 ---
 
-The `generator` generator is a special generator which uses a plugin to generate data.
+The `generator` generator is a special generator which uses a [plugin](../../plugins) to generate data.
 This generator is used to call custom generators and takes the following properties:
 
 * `pluginName`: The path of the plugin to use to generate the data. This name must
