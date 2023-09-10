@@ -64,14 +64,13 @@
                   "minimum": 0.0
                 },
                 "transform": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/definitions/Transform"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "$ref": "#/definitions/AnyTransform"
+                  }
                 }
               },
               "additionalProperties": false
@@ -83,14 +82,13 @@
               ],
               "properties": {
                 "transform": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/definitions/Transform"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "$ref": "#/definitions/AnyTransform"
+                  }
                 },
                 "value": {
                   "type": "number",
@@ -133,14 +131,13 @@
                   "format": "int32"
                 },
                 "transform": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/definitions/Transform"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "$ref": "#/definitions/AnyTransform"
+                  }
                 }
               },
               "additionalProperties": false
@@ -152,14 +149,13 @@
               ],
               "properties": {
                 "transform": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/definitions/Transform"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "$ref": "#/definitions/AnyTransform"
+                  }
                 },
                 "value": {
                   "type": "integer",
@@ -186,23 +182,22 @@
           "anyOf": [
             {
               "type": "object",
-              "required": [
-                "probability"
-              ],
               "properties": {
                 "probability": {
-                  "type": "number",
+                  "type": [
+                    "number",
+                    "null"
+                  ],
                   "format": "double"
                 },
                 "transform": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/definitions/Transform"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "$ref": "#/definitions/AnyTransform"
+                  }
                 }
               }
             },
@@ -213,14 +208,13 @@
               ],
               "properties": {
                 "transform": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/definitions/Transform"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "$ref": "#/definitions/AnyTransform"
+                  }
                 },
                 "value": {
                   "type": "boolean"
@@ -253,14 +247,13 @@
                   "$ref": "#/definitions/StringGenerator"
                 },
                 "transform": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/definitions/Transform"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "$ref": "#/definitions/AnyTransform"
+                  }
                 }
               },
               "additionalProperties": false
@@ -272,14 +265,13 @@
               ],
               "properties": {
                 "transform": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/definitions/Transform"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "$ref": "#/definitions/AnyTransform"
+                  }
                 },
                 "value": {
                   "type": "string"
@@ -312,18 +304,16 @@
                 "integer",
                 "null"
               ],
-              "format": "uint",
-              "minimum": 0.0
+              "format": "int64"
             },
             "transform": {
-              "anyOf": [
-                {
-                  "$ref": "#/definitions/Transform"
-                },
-                {
-                  "type": "null"
-                }
-              ]
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "$ref": "#/definitions/AnyTransform"
+              }
             },
             "type": {
               "type": "string",
@@ -365,14 +355,13 @@
               "type": "string"
             },
             "transform": {
-              "anyOf": [
-                {
-                  "$ref": "#/definitions/Transform"
-                },
-                {
-                  "type": "null"
-                }
-              ]
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "$ref": "#/definitions/AnyTransform"
+              }
             },
             "type": {
               "type": "string",
@@ -394,14 +383,13 @@
               "type": "string"
             },
             "transform": {
-              "anyOf": [
-                {
-                  "$ref": "#/definitions/Transform"
-                },
-                {
-                  "type": "null"
-                }
-              ]
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "$ref": "#/definitions/AnyTransform"
+              }
             },
             "type": {
               "type": "string",
@@ -426,14 +414,13 @@
               "$ref": "#/definitions/ArrayLength"
             },
             "transform": {
-              "anyOf": [
-                {
-                  "$ref": "#/definitions/Transform"
-                },
-                {
-                  "type": "null"
-                }
-              ]
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "$ref": "#/definitions/AnyTransform"
+              }
             },
             "type": {
               "type": "string",
@@ -457,14 +444,13 @@
               }
             },
             "transform": {
-              "anyOf": [
-                {
-                  "$ref": "#/definitions/Transform"
-                },
-                {
-                  "type": "null"
-                }
-              ]
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "$ref": "#/definitions/AnyTransform"
+              }
             },
             "type": {
               "type": "string",
@@ -483,14 +469,13 @@
           ],
           "properties": {
             "transform": {
-              "anyOf": [
-                {
-                  "$ref": "#/definitions/Transform"
-                },
-                {
-                  "type": "null"
-                }
-              ]
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "$ref": "#/definitions/AnyTransform"
+              }
             },
             "type": {
               "type": "string",
@@ -499,13 +484,36 @@
               ]
             },
             "values": {
-              "description": "The values to flatten. These can be objects, references, or generators. These values must all return either objects or arrays (not both), otherwise an error will be thrown. If no values are provided, null will be returned.",
+              "description": "The values to flatten. These can be objects, references, or generators. These values must all return either objects or arrays, not both, otherwise an error will be thrown. If no values are provided, null will be returned.",
               "type": "array",
               "items": {
                 "$ref": "#/definitions/FlattenableValue"
               }
             }
           }
+        }
+      ]
+    },
+    "AnyTransform": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/Transform"
+        },
+        {
+          "type": "object",
+          "required": [
+            "name"
+          ],
+          "properties": {
+            "args": {
+              "description": "The arguments which will be passed to the plugin"
+            },
+            "name": {
+              "description": "The path of the plugin which will be used to transform the data",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
         }
       ]
     },
@@ -543,14 +551,13 @@
           "$ref": "#/definitions/ArrayLength"
         },
         "transform": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/Transform"
-            },
-            {
-              "type": "null"
-            }
-          ]
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/AnyTransform"
+          }
         }
       }
     },
@@ -592,6 +599,24 @@
         }
       ]
     },
+    "FilterTransformOp": {
+      "oneOf": [
+        {
+          "description": "The value must be equal to the other value",
+          "type": "string",
+          "enum": [
+            "equals"
+          ]
+        },
+        {
+          "description": "The value must not be equal to the other value",
+          "type": "string",
+          "enum": [
+            "notEquals"
+          ]
+        }
+      ]
+    },
     "FlattenableValue": {
       "anyOf": [
         {
@@ -617,12 +642,50 @@
           "$ref": "#/definitions/string"
         },
         {
+          "type": "integer",
+          "format": "int32"
+        },
+        {
           "type": "number",
-          "format": "float"
+          "format": "double"
         },
         {
           "$ref": "#/definitions/Reference"
         }
+      ]
+    },
+    "GeneratedSchema": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "number",
+          "format": "double"
+        },
+        {
+          "type": "integer",
+          "format": "int32"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/GeneratedSchema"
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/GeneratedSchema"
+          }
+        },
+        true
       ]
     },
     "Generator": {
@@ -636,14 +699,13 @@
           "type": "string"
         },
         "transform": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/Transform"
-            },
-            {
-              "type": "null"
-            }
-          ]
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/AnyTransform"
+          }
         }
       }
     },
@@ -660,14 +722,13 @@
           }
         },
         "transform": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/Transform"
-            },
-            {
-              "type": "null"
-            }
-          ]
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/AnyTransform"
+          }
         }
       }
     },
@@ -696,16 +757,25 @@
           "type": "string"
         },
         "transform": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/Transform"
-            },
-            {
-              "type": "null"
-            }
-          ]
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/AnyTransform"
+          }
         }
       }
+    },
+    "ReferenceOrString": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/Reference"
+        },
+        {
+          "type": "string"
+        }
+      ]
     },
     "SchemaOptions": {
       "type": "object",
@@ -1105,19 +1175,196 @@
       ]
     },
     "Transform": {
-      "type": "object",
-      "required": [
-        "name"
-      ],
-      "properties": {
-        "args": {
-          "description": "The arguments which will be passed to the plugin"
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "operator",
+            "other",
+            "type"
+          ],
+          "properties": {
+            "field": {
+              "description": "The field or reference to the field which will be used to compare the value with the other value specified in the `other` field. If this is not specified, the value itself will be used.",
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/ReferenceOrString"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "operator": {
+              "description": "The operator which will be used to compare the value with the other value",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/FilterTransformOp"
+                }
+              ]
+            },
+            "other": {
+              "description": "The value which will be used to compare the value with",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/GeneratedSchema"
+                }
+              ]
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "filter"
+              ]
+            }
+          }
         },
-        "name": {
-          "description": "The path of the plugin which will be used to transform the data",
-          "type": "string"
+        {
+          "type": "object",
+          "required": [
+            "regex",
+            "type"
+          ],
+          "properties": {
+            "regex": {
+              "type": "string"
+            },
+            "serializeNonStrings": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "regexFilter"
+              ]
+            }
+          }
+        },
+        {
+          "description": "Remove all null values from the array or object. This can only be used on arrays and objects.",
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "filterNonNull"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "oneOf": [
+            {
+              "description": "The default transform will serialize the generated schema to a string using serde_json.",
+              "type": "object",
+              "required": [
+                "subType"
+              ],
+              "properties": {
+                "subType": {
+                  "type": "string",
+                  "enum": [
+                    "default"
+                  ]
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "The format transform will serialize the generated schema to a string using a handlebars template.",
+              "type": "object",
+              "required": [
+                "format",
+                "subType"
+              ],
+              "properties": {
+                "format": {
+                  "description": "The handlebars template",
+                  "type": "string"
+                },
+                "serializeNonStrings": {
+                  "description": "Whether to convert non-string values to strings using serde_json.",
+                  "type": [
+                    "boolean",
+                    "null"
+                  ]
+                },
+                "subType": {
+                  "type": "string",
+                  "enum": [
+                    "format"
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          ],
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "toString"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "serializeNonStrings": {
+              "description": "Whether to convert non-string values to strings using serde_json.",
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "toUpperCase"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "serializeNonStrings": {
+              "description": "Whether to convert non-string values to strings using serde_json.",
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "toLowerCase"
+              ]
+            }
+          },
+          "additionalProperties": false
         }
-      }
+      ]
     },
     "string": {
       "anyOf": [
@@ -1131,14 +1378,13 @@
               "$ref": "#/definitions/StringGenerator"
             },
             "transform": {
-              "anyOf": [
-                {
-                  "$ref": "#/definitions/Transform"
-                },
-                {
-                  "type": "null"
-                }
-              ]
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "$ref": "#/definitions/AnyTransform"
+              }
             }
           },
           "additionalProperties": false
@@ -1150,14 +1396,13 @@
           ],
           "properties": {
             "transform": {
-              "anyOf": [
-                {
-                  "$ref": "#/definitions/Transform"
-                },
-                {
-                  "type": "null"
-                }
-              ]
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "$ref": "#/definitions/AnyTransform"
+              }
             },
             "value": {
               "type": "string"

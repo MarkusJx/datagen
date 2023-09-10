@@ -1,4 +1,4 @@
-use crate::generate::current_schema::CurrentSchema;
+use crate::generate::current_schema::CurrentSchemaRef;
 use crate::generate::generated_schema::GeneratedSchema;
 use crate::util::types::Result;
 use serde_json::Value;
@@ -26,14 +26,14 @@ pub trait Plugin: Debug {
     fn name(&self) -> &'static str;
 
     #[allow(unused_variables)]
-    fn generate(&self, schema: Arc<CurrentSchema>, args: Value) -> Result<Arc<GeneratedSchema>> {
+    fn generate(&self, schema: CurrentSchemaRef, args: Value) -> Result<Arc<GeneratedSchema>> {
         Err("Operation 'generate' is not supported".into())
     }
 
     #[allow(unused_variables)]
     fn transform(
         &self,
-        schema: Arc<CurrentSchema>,
+        schema: CurrentSchemaRef,
         value: Arc<GeneratedSchema>,
         args: Value,
     ) -> Result<Arc<GeneratedSchema>> {
@@ -47,15 +47,15 @@ pub trait Plugin: Debug {
 }
 
 pub trait PluginConstructor: Plugin + Sized {
-    fn new(args: Box<Value>) -> Result<Self>;
+    fn new(args: Value) -> Result<Self>;
 }
 
 #[macro_export]
 macro_rules! declare_plugin {
-    ($plugin_type:ty, $constructor: expr) => {
+    ($plugin_type:ty, $constructor: path) => {
         impl PluginConstructor for $plugin_type {
-            fn new(args: Box<Value>) -> Result<Self> {
-                Ok($constructor)
+            fn new(args: Value) -> Result<Self> {
+                Ok($constructor())
             }
         }
 
@@ -67,9 +67,10 @@ macro_rules! declare_plugin {
             args: *mut Value,
         ) -> datagen_rs::plugins::plugin::PluginInitResult {
             // make sure the constructor is the correct type.
-            let constructor: fn(args: Box<Value>) -> Result<$plugin_type> = <$plugin_type>::new;
+            let constructor: fn(args: Value) -> Result<$plugin_type> = <$plugin_type>::new;
 
-            constructor(Box::from_raw(args)).into()
+            let args = Box::from_raw(args);
+            constructor(*args).into()
         }
 
         #[no_mangle]

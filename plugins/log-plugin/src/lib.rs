@@ -1,5 +1,5 @@
 use datagen_rs::declare_plugin;
-use datagen_rs::generate::current_schema::CurrentSchema;
+use datagen_rs::generate::current_schema::CurrentSchemaRef;
 use datagen_rs::generate::generated_schema::GeneratedSchema;
 use datagen_rs::plugins::plugin::{Plugin, PluginConstructor};
 use datagen_rs::util::types::Result;
@@ -21,7 +21,7 @@ impl Plugin for LogPlugin {
         "log"
     }
 
-    fn generate(&self, schema: Arc<CurrentSchema>, args: Value) -> Result<Arc<GeneratedSchema>> {
+    fn generate(&self, schema: CurrentSchemaRef, args: Value) -> Result<Arc<GeneratedSchema>> {
         println!("args: {:?}", args);
         let args: Args = serde_json::from_value(args)?;
         println!("generate called with {:?} and args {:?}", schema, args);
@@ -30,7 +30,7 @@ impl Plugin for LogPlugin {
 
     fn transform(
         &self,
-        _: Arc<CurrentSchema>,
+        _: CurrentSchemaRef,
         value: Arc<GeneratedSchema>,
         args: Value,
     ) -> Result<Arc<GeneratedSchema>> {
@@ -45,13 +45,13 @@ impl Plugin for LogPlugin {
     }
 }
 
-impl PluginConstructor for LogPlugin {
-    fn new(args: Box<Value>) -> Result<Self> {
+/*impl PluginConstructor for LogPlugin {
+    fn new(args: Value) -> Result<Self> {
         println!("init");
         println!("new called with {:?}", args);
         Ok(Self::default())
     }
-}
+}*/
 
 impl Drop for LogPlugin {
     fn drop(&mut self) {
@@ -59,4 +59,4 @@ impl Drop for LogPlugin {
     }
 }
 
-declare_plugin!(LogPlugin);
+declare_plugin!(LogPlugin, LogPlugin::default);

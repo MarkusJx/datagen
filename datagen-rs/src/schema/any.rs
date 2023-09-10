@@ -1,5 +1,4 @@
-#[cfg(feature = "generate")]
-use crate::generate::current_schema::CurrentSchema;
+use crate::generate::current_schema::CurrentSchemaRef;
 #[cfg(feature = "generate")]
 use crate::generate::generated_schema::GeneratedSchema;
 #[cfg(feature = "generate")]
@@ -14,8 +13,7 @@ use crate::schema::number::Number;
 use crate::schema::object::Object;
 use crate::schema::reference::Reference;
 use crate::schema::string::StringSchema;
-#[cfg(feature = "generate")]
-use crate::schema::transform::Transform;
+use crate::schema::transform::AnyTransform;
 #[cfg(feature = "generate")]
 use crate::util::types::Result;
 #[cfg(feature = "schema")]
@@ -44,7 +42,7 @@ pub enum Any {
 
 #[cfg(feature = "generate")]
 impl IntoGeneratedArc for Any {
-    fn into_generated_arc(self, schema: Arc<CurrentSchema>) -> Result<Arc<GeneratedSchema>> {
+    fn into_generated_arc(self, schema: CurrentSchemaRef) -> Result<Arc<GeneratedSchema>> {
         match self {
             Any::Number(number) => number.into_random(schema),
             Any::Integer(integer) => integer.into_random(schema),
@@ -59,7 +57,7 @@ impl IntoGeneratedArc for Any {
         }
     }
 
-    fn get_transform(&self) -> Option<Transform> {
+    fn get_transform(&self) -> Option<Vec<AnyTransform>> {
         None
     }
 }

@@ -18,7 +18,7 @@
   },
   "type": "array",
   "length": {
-    "value": 10
+    "value": 2
   },
   "items": {
     "type": "object",
@@ -73,8 +73,7 @@
       "addresses": {
         "type": "array",
         "length": {
-          "min": 0,
-          "max": 3
+          "value": 1
         },
         "items": {
           "type": "object",
@@ -141,13 +140,13 @@
                 "type": "format",
                 "format": "{{street}}, {{city}}, {{state}} {{zip}}, {{country}}",
                 "args": {
-                  "street": "ref:./addresses.street",
-                  "city": "ref:./addresses.city",
-                  "state": "ref:./addresses.state",
-                  "zip": "ref:./addresses.zip",
-                  "country": "ref:./addresses.country"
+                  "street": "ref:./street",
+                  "city": "ref:./city",
+                  "state": "ref:./state",
+                  "zip": "ref:./zip",
+                  "country": "ref:./country"
                 },
-                "serializeRefs": false
+                "serializeNonStrings": false
               }
             }
           }
@@ -161,8 +160,7 @@
       "relatedPersons": {
         "type": "array",
         "length": {
-          "min": 0,
-          "max": 3
+          "value": 1
         },
         "items": {
           "type": "object",
@@ -191,8 +189,21 @@
                 "ref:../../id"
               ]
             }
+          },
+          "transform": [
+            {
+              "type": "filter",
+              "field": "ref:./relatedParty",
+              "operator": "notEquals",
+              "other": null
+            }
+          ]
+        },
+        "transform": [
+          {
+            "type": "filterNonNull"
           }
-        }
+        ]
       },
       "openaddr": {
         "type": "flatten",
@@ -220,6 +231,16 @@
                 "longitude": "longitude"
               }
             }
+          }
+        ],
+        "transform": [
+          {
+            "type": "toString",
+            "subType": "format",
+            "format": "{{street}} {{houseNumber}}, {{city}}"
+          },
+          {
+            "type": "toUpperCase"
           }
         ]
       }

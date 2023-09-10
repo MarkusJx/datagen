@@ -1,8 +1,7 @@
-#[cfg(feature = "generate")]
-use crate::generate::current_schema::CurrentSchema;
+use crate::generate::current_schema::CurrentSchemaRef;
 #[cfg(feature = "generate")]
 use crate::generate::generated_schema::{GeneratedSchema, IntoGenerated};
-use crate::schema::transform::Transform;
+use crate::schema::transform::AnyTransform;
 #[cfg(feature = "generate")]
 use crate::util::types::Result;
 #[cfg(feature = "generate")]
@@ -11,8 +10,6 @@ use rand::Rng;
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
-#[cfg(feature = "generate")]
-use std::sync::Arc;
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "schema", derive(JsonSchema))]
@@ -24,17 +21,17 @@ pub enum Integer {
         min: Option<i32>,
         #[cfg_attr(feature = "serialize", serde(skip_serializing_if = "Option::is_none"))]
         max: Option<i32>,
-        transform: Option<Transform>,
+        transform: Option<Vec<AnyTransform>>,
     },
     Constant {
         value: i32,
-        transform: Option<Transform>,
+        transform: Option<Vec<AnyTransform>>,
     },
 }
 
 #[cfg(feature = "generate")]
 impl IntoGenerated for Integer {
-    fn into_generated(self, _: Arc<CurrentSchema>) -> Result<GeneratedSchema> {
+    fn into_generated(self, _: CurrentSchemaRef) -> Result<GeneratedSchema> {
         Ok(match self {
             Integer::Constant { value, .. } => GeneratedSchema::Integer(value),
             Integer::Random { min, max, .. } => {
@@ -47,7 +44,7 @@ impl IntoGenerated for Integer {
         })
     }
 
-    fn get_transform(&self) -> Option<Transform> {
+    fn get_transform(&self) -> Option<Vec<AnyTransform>> {
         match self {
             Integer::Constant { transform, .. } => transform.clone(),
             Integer::Random { transform, .. } => transform.clone(),

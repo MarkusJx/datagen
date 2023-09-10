@@ -10,14 +10,19 @@ impl SchemaPath {
         Self(VecDeque::new())
     }
 
-    #[cfg(feature = "map_schema")]
+    #[cfg(feature = "generate")]
     pub fn append(&self, path: String) -> SchemaPath {
         let mut res = self.0.clone();
         res.push_back(path);
         Self(res)
     }
 
-    #[cfg(feature = "map_schema")]
+    #[cfg(feature = "generate")]
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    #[cfg(feature = "generate")]
     pub fn normalized_len(&self) -> usize {
         self.0
             .iter()
@@ -25,7 +30,7 @@ impl SchemaPath {
             .count()
     }
 
-    #[cfg(feature = "map_schema")]
+    #[cfg(feature = "generate")]
     pub fn pop(&self, num: i32) -> SchemaPath {
         if num < 0 {
             return self.clone();
@@ -43,7 +48,7 @@ impl SchemaPath {
         Self(res)
     }
 
-    #[cfg(feature = "map_schema")]
+    #[cfg(feature = "generate")]
     pub fn to_normalized_path(&self) -> String {
         self.0
             .iter()

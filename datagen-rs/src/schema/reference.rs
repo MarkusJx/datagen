@@ -1,10 +1,10 @@
 #[cfg(feature = "generate")]
-use crate::generate::current_schema::CurrentSchema;
+use crate::generate::current_schema::CurrentSchemaRef;
 #[cfg(feature = "generate")]
 use crate::generate::generated_schema::GeneratedSchema;
 #[cfg(feature = "generate")]
 use crate::generate::generated_schema::IntoGeneratedArc;
-use crate::schema::transform::Transform;
+use crate::schema::transform::AnyTransform;
 #[cfg(feature = "generate")]
 use crate::util::types::Result;
 #[cfg(feature = "generate")]
@@ -26,7 +26,7 @@ pub struct Reference {
     pub reference: String,
     pub except: Option<Vec<StringOrNumber>>,
     pub keep_all: Option<bool>,
-    pub transform: Option<Transform>,
+    pub transform: Option<Vec<AnyTransform>>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -40,7 +40,7 @@ pub enum StringOrNumber {
 
 #[cfg(feature = "generate")]
 impl IntoGeneratedArc for Reference {
-    fn into_generated_arc(self, schema: Arc<CurrentSchema>) -> Result<Arc<GeneratedSchema>> {
+    fn into_generated_arc(self, schema: CurrentSchemaRef) -> Result<Arc<GeneratedSchema>> {
         let mut reference = self.reference;
         if !reference.starts_with("ref:") {
             reference = format!("ref:{reference}");
@@ -62,7 +62,7 @@ impl IntoGeneratedArc for Reference {
                     Ok(schema.resolve_ref(string)?.into_vec().unwrap_or(vec![]))
                 }
                 StringOrNumber::Number(number) => {
-                    Ok(vec![Arc::new(GeneratedSchema::Number(number))])
+                    Ok(vec![Arc::new(GeneratedSchema::Number(number.into()))])
                 }
             })
             .collect::<Result<Vec<_>>>()?
@@ -85,7 +85,7 @@ impl IntoGeneratedArc for Reference {
         })
     }
 
-    fn get_transform(&self) -> Option<Transform> {
+    fn get_transform(&self) -> Option<Vec<AnyTransform>> {
         self.transform.clone()
     }
 }

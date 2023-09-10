@@ -1,8 +1,8 @@
-#[cfg(feature = "map_schema")]
+#[cfg(feature = "generate")]
 use crate::generate::generated_schema::GeneratedSchema;
 #[cfg(feature = "generate")]
 use crate::generate::resolved_reference::ResolvedReference;
-#[cfg(feature = "map_schema")]
+#[cfg(feature = "generate")]
 use crate::generate::schema_path::SchemaPath;
 #[cfg(feature = "generate")]
 use crate::generate::schema_value::SchemaProperties;
@@ -13,21 +13,33 @@ use crate::schema::schema_definition::SchemaOptions;
 use crate::util::types::Result;
 #[cfg(feature = "generate")]
 use std::collections::BTreeMap;
+#[cfg(not(feature = "send"))]
+use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 
 #[derive(Debug, Clone)]
 #[cfg_attr(not(feature = "generate"), allow(dead_code))]
 pub struct CurrentSchema {
-    parent: Option<Arc<CurrentSchema>>,
-    value: Arc<Mutex<SchemaValue>>,
+    parent: Option<CurrentSchemaRef>,
+    pub(crate) value: Arc<Mutex<SchemaValue>>,
     options: Arc<SchemaOptions>,
     plugins: Arc<PluginList>,
 }
 
+#[cfg(feature = "send")]
+unsafe impl Send for CurrentSchema {}
+#[cfg(feature = "send")]
+unsafe impl Sync for CurrentSchema {}
+
+#[cfg(feature = "send")]
+pub type CurrentSchemaRef = Arc<CurrentSchema>;
+#[cfg(not(feature = "send"))]
+pub type CurrentSchemaRef = Rc<CurrentSchema>;
+
 impl CurrentSchema {
     #[cfg(feature = "generate")]
-    pub fn root(options: Arc<SchemaOptions>, plugins: Arc<PluginList>) -> Arc<Self> {
-        Arc::new(Self {
+    pub fn root(options: Arc<SchemaOptions>, plugins: Arc<PluginList>) -> CurrentSchemaRef {
+        Self {
             parent: None,
             value: Arc::new(Mutex::new(SchemaValue {
                 properties: Arc::new(Mutex::new(BTreeMap::new())),
@@ -35,13 +47,14 @@ impl CurrentSchema {
             })),
             options,
             plugins,
-        })
+        }
+        .into()
     }
 
-    #[cfg(feature = "map_schema")]
+    #[cfg(feature = "generate")]
     pub fn child(
-        parent: Arc<CurrentSchema>,
-        sibling: Option<Arc<CurrentSchema>>,
+        parent: CurrentSchemaRef,
+        sibling: Option<CurrentSchemaRef>,
         path: String,
     ) -> CurrentSchema {
         CurrentSchema {
@@ -124,7 +137,7 @@ impl CurrentSchema {
         }
     }
 
-    #[cfg(feature = "map_schema")]
+    #[cfg(feature = "generate")]
     fn finalize_inner(&self, schema: Arc<GeneratedSchema>, path: &SchemaPath, remove: i32) {
         self.value.lock().unwrap().finalize(
             &self.options,
@@ -137,10 +150,10 @@ impl CurrentSchema {
         }
     }
 
-    #[cfg(feature = "map_schema")]
+    #[cfg(feature = "generate")]
     pub fn finalize(&self, schema: Arc<GeneratedSchema>) -> Arc<GeneratedSchema> {
         let path = self.value.lock().unwrap().path().clone();
-        self.finalize_inner(schema.clone(), &path, (path.normalized_len() as i32) - 1);
+        self.finalize_inner(schema.clone(), &path, (path.len() as i32) - 1);
 
         schema
     }

@@ -1,53 +1,48 @@
-use crate::generate::current_schema::CurrentSchema;
+use crate::generate::current_schema::{CurrentSchema, CurrentSchemaRef};
 use crate::generate::generated_schema::GeneratedSchema;
-use crate::schema::transform::Transform;
+use crate::schema::transform::AnyTransform;
+#[cfg(feature = "generate")]
+use crate::util::traits::TransformTrait;
 use crate::util::types::Result;
 use indexmap::IndexMap;
 use std::sync::Arc;
 
 pub trait MapSchema {
-    fn map_index_map<K, F: Fn(&Arc<CurrentSchema>, K) -> Result<Arc<GeneratedSchema>>>(
+    fn map_index_map<K, F: Fn(&CurrentSchemaRef, K) -> Result<Arc<GeneratedSchema>>>(
         &self,
         map: IndexMap<String, K>,
-        transform: Option<Transform>,
+        transform: Option<Vec<AnyTransform>>,
         finalize: bool,
         func: F,
     ) -> Result<Arc<GeneratedSchema>>;
 
-    fn map_array<K: Clone, F: Fn(&Arc<CurrentSchema>, K) -> Result<Arc<GeneratedSchema>>>(
+    fn map_array<K: Clone, F: Fn(&CurrentSchemaRef, K) -> Result<Arc<GeneratedSchema>>>(
         &self,
         num: usize,
         arg: K,
-        transform: Option<Transform>,
+        transform: Option<Vec<AnyTransform>>,
         finalize: bool,
         func: F,
     ) -> Result<Arc<GeneratedSchema>>;
 }
 
-impl MapSchema for Arc<CurrentSchema> {
-    fn map_index_map<K, F: Fn(&Arc<CurrentSchema>, K) -> Result<Arc<GeneratedSchema>>>(
+#[cfg(feature = "generate")]
+impl MapSchema for CurrentSchemaRef {
+    fn map_index_map<K, F: Fn(&CurrentSchemaRef, K) -> Result<Arc<GeneratedSchema>>>(
         &self,
         map: IndexMap<String, K>,
-        transform: Option<Transform>,
+        transform: Option<Vec<AnyTransform>>,
         finalize: bool,
         func: F,
     ) -> Result<Arc<GeneratedSchema>> {
         let mut res = IndexMap::new();
-        let mut current_schema: Option<Arc<CurrentSchema>> = None;
+        let mut current_schema: Option<CurrentSchemaRef> = None;
 
         for (key, value) in map {
             current_schema = if let Some(cur) = current_schema {
-                Some(Arc::new(CurrentSchema::child(
-                    self.clone(),
-                    Some(cur),
-                    key.clone(),
-                )))
+                Some(CurrentSchema::child(self.clone(), Some(cur), key.clone()).into())
             } else {
-                Some(Arc::new(CurrentSchema::child(
-                    self.clone(),
-                    None,
-                    key.clone(),
-                )))
+                Some(CurrentSchema::child(self.clone(), None, key.clone()).into())
             };
 
             res.insert(key, func(current_schema.as_ref().unwrap(), value)?);
@@ -65,30 +60,22 @@ impl MapSchema for Arc<CurrentSchema> {
         }
     }
 
-    fn map_array<K: Clone, F: Fn(&Arc<CurrentSchema>, K) -> Result<Arc<GeneratedSchema>>>(
+    fn map_array<K: Clone, F: Fn(&CurrentSchemaRef, K) -> Result<Arc<GeneratedSchema>>>(
         &self,
         length: usize,
         value: K,
-        transform: Option<Transform>,
+        transform: Option<Vec<AnyTransform>>,
         finalize: bool,
         func: F,
     ) -> Result<Arc<GeneratedSchema>> {
         let mut res = Vec::with_capacity(length as _);
-        let mut current_schema: Option<Arc<CurrentSchema>> = None;
+        let mut current_schema: Option<CurrentSchemaRef> = None;
 
         for i in 0..length {
             current_schema = if let Some(cur) = current_schema {
-                Some(Arc::new(CurrentSchema::child(
-                    self.clone(),
-                    Some(cur),
-                    i.to_string(),
-                )))
+                Some(CurrentSchema::child(self.clone(), Some(cur), i.to_string()).into())
             } else {
-                Some(Arc::new(CurrentSchema::child(
-                    self.clone(),
-                    None,
-                    i.to_string(),
-                )))
+                Some(CurrentSchema::child(self.clone(), None, i.to_string()).into())
             };
 
             res.push(func(current_schema.as_ref().unwrap(), value.clone())?);

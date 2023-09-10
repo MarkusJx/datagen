@@ -1,11 +1,10 @@
-#[cfg(feature = "generate")]
-use crate::generate::current_schema::CurrentSchema;
+use crate::generate::current_schema::CurrentSchemaRef;
 #[cfg(feature = "generate")]
 use crate::generate::generated_schema::{GeneratedSchema, IntoGenerated};
 #[cfg(feature = "generate")]
 use crate::generate::generated_schema::{IntoGeneratedArc, IntoRandom};
 use crate::schema::reference::Reference;
-use crate::schema::transform::Transform;
+use crate::schema::transform::AnyTransform;
 #[cfg(feature = "generate")]
 use crate::util::types::Result;
 #[cfg(feature = "generate")]
@@ -57,10 +56,7 @@ pub enum StringGenerator {
     Latitude,
     Longitude,
     Phone,
-    #[cfg_attr(
-        feature = "serialize",
-        serde(rename_all = "camelCase")
-    )]
+    #[cfg_attr(feature = "serialize", serde(rename_all = "camelCase"))]
     Format {
         format: String,
         args: BTreeMap<String, FormatArg>,
@@ -75,7 +71,8 @@ pub enum StringGenerator {
 pub enum FormatArg {
     String(String),
     StringSchema(StringSchema),
-    Number(f32),
+    Integer(i32),
+    Number(f64),
     Reference(Reference),
 }
 
@@ -89,24 +86,24 @@ pub enum FormatArg {
 pub enum StringSchema {
     Generated {
         generator: StringGenerator,
-        transform: Option<Transform>,
+        transform: Option<Vec<AnyTransform>>,
     },
     Constant {
         value: String,
-        transform: Option<Transform>,
+        transform: Option<Vec<AnyTransform>>,
     },
 }
 
 #[cfg(feature = "generate")]
 impl IntoGeneratedArc for StringSchema {
-    fn into_generated_arc(self, schema: Arc<CurrentSchema>) -> Result<Arc<GeneratedSchema>> {
+    fn into_generated_arc(self, schema: CurrentSchemaRef) -> Result<Arc<GeneratedSchema>> {
         match self {
             StringSchema::Constant { value, .. } => schema.resolve_ref(value)?.into_random(),
             StringSchema::Generated { generator, .. } => generator.into_random(schema),
         }
     }
 
-    fn get_transform(&self) -> Option<Transform> {
+    fn get_transform(&self) -> Option<Vec<AnyTransform>> {
         match self {
             StringSchema::Constant { transform, .. } => transform.clone(),
             StringSchema::Generated { transform, .. } => transform.clone(),
@@ -116,7 +113,7 @@ impl IntoGeneratedArc for StringSchema {
 
 #[cfg(feature = "generate")]
 impl IntoGenerated for StringGenerator {
-    fn into_generated(self, schema: Arc<CurrentSchema>) -> Result<GeneratedSchema> {
+    fn into_generated(self, schema: CurrentSchemaRef) -> Result<GeneratedSchema> {
         Ok(match self {
             StringGenerator::Uuid => GeneratedSchema::String(UUIDv4.fake()),
             StringGenerator::Email => GeneratedSchema::String(FreeEmail().fake()),
@@ -130,8 +127,8 @@ impl IntoGenerated for StringGenerator {
             StringGenerator::Street => GeneratedSchema::String(StreetName().fake()),
             StringGenerator::State => GeneratedSchema::String(StateName().fake()),
             StringGenerator::ZipCode => GeneratedSchema::String(ZipCode().fake()),
-            StringGenerator::Latitude => GeneratedSchema::Number(Latitude().fake()),
-            StringGenerator::Longitude => GeneratedSchema::Number(Longitude().fake()),
+            StringGenerator::Latitude => GeneratedSchema::Number(Latitude().fake::<f64>().into()),
+            StringGenerator::Longitude => GeneratedSchema::Number(Longitude().fake::<f64>().into()),
             StringGenerator::Phone => GeneratedSchema::String(PhoneNumber().fake()),
             StringGenerator::Format {
                 format,
@@ -148,15 +145,22 @@ impl IntoGenerated for StringGenerator {
                             name,
                             match arg {
                                 FormatArg::Number(num) => {
-                                    Arc::new(GeneratedSchema::String(num.to_string()))
+                                    GeneratedSchema::String(num.to_string()).into()
+                                }
+                                FormatArg::Integer(num) => {
+                                    GeneratedSchema::String(num.to_string()).into()
                                 }
                                 FormatArg::String(str) => schema.resolve_ref(str)?.into_random()?,
                                 FormatArg::StringSchema(str) => {
                                     let res = str.into_generated_arc(schema.clone())?;
-                                    if let GeneratedSchema::Number(num) = res.as_ref() {
-                                        Arc::new(GeneratedSchema::String(num.to_string()))
-                                    } else {
-                                        res
+                                    match res.as_ref() {
+                                        GeneratedSchema::Number(num) => {
+                                            GeneratedSchema::String(num.to_string()).into()
+                                        }
+                                        GeneratedSchema::Integer(num) => {
+                                            GeneratedSchema::String(num.to_string()).into()
+                                        }
+                                        _ => res,
                                     }
                                 }
                                 FormatArg::Reference(reference) => {
@@ -190,7 +194,7 @@ impl IntoGenerated for StringGenerator {
         })
     }
 
-    fn get_transform(&self) -> Option<Transform> {
+    fn get_transform(&self) -> Option<Vec<AnyTransform>> {
         None
     }
 

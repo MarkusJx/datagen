@@ -1,6 +1,4 @@
-use std::cmp::Ordering;
-#[cfg(feature = "generate")]
-use crate::generate::current_schema::CurrentSchema;
+use crate::generate::current_schema::CurrentSchemaRef;
 #[cfg(feature = "generate")]
 use crate::generate::generated_schema::GeneratedSchema;
 #[cfg(feature = "generate")]
@@ -8,18 +6,20 @@ use crate::generate::generated_schema::IntoGeneratedArc;
 #[cfg(feature = "generate")]
 use crate::generate::generated_schema::IntoRandom;
 use crate::schema::any_value::AnyValue;
-use crate::schema::transform::Transform;
+use crate::schema::transform::AnyTransform;
 #[cfg(feature = "generate")]
 use crate::util::types::Result;
 #[cfg(feature = "generate")]
 use rand::seq::SliceRandom;
+#[cfg(feature = "generate")]
+use rand::Rng;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
+use std::cmp::Ordering;
 #[cfg(feature = "generate")]
 use std::sync::Arc;
-use rand::Rng;
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "schema", derive(JsonSchema))]
@@ -27,12 +27,12 @@ use rand::Rng;
 pub struct AnyOf {
     pub values: Vec<AnyValue>,
     pub num: Option<i64>,
-    pub transform: Option<Transform>,
+    pub transform: Option<Vec<AnyTransform>>,
 }
 
 #[cfg(feature = "generate")]
 impl IntoGeneratedArc for AnyOf {
-    fn into_generated_arc(mut self, schema: Arc<CurrentSchema>) -> Result<Arc<GeneratedSchema>> {
+    fn into_generated_arc(mut self, schema: CurrentSchemaRef) -> Result<Arc<GeneratedSchema>> {
         self.values.shuffle(&mut rand::thread_rng());
         let mut num = self.num.unwrap_or(1);
         match num.cmp(&0) {
@@ -56,7 +56,7 @@ impl IntoGeneratedArc for AnyOf {
         }
     }
 
-    fn get_transform(&self) -> Option<Transform> {
+    fn get_transform(&self) -> Option<Vec<AnyTransform>> {
         self.transform.clone()
     }
 }

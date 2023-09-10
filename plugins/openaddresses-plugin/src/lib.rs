@@ -8,7 +8,7 @@ use crate::backends::sqlite_backend::SQLiteBackend;
 use crate::objects::args::{BackendType, IntoGenerated, PluginArgs, StringOrVec};
 use crate::objects::call_args::CallArgs;
 use datagen_rs::declare_plugin;
-use datagen_rs::generate::current_schema::CurrentSchema;
+use datagen_rs::generate::current_schema::CurrentSchemaRef;
 use datagen_rs::generate::generated_schema::GeneratedSchema;
 use datagen_rs::plugins::plugin::{Plugin, PluginConstructor};
 use datagen_rs::util::types::Result;
@@ -34,7 +34,7 @@ impl Plugin for OpenAddressesPlugin {
         "openaddresses"
     }
 
-    fn generate(&self, schema: Arc<CurrentSchema>, args: Value) -> Result<Arc<GeneratedSchema>> {
+    fn generate(&self, schema: CurrentSchemaRef, args: Value) -> Result<Arc<GeneratedSchema>> {
         let args: CallArgs = serde_json::from_value(args)?;
         let feature = self.backend.lock().unwrap().get_random_feature()?;
 
@@ -43,13 +43,12 @@ impl Plugin for OpenAddressesPlugin {
 }
 
 impl PluginConstructor for OpenAddressesPlugin {
-    fn new(args: Box<Value>) -> Result<Self> {
-        let args: PluginArgs = serde_json::from_value(*args)?;
+    fn new(args: Value) -> Result<Self> {
+        let args: PluginArgs = serde_json::from_value(args)?;
         let paths = match args.files.clone() {
             StringOrVec::Single(path) => vec![path],
             StringOrVec::Multiple(paths) => paths,
         };
-
         #[cfg(feature = "log")]
         log4rs::init_config(
             Config::builder()

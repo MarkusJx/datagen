@@ -1,6 +1,6 @@
 use crate::objects::args::IntoGenerated;
 use crate::objects::geo_data::{GeoFeature, Geometry};
-use datagen_rs::generate::current_schema::CurrentSchema;
+use datagen_rs::generate::current_schema::CurrentSchemaRef;
 use datagen_rs::generate::generated_schema::GeneratedSchema;
 use datagen_rs::util::types::Result;
 use serde::Deserialize;
@@ -23,7 +23,7 @@ pub(crate) enum AddressType {
 impl IntoGenerated for AddressType {
     fn into_generated(
         self,
-        _schema: &Arc<CurrentSchema>,
+        _schema: &CurrentSchemaRef,
         feature: &GeoFeature,
     ) -> Result<Arc<GeneratedSchema>> {
         Ok(match self {
@@ -35,10 +35,10 @@ impl IntoGenerated for AddressType {
             AddressType::Region => GeneratedSchema::String(feature.properties.region.clone()),
             AddressType::Postcode => GeneratedSchema::String(feature.properties.postcode.clone()),
             AddressType::Latitude => GeneratedSchema::Number(match feature.geometry {
-                Geometry::Point { coordinates } => coordinates[1],
+                Geometry::Point { coordinates } => coordinates[1].into(),
             }),
             AddressType::Longitude => GeneratedSchema::Number(match feature.geometry {
-                Geometry::Point { coordinates } => coordinates[0],
+                Geometry::Point { coordinates } => coordinates[0].into(),
             }),
         }
         .into())

@@ -41,7 +41,7 @@ const config = {
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
           editUrl:
-            'https://github.com/MarkusJx/datagen/docs/docs/content',
+            'https://github.com/MarkusJx/datagen/tree/main/docs',
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
@@ -101,6 +101,14 @@ const config = {
               {
                 label: 'Generators',
                 to: '/docs/content',
+              },
+              {
+                label: 'Transformers',
+                to: '/docs/transformers',
+              },
+              {
+                label: 'Plugins',
+                to: '/docs/plugins',
               }
             ],
           },
@@ -119,6 +127,7 @@ const config = {
       prism: {
         theme: lightCodeTheme,
         darkTheme: darkCodeTheme,
+        additionalLanguages: ['rust', 'toml']
       },
     }),
 };

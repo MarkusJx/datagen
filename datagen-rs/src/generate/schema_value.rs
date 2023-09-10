@@ -1,8 +1,8 @@
 use crate::generate::generated_schema::GeneratedSchema;
 use crate::generate::schema_path::SchemaPath;
-#[cfg(feature = "map_schema")]
+#[cfg(feature = "generate")]
 use crate::schema::schema_definition::SchemaOptions;
-#[cfg(feature = "map_schema")]
+#[cfg(feature = "generate")]
 use rand::Rng;
 use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex};
@@ -16,7 +16,7 @@ pub(crate) struct SchemaValue {
     pub path: SchemaPath,
 }
 
-#[cfg(feature = "map_schema")]
+#[cfg(feature = "generate")]
 impl SchemaValue {
     pub(crate) fn finalize(
         &mut self,

@@ -1,8 +1,7 @@
-#[cfg(feature = "generate")]
-use crate::generate::current_schema::CurrentSchema;
+use crate::generate::current_schema::CurrentSchemaRef;
 #[cfg(feature = "generate")]
 use crate::generate::generated_schema::{GeneratedSchema, IntoGeneratedArc};
-use crate::schema::transform::Transform;
+use crate::schema::transform::AnyTransform;
 #[cfg(feature = "generate")]
 use crate::util::types::Result;
 #[cfg(feature = "schema")]
@@ -20,18 +19,18 @@ use std::sync::Arc;
 pub struct Generator {
     pub plugin_name: String,
     pub args: Option<Value>,
-    pub transform: Option<Transform>,
+    pub transform: Option<Vec<AnyTransform>>,
 }
 
 #[cfg(feature = "generate")]
 impl IntoGeneratedArc for Generator {
-    fn into_generated_arc(self, schema: Arc<CurrentSchema>) -> Result<Arc<GeneratedSchema>> {
+    fn into_generated_arc(self, schema: CurrentSchemaRef) -> Result<Arc<GeneratedSchema>> {
         schema
             .get_plugin(&self.plugin_name)?
             .generate(schema.clone(), self.args.unwrap_or_default())
     }
 
-    fn get_transform(&self) -> Option<Transform> {
+    fn get_transform(&self) -> Option<Vec<AnyTransform>> {
         self.transform.clone()
     }
 }

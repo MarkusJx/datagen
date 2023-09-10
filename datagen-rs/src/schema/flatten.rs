@@ -1,5 +1,4 @@
-#[cfg(feature = "generate")]
-use crate::generate::current_schema::CurrentSchema;
+use crate::generate::current_schema::CurrentSchemaRef;
 #[cfg(feature = "generate")]
 use crate::generate::generated_schema::GeneratedSchema;
 #[cfg(feature = "generate")]
@@ -8,7 +7,7 @@ use crate::schema::array::Array;
 use crate::schema::generator::Generator;
 use crate::schema::object::Object;
 use crate::schema::reference::Reference;
-use crate::schema::transform::Transform;
+use crate::schema::transform::AnyTransform;
 #[cfg(feature = "generate")]
 use crate::util::types::Result;
 #[cfg(feature = "generate")]
@@ -34,7 +33,7 @@ pub struct Flatten {
     /// not both, otherwise an error will be thrown.
     /// If no values are provided, null will be returned.
     pub values: Vec<FlattenableValue>,
-    pub transform: Option<Transform>,
+    pub transform: Option<Vec<AnyTransform>>,
 }
 
 #[derive(Debug, Clone)]
@@ -50,7 +49,7 @@ pub enum FlattenableValue {
 
 #[cfg(feature = "generate")]
 impl IntoGeneratedArc for FlattenableValue {
-    fn into_generated_arc(self, schema: Arc<CurrentSchema>) -> Result<Arc<GeneratedSchema>> {
+    fn into_generated_arc(self, schema: CurrentSchemaRef) -> Result<Arc<GeneratedSchema>> {
         match self {
             FlattenableValue::Object(object) => object.into_random(schema),
             FlattenableValue::Reference(reference) => reference.into_random(schema),
@@ -59,14 +58,14 @@ impl IntoGeneratedArc for FlattenableValue {
         }
     }
 
-    fn get_transform(&self) -> Option<Transform> {
+    fn get_transform(&self) -> Option<Vec<AnyTransform>> {
         None
     }
 }
 
 #[cfg(feature = "generate")]
 impl IntoGenerated for Flatten {
-    fn into_generated(self, schema: Arc<CurrentSchema>) -> Result<GeneratedSchema> {
+    fn into_generated(self, schema: CurrentSchemaRef) -> Result<GeneratedSchema> {
         let generated = self
             .values
             .into_iter()
@@ -110,7 +109,7 @@ impl IntoGenerated for Flatten {
         }
     }
 
-    fn get_transform(&self) -> Option<Transform> {
+    fn get_transform(&self) -> Option<Vec<AnyTransform>> {
         self.transform.clone()
     }
 }

@@ -1,6 +1,6 @@
 #[cfg(feature = "plugin")]
 use datagen_rs::declare_plugin;
-use datagen_rs::generate::current_schema::CurrentSchema;
+use datagen_rs::generate::current_schema::CurrentSchemaRef;
 use datagen_rs::generate::generated_schema::GeneratedSchema;
 use datagen_rs::generate::generated_schema::IntoRandom;
 use datagen_rs::generate::schema_mapper::MapSchema;
@@ -12,13 +12,14 @@ use datagen_rs::schema::any_of::AnyOf;
 use datagen_rs::schema::any_value::AnyValue;
 use datagen_rs::schema::array::{Array, ArrayLength};
 use datagen_rs::schema::object::Object;
+use datagen_rs::util::traits::TransformTrait;
 use datagen_rs::util::types::Result;
 use rand::prelude::SliceRandom;
+use rand::Rng;
 use serde_json::Value;
 use std::fmt::Debug;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
-use rand::Rng;
 
 pub struct ProgressPlugin<F: Fn(usize, usize)> {
     total_elements: AtomicUsize,
@@ -53,7 +54,7 @@ impl<F: Fn(usize, usize)> ProgressPlugin<F> {
 
     fn convert_any_value(
         &self,
-        schema: Arc<CurrentSchema>,
+        schema: CurrentSchemaRef,
         val: AnyValue,
     ) -> Result<Arc<GeneratedSchema>> {
         match val {
@@ -69,7 +70,7 @@ impl<F: Fn(usize, usize)> ProgressPlugin<F> {
 
     fn convert_array(
         &self,
-        schema: Arc<CurrentSchema>,
+        schema: CurrentSchemaRef,
         array: Array,
     ) -> Result<Arc<GeneratedSchema>> {
         let len = array.length.get_length();
@@ -88,7 +89,7 @@ impl<F: Fn(usize, usize)> ProgressPlugin<F> {
 
     fn convert_object(
         &self,
-        schema: Arc<CurrentSchema>,
+        schema: CurrentSchemaRef,
         object: Object,
     ) -> Result<Arc<GeneratedSchema>> {
         schema.map_index_map(object.properties, object.transform, true, |cur, value| {
@@ -98,14 +99,16 @@ impl<F: Fn(usize, usize)> ProgressPlugin<F> {
 
     fn convert_any_of(
         &self,
-        schema: Arc<CurrentSchema>,
+        schema: CurrentSchemaRef,
         mut any_of: AnyOf,
     ) -> Result<Arc<GeneratedSchema>> {
         any_of.values.shuffle(&mut rand::thread_rng());
         let mut num = any_of.num.unwrap_or(1);
         match num.cmp(&0) {
             core::cmp::Ordering::Equal => num = any_of.values.len() as i64,
-            core::cmp::Ordering::Less => num = rand::thread_rng().gen_range(0..any_of.values.len() as i64),
+            core::cmp::Ordering::Less => {
+                num = rand::thread_rng().gen_range(0..any_of.values.len() as i64)
+            }
             _ => {}
         }
 
@@ -146,8 +149,10 @@ impl<F: Fn(usize, usize)> ProgressPlugin<F> {
                     any_of.values.shuffle(&mut rand::thread_rng());
                     let mut num = any_of.num.unwrap_or(1);
                     match num.cmp(&0) {
-                        core::cmp::Ordering::Equal => num = - 1,
-                        core::cmp::Ordering::Less => num = rand::thread_rng().gen_range(0..any_of.values.len() as i64),
+                        core::cmp::Ordering::Equal => num = -1,
+                        core::cmp::Ordering::Less => {
+                            num = rand::thread_rng().gen_range(0..any_of.values.len() as i64)
+                        }
                         _ => {}
                     }
 
@@ -181,7 +186,7 @@ impl<F: Fn(usize, usize)> Plugin for ProgressPlugin<F> {
         "progress"
     }
 
-    fn generate(&self, schema: Arc<CurrentSchema>, args: Value) -> Result<Arc<GeneratedSchema>> {
+    fn generate(&self, schema: CurrentSchemaRef, args: Value) -> Result<Arc<GeneratedSchema>> {
         let mut val: AnyValue = serde_json::from_value(args)?;
 
         self.total_elements
@@ -192,7 +197,7 @@ impl<F: Fn(usize, usize)> Plugin for ProgressPlugin<F> {
 
 #[cfg(feature = "plugin")]
 impl PluginConstructor for ProgressPlugin<fn(usize, usize)> {
-    fn new(_args: Box<Value>) -> Result<Self> {
+    fn new(_args: Value) -> Result<Self> {
         Ok(Self {
             total_elements: AtomicUsize::new(0),
             progress: AtomicUsize::new(0),
