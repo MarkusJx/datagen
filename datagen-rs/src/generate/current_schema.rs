@@ -15,15 +15,17 @@ use crate::util::types::Result;
 use std::collections::BTreeMap;
 #[cfg(not(feature = "send"))]
 use std::rc::Rc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 #[cfg_attr(not(feature = "generate"), allow(dead_code))]
 pub struct CurrentSchema {
     parent: Option<CurrentSchemaRef>,
     pub(crate) value: Arc<Mutex<SchemaValue>>,
     options: Arc<SchemaOptions>,
     plugins: Arc<PluginList>,
+    finalized: AtomicBool,
 }
 
 #[cfg(feature = "send")]
@@ -47,6 +49,7 @@ impl CurrentSchema {
             })),
             options,
             plugins,
+            finalized: AtomicBool::default(),
         }
         .into()
     }
@@ -67,6 +70,7 @@ impl CurrentSchema {
             })),
             options: parent.options.clone(),
             plugins: parent.plugins.clone(),
+            finalized: AtomicBool::default(),
         }
     }
 
@@ -85,7 +89,7 @@ impl CurrentSchema {
             if props.len() == 1 {
                 ResolvedReference::Single(props.get(0).unwrap().clone())
             } else {
-                ResolvedReference::multiple(props.clone())
+                ResolvedReference::multiple(props.clone().into())
             }
         } else {
             ResolvedReference::none()
@@ -152,8 +156,13 @@ impl CurrentSchema {
 
     #[cfg(feature = "generate")]
     pub fn finalize(&self, schema: Arc<GeneratedSchema>) -> Arc<GeneratedSchema> {
+        if self.finalized.load(Ordering::SeqCst) {
+            return schema;
+        }
+
         let path = self.value.lock().unwrap().path().clone();
         self.finalize_inner(schema.clone(), &path, (path.len() as i32) - 1);
+        self.finalized.store(true, Ordering::SeqCst);
 
         schema
     }

@@ -1,5 +1,6 @@
 use crate::plugins::transform::filter::FilterTransform;
 use crate::plugins::transform::regex_filter::RegexFilter;
+use crate::plugins::transform::sort::SortTransform;
 use crate::plugins::transform::string_transform::ToLowerCase;
 use crate::plugins::transform::string_transform::ToUpperCase;
 use crate::plugins::transform::to_string::ToStringTransform;
@@ -40,6 +41,7 @@ pub enum Transform {
     ToString(ToStringTransform),
     ToUpperCase(ToUpperCase),
     ToLowerCase(ToLowerCase),
+    Sort(SortTransform),
 }
 
 #[derive(Debug, Clone)]
@@ -120,6 +122,7 @@ pub mod generate {
                 Transform::ToLowerCase(to_lower_case) => to_lower_case.transform(schema, value),
                 Transform::ToUpperCase(to_upper_case) => to_upper_case.transform(schema, value),
                 Transform::RegexFilter(regex_filter) => regex_filter.transform(schema, value),
+                Transform::Sort(sort) => sort.transform(schema, value),
             }
         }
     }

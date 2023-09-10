@@ -1,3 +1,5 @@
+#[cfg(feature = "serialize")]
+use serde::{Serialize, Serializer};
 use std::collections::VecDeque;
 use std::fmt::Display;
 
@@ -22,7 +24,7 @@ impl SchemaPath {
         self.0.len()
     }
 
-    #[cfg(feature = "generate")]
+    #[cfg(any())]
     pub fn normalized_len(&self) -> usize {
         self.0
             .iter()
@@ -56,6 +58,16 @@ impl SchemaPath {
             .cloned()
             .collect::<Vec<_>>()
             .join(".")
+    }
+}
+
+#[cfg(feature = "serialize")]
+impl Serialize for SchemaPath {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
     }
 }
 

@@ -2,11 +2,14 @@
   "$schema": "./schema.json",
   "options": {
     "plugins": {
-      "openaddresses_plugin": {
-        "files": "./datagen-rs/us_ak_haines.geojson",
-        "backend": {
-          "type": "sqlite",
-          "databaseName": "addresses.db"
+      "addresses": {
+        "path": "openaddresses_plugin",
+        "args": {
+          "files": "./datagen-rs/us_ak_haines.geojson",
+          "backend": {
+            "type": "sqlite",
+            "databaseName": "addresses.db"
+          }
         }
       }
     },
@@ -18,7 +21,7 @@
   },
   "type": "array",
   "length": {
-    "value": 2
+    "value": 3
   },
   "items": {
     "type": "object",
@@ -73,7 +76,7 @@
       "addresses": {
         "type": "array",
         "length": {
-          "value": 1
+          "value": 0
         },
         "items": {
           "type": "object",
@@ -160,7 +163,7 @@
       "relatedPersons": {
         "type": "array",
         "length": {
-          "value": 1
+          "value": 3
         },
         "items": {
           "type": "object",
@@ -221,7 +224,7 @@
           },
           {
             "type": "generator",
-            "pluginName": "openaddresses_plugin",
+            "pluginName": "addresses",
             "args": {
               "street": "street",
               "houseNumber": "number",

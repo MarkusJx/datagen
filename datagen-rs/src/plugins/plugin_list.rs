@@ -32,6 +32,13 @@ pub struct PluginList {
 }
 
 impl PluginList {
+    #[cfg(test)]
+    pub fn empty() -> Self {
+        Self {
+            plugins: HashMap::new(),
+        }
+    }
+
     #[cfg(feature = "plugin")]
     pub fn from_schema(
         schema: &Schema,
@@ -188,6 +195,7 @@ impl PluginList {
                     Any::Reference(reference) => reference.get_transform(),
                     Any::Integer(integer) => IntoGeneratedArc::get_transform(integer),
                     Any::Number(number) => IntoGeneratedArc::get_transform(number),
+                    Any::Counter(counter) => IntoGeneratedArc::get_transform(counter),
                     Any::Bool(boolean) => IntoGeneratedArc::get_transform(boolean),
                     Any::Generator(generator) => generator.get_transform(),
                     Any::Object(_) => panic!("Object should be handled above"),

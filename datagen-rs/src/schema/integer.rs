@@ -18,13 +18,13 @@ use serde::{Deserialize, Serialize};
 pub enum Integer {
     Random {
         #[cfg_attr(feature = "serialize", serde(skip_serializing_if = "Option::is_none"))]
-        min: Option<i32>,
+        min: Option<i64>,
         #[cfg_attr(feature = "serialize", serde(skip_serializing_if = "Option::is_none"))]
-        max: Option<i32>,
+        max: Option<i64>,
         transform: Option<Vec<AnyTransform>>,
     },
     Constant {
-        value: i32,
+        value: i64,
         transform: Option<Vec<AnyTransform>>,
     },
 }
@@ -36,8 +36,8 @@ impl IntoGenerated for Integer {
             Integer::Constant { value, .. } => GeneratedSchema::Integer(value),
             Integer::Random { min, max, .. } => {
                 let mut rng = rand::thread_rng();
-                let min = min.unwrap_or(i32::MIN);
-                let max = max.unwrap_or(i32::MAX);
+                let min = min.unwrap_or(i64::MIN);
+                let max = max.unwrap_or(i64::MAX);
                 let value = rng.gen_range(min..=max);
                 GeneratedSchema::Integer(value)
             }

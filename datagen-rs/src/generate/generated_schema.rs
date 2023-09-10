@@ -20,7 +20,7 @@ use std::sync::Arc;
 pub enum GeneratedSchema {
     None,
     Number(OrderedFloat<f64>),
-    Integer(i32),
+    Integer(i64),
     Bool(bool),
     String(String),
     Array(Vec<Arc<GeneratedSchema>>),

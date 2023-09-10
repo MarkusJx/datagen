@@ -6,6 +6,7 @@ use crate::generate::generated_schema::{IntoGeneratedArc, IntoRandom};
 use crate::schema::any_of::AnyOf;
 use crate::schema::array::Array;
 use crate::schema::bool::Bool;
+use crate::schema::counter::Counter;
 use crate::schema::flatten::Flatten;
 use crate::schema::generator::Generator;
 use crate::schema::integer::Integer;
@@ -30,6 +31,7 @@ use std::sync::Arc;
 pub enum Any {
     Number(Number),
     Integer(Integer),
+    Counter(Counter),
     Bool(Bool),
     String(StringSchema),
     AnyOf(AnyOf),
@@ -46,6 +48,7 @@ impl IntoGeneratedArc for Any {
         match self {
             Any::Number(number) => number.into_random(schema),
             Any::Integer(integer) => integer.into_random(schema),
+            Any::Counter(counter) => counter.into_random(schema),
             Any::Bool(bool) => bool.into_random(schema),
             Any::String(string) => string.into_random(schema),
             Any::AnyOf(any_of) => any_of.into_random(schema),

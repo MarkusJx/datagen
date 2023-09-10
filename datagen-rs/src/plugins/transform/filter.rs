@@ -13,11 +13,11 @@ pub struct FilterTransform {
     /// The field or reference to the field which will be used to compare the value
     /// with the other value specified in the `other` field. If this is not specified,
     /// the value itself will be used.
-    field: Option<ReferenceOrString>,
+    pub field: Option<ReferenceOrString>,
     /// The operator which will be used to compare the value with the other value
-    operator: FilterTransformOp,
+    pub operator: FilterTransformOp,
     /// The value which will be used to compare the value with
-    other: GeneratedSchema,
+    pub other: GeneratedSchema,
 }
 
 #[derive(Debug, Clone)]

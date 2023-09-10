@@ -69,16 +69,10 @@ impl MapSchema for CurrentSchemaRef {
         func: F,
     ) -> Result<Arc<GeneratedSchema>> {
         let mut res = Vec::with_capacity(length as _);
-        let mut current_schema: Option<CurrentSchemaRef> = None;
 
         for i in 0..length {
-            current_schema = if let Some(cur) = current_schema {
-                Some(CurrentSchema::child(self.clone(), Some(cur), i.to_string()).into())
-            } else {
-                Some(CurrentSchema::child(self.clone(), None, i.to_string()).into())
-            };
-
-            res.push(func(current_schema.as_ref().unwrap(), value.clone())?);
+            let current_schema = CurrentSchema::child(self.clone(), None, i.to_string()).into();
+            res.push(func(&current_schema, value.clone())?);
         }
 
         if finalize {
