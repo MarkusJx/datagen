@@ -27,4 +27,4 @@ jobs:
         if: always()
         with:
           show: all
-          paths: target/nextest/junit.xml
+          paths: target/nextest/ci/junit.xml
