@@ -21,4 +21,10 @@ jobs:
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2.2.1
       - name: Test datagen-rs
-        run: cargo nextest run -p datagen-rs --features all --lib
+        run: cargo nextest run -p datagen-rs --features all --lib -P ci
+      - name: Create test summary
+        uses: test-summary/action@dist
+        if: always()
+        with:
+          show: all
+          paths: target/nextest/junit.xml
