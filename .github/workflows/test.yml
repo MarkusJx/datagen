@@ -15,7 +15,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+      - uses: cargo-bins/cargo-binstall@main
+      - name: Install nextest
+        run: cargo binstall cargo-nextest --secure
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2.2.1
       - name: Test datagen-rs
-        run: cargo test --package datagen-rs --features all --lib
+        run: cargo nextest run --p datagen-rs --features all --lib
