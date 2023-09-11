@@ -56,9 +56,10 @@ pub enum ReferenceOrString {
 #[cfg(feature = "generate")]
 pub mod generate {
     use crate::generate::current_schema::CurrentSchemaRef;
-    use crate::generate::generated_schema::{GeneratedSchema, IntoGeneratedArc};
+    use crate::generate::generated_schema::generate::IntoGeneratedArc;
+    use crate::generate::generated_schema::GeneratedSchema;
     use crate::schema::transform::{AnyTransform, ReferenceOrString, Transform};
-    use crate::util::traits::{ResolveRef, TransformTrait};
+    use crate::util::traits::generate::{ResolveRef, TransformTrait};
     use crate::util::types::Result;
     use indexmap::IndexMap;
     use std::sync::Arc;

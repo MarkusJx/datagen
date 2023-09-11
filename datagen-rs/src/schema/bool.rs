@@ -1,11 +1,4 @@
-use crate::generate::current_schema::CurrentSchemaRef;
-#[cfg(feature = "generate")]
-use crate::generate::generated_schema::{GeneratedSchema, IntoGenerated};
 use crate::schema::transform::AnyTransform;
-#[cfg(feature = "generate")]
-use crate::util::types::Result;
-#[cfg(feature = "generate")]
-use rand::Rng;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
@@ -27,22 +20,32 @@ pub enum Bool {
 }
 
 #[cfg(feature = "generate")]
-impl IntoGenerated for Bool {
-    fn into_generated(self, _: CurrentSchemaRef) -> Result<GeneratedSchema> {
-        Ok(match self {
-            Bool::Constant { value, .. } => GeneratedSchema::Bool(value),
-            Bool::Random { probability, .. } => {
-                let mut rng = rand::thread_rng();
-                let value = rng.gen_bool(probability.unwrap_or(0.5));
-                GeneratedSchema::Bool(value)
-            }
-        })
-    }
+pub mod generate {
+    use crate::generate::current_schema::CurrentSchemaRef;
+    use crate::generate::generated_schema::generate::IntoGenerated;
+    use crate::generate::generated_schema::GeneratedSchema;
+    use crate::schema::bool::Bool;
+    use crate::schema::transform::AnyTransform;
+    use crate::util::types::Result;
+    use rand::Rng;
 
-    fn get_transform(&self) -> Option<Vec<AnyTransform>> {
-        match self {
-            Bool::Constant { transform, .. } => transform.clone(),
-            Bool::Random { transform, .. } => transform.clone(),
+    impl IntoGenerated for Bool {
+        fn into_generated(self, _: CurrentSchemaRef) -> Result<GeneratedSchema> {
+            Ok(match self {
+                Bool::Constant { value, .. } => GeneratedSchema::Bool(value),
+                Bool::Random { probability, .. } => {
+                    let mut rng = rand::thread_rng();
+                    let value = rng.gen_bool(probability.unwrap_or(0.5));
+                    GeneratedSchema::Bool(value)
+                }
+            })
+        }
+
+        fn get_transform(&self) -> Option<Vec<AnyTransform>> {
+            match self {
+                Bool::Constant { transform, .. } => transform.clone(),
+                Bool::Random { transform, .. } => transform.clone(),
+            }
         }
     }
 }

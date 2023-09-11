@@ -1,8 +1,4 @@
 use crate::generate::current_schema::CurrentSchemaRef;
-#[cfg(feature = "generate")]
-use crate::schema::transform::AnyTransform;
-#[cfg(feature = "generate")]
-use crate::util::traits::TransformTrait;
 use crate::util::types::Result;
 use indexmap::IndexMap;
 use ordered_float::OrderedFloat;
@@ -43,68 +39,74 @@ impl GeneratedSchema {
     }
 }
 
-#[cfg(feature = "generate")]
-pub(crate) trait IntoGenerated: Sized {
-    fn into_generated(self, schema: CurrentSchemaRef) -> Result<GeneratedSchema>;
-
-    fn get_transform(&self) -> Option<Vec<AnyTransform>>;
-
-    fn should_finalize(&self) -> bool {
-        true
-    }
-}
-
-#[cfg(feature = "generate")]
-pub(crate) trait IntoGeneratedArc: Sized {
-    fn into_generated_arc(self, schema: CurrentSchemaRef) -> Result<Arc<GeneratedSchema>>;
-
-    fn get_transform(&self) -> Option<Vec<AnyTransform>>;
-
-    fn should_finalize(&self) -> bool {
-        true
-    }
-}
-
-#[cfg(feature = "generate")]
-impl<T> IntoGeneratedArc for T
-where
-    T: IntoGenerated,
-{
-    fn into_generated_arc(self, schema: CurrentSchemaRef) -> Result<Arc<GeneratedSchema>> {
-        Ok(Arc::new(self.into_generated(schema)?))
-    }
-
-    fn get_transform(&self) -> Option<Vec<AnyTransform>> {
-        self.get_transform()
-    }
-
-    fn should_finalize(&self) -> bool {
-        self.should_finalize()
-    }
-}
-
 pub trait IntoRandom {
     fn into_random(self, schema: CurrentSchemaRef) -> Result<Arc<GeneratedSchema>>;
 }
 
 #[cfg(feature = "generate")]
-impl<T> IntoRandom for T
-where
-    T: IntoGeneratedArc,
-{
-    fn into_random(self, schema: CurrentSchemaRef) -> Result<Arc<GeneratedSchema>> {
-        let transform = self.get_transform();
-        let should_finalize = self.should_finalize();
+pub mod generate {
+    use crate::generate::current_schema::CurrentSchemaRef;
+    use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
+    use crate::schema::transform::AnyTransform;
+    use crate::util::traits::generate::TransformTrait;
+    use crate::util::types::Result;
+    use std::sync::Arc;
 
-        let mut res = self.into_generated_arc(schema.clone())?;
-        if let Some(transform) = transform {
-            res = transform.transform(schema.clone(), res)?;
+    pub(crate) trait IntoGenerated: Sized {
+        fn into_generated(self, schema: CurrentSchemaRef) -> Result<GeneratedSchema>;
+
+        fn get_transform(&self) -> Option<Vec<AnyTransform>>;
+
+        fn should_finalize(&self) -> bool {
+            true
+        }
+    }
+
+    pub(crate) trait IntoGeneratedArc: Sized {
+        fn into_generated_arc(self, schema: CurrentSchemaRef) -> Result<Arc<GeneratedSchema>>;
+
+        fn get_transform(&self) -> Option<Vec<AnyTransform>>;
+
+        fn should_finalize(&self) -> bool {
+            true
+        }
+    }
+
+    impl<T> IntoGeneratedArc for T
+    where
+        T: IntoGenerated,
+    {
+        fn into_generated_arc(self, schema: CurrentSchemaRef) -> Result<Arc<GeneratedSchema>> {
+            Ok(Arc::new(self.into_generated(schema)?))
         }
 
-        Ok(if should_finalize {
-            schema.finalize(res)
-        } else {
-            res
-        })
+        fn get_transform(&self) -> Option<Vec<AnyTransform>> {
+            self.get_transform()
+        }
+
+        fn should_finalize(&self) -> bool {
+            self.should_finalize()
+        }
+    }
+
+    impl<T> IntoRandom for T
+    where
+        T: IntoGeneratedArc,
+    {
+        fn into_random(self, schema: CurrentSchemaRef) -> Result<Arc<GeneratedSchema>> {
+            let transform = self.get_transform();
+            let should_finalize = self.should_finalize();
+
+            let mut res = self.into_generated_arc(schema.clone())?;
+            if let Some(transform) = transform {
+                res = transform.transform(schema.clone(), res)?;
+            }
+
+            Ok(if should_finalize {
+                schema.finalize(res)
+            } else {
+                res
+            })
+        }
     }
 }

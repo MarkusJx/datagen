@@ -16,5 +16,27 @@ but features more complex references and a plugin system.
 
 ## Usage
 
-Simply grab a binary from the workflow artifacts or build it yourself
-using `cargo build --release`.
+Simply grab a [binary built during a workflow run](https://github.com/MarkusJx/datagen/actions/workflows/build.yml?query=branch%3Amain)
+or build it yourself using `cargo build -p cli --release`.
+
+### Quick start
+
+Create a file called `schema.json` with the following content:
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "value": "John"
+    },
+    "age": {
+      "type": "integer",
+      "value": 20
+    }
+  }
+}
+```
+
+Then run `datagen generate schema.json` to generate data.

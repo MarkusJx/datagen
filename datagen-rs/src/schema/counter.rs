@@ -15,9 +15,11 @@ pub struct Counter {
     pub transform: Option<Vec<AnyTransform>>,
 }
 
+#[cfg(feature = "generate")]
 pub mod generate {
     use crate::generate::current_schema::CurrentSchemaRef;
-    use crate::generate::generated_schema::{GeneratedSchema, IntoGenerated};
+    use crate::generate::generated_schema::generate::IntoGenerated;
+    use crate::generate::generated_schema::GeneratedSchema;
     use crate::schema::counter::{Counter, COUNTER};
     use crate::schema::transform::AnyTransform;
     use crate::util::types::Result;

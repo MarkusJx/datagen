@@ -40,7 +40,7 @@ pub mod generate {
     use crate::generate::current_schema::CurrentSchemaRef;
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::plugins::transform::string_case_transform::{ToLowerCase, ToUpperCase};
-    use crate::util::traits::TransformTrait;
+    use crate::util::traits::generate::TransformTrait;
     use crate::util::types::Result;
     use indexmap::IndexMap;
     use std::sync::Arc;

@@ -1,11 +1,4 @@
-use crate::generate::current_schema::CurrentSchemaRef;
-#[cfg(feature = "generate")]
-use crate::generate::generated_schema::{GeneratedSchema, IntoGenerated};
 use crate::schema::transform::AnyTransform;
-#[cfg(feature = "generate")]
-use crate::util::types::Result;
-#[cfg(feature = "generate")]
-use rand::Rng;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
@@ -30,24 +23,34 @@ pub enum Integer {
 }
 
 #[cfg(feature = "generate")]
-impl IntoGenerated for Integer {
-    fn into_generated(self, _: CurrentSchemaRef) -> Result<GeneratedSchema> {
-        Ok(match self {
-            Integer::Constant { value, .. } => GeneratedSchema::Integer(value),
-            Integer::Random { min, max, .. } => {
-                let mut rng = rand::thread_rng();
-                let min = min.unwrap_or(i64::MIN);
-                let max = max.unwrap_or(i64::MAX);
-                let value = rng.gen_range(min..=max);
-                GeneratedSchema::Integer(value)
-            }
-        })
-    }
+pub mod generate {
+    use crate::generate::current_schema::CurrentSchemaRef;
+    use crate::generate::generated_schema::generate::IntoGenerated;
+    use crate::generate::generated_schema::GeneratedSchema;
+    use crate::schema::integer::Integer;
+    use crate::schema::transform::AnyTransform;
+    use crate::util::types::Result;
+    use rand::Rng;
 
-    fn get_transform(&self) -> Option<Vec<AnyTransform>> {
-        match self {
-            Integer::Constant { transform, .. } => transform.clone(),
-            Integer::Random { transform, .. } => transform.clone(),
+    impl IntoGenerated for Integer {
+        fn into_generated(self, _: CurrentSchemaRef) -> Result<GeneratedSchema> {
+            Ok(match self {
+                Integer::Constant { value, .. } => GeneratedSchema::Integer(value),
+                Integer::Random { min, max, .. } => {
+                    let mut rng = rand::thread_rng();
+                    let min = min.unwrap_or(i64::MIN);
+                    let max = max.unwrap_or(i64::MAX);
+                    let value = rng.gen_range(min..=max);
+                    GeneratedSchema::Integer(value)
+                }
+            })
+        }
+
+        fn get_transform(&self) -> Option<Vec<AnyTransform>> {
+            match self {
+                Integer::Constant { transform, .. } => transform.clone(),
+                Integer::Random { transform, .. } => transform.clone(),
+            }
         }
     }
 }

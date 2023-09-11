@@ -12,7 +12,7 @@ use datagen_rs::schema::any_of::AnyOf;
 use datagen_rs::schema::any_value::AnyValue;
 use datagen_rs::schema::array::{Array, ArrayLength};
 use datagen_rs::schema::object::Object;
-use datagen_rs::util::traits::TransformTrait;
+use datagen_rs::util::traits::generate::TransformTrait;
 use datagen_rs::util::types::Result;
 use rand::prelude::SliceRandom;
 use rand::Rng;

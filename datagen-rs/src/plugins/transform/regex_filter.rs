@@ -17,7 +17,7 @@ pub mod generate {
     use crate::generate::current_schema::CurrentSchemaRef;
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::plugins::transform::regex_filter::RegexFilter;
-    use crate::util::traits::TransformTrait;
+    use crate::util::traits::generate::TransformTrait;
     use crate::util::types::Result;
     use std::sync::Arc;
 

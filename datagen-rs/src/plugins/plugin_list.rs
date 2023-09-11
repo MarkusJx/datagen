@@ -1,5 +1,5 @@
 #[cfg(feature = "plugin")]
-use crate::generate::generated_schema::IntoGeneratedArc;
+use crate::generate::generated_schema::generate::IntoGeneratedArc;
 #[cfg(feature = "plugin")]
 use crate::plugins::imported_plugin::ImportedPlugin;
 use crate::plugins::plugin::Plugin;
@@ -33,6 +33,7 @@ pub struct PluginList {
 
 impl PluginList {
     #[cfg(test)]
+    #[allow(dead_code)]
     pub fn empty() -> Self {
         Self {
             plugins: HashMap::new(),
