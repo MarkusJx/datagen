@@ -1,11 +1,9 @@
 use crate::generate::generated_schema::GeneratedSchema;
 use crate::generate::generated_schema::IntoRandom;
+use crate::generate_schema;
 use crate::plugins::transform::filter::{FilterTransform, FilterTransformOp};
-use crate::schema::any::Any;
 use crate::schema::any_value::AnyValue;
-use crate::schema::array::{Array, ArrayLength};
 use crate::schema::object::Object;
-use crate::schema::schema_definition::Schema;
 use crate::schema::string::StringSchema;
 use crate::schema::transform::{AnyTransform, ReferenceOrString, Transform};
 use crate::tests::util::root_schema;
@@ -96,7 +94,7 @@ fn test_filter_reference() {
 
 #[test]
 fn test_filter_complex_reference() {
-    let json = json!({
+    let generated = generate_schema!({
         "type": "array",
         "length": {
             "value": 3
@@ -146,10 +144,8 @@ fn test_filter_complex_reference() {
                 }
             }
         }
-    });
-
-    let schema: AnyValue = serde_json::from_value(json).unwrap();
-    let generated = schema.into_random(root_schema()).unwrap();
+    })
+    .unwrap();
 
     let res = json!([
         {

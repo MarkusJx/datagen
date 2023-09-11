@@ -28,7 +28,7 @@ pub mod generate {
         Integer(i64),
         String(String),
         Bool(bool),
-        None
+        None,
     }
 
     impl TryFrom<&GeneratedSchema> for ComparableSchema {
@@ -41,7 +41,7 @@ pub mod generate {
                 GeneratedSchema::String(string) => Ok(ComparableSchema::String(string.clone())),
                 GeneratedSchema::Bool(bool) => Ok(ComparableSchema::Bool(*bool)),
                 GeneratedSchema::None => Ok(ComparableSchema::None),
-                _ => Err("Cannot convert to Comparable".into()),
+                _ => Err(format!("Cannot convert {} to comparable", value.name()).into()),
             }
         }
     }
@@ -52,11 +52,11 @@ pub mod generate {
                 if let Some(value) = obj.get(key) {
                     value.as_ref().try_into()
                 } else {
-                    Err(format!("Key {} not found in object", key).into())
+                    Err(format!("Key '{}' not found in object", key).into())
                 }
-            },
+            }
             GeneratedSchema::None => Ok(ComparableSchema::None),
-            _ => Err("Sort can only be applied to objects".into())
+            _ => Err("Sort can only be applied to objects".into()),
         }
     }
 
@@ -105,7 +105,6 @@ pub mod generate {
                     )))
                 }
             } else {
-                println!("{:?}", value);
                 Err("Sort can only be applied to arrays".into())
             }
         }

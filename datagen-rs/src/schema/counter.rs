@@ -24,7 +24,7 @@ pub mod generate {
     use std::sync::atomic::Ordering;
 
     impl IntoGenerated for Counter {
-        fn into_generated(self, schema: CurrentSchemaRef) -> Result<GeneratedSchema> {
+        fn into_generated(self, _schema: CurrentSchemaRef) -> Result<GeneratedSchema> {
             let value = unsafe { COUNTER.fetch_add(1, Ordering::SeqCst) };
             Ok(GeneratedSchema::Integer(value))
         }

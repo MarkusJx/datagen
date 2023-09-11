@@ -37,3 +37,5 @@ Will generate:
 * [`toLowerCase`](toLowerCase.md)
 * [`toUpperCase`](toUpperCase.md)
 * [`plugin`](plugin.md)
+* [`sort`](sort.md)
+* [`regexFilter`](regexFilter.md)

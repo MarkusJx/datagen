@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serialize", serde(rename_all = "camelCase"))]
 pub struct RegexFilter {
-    pub regex: String,
+    pub pattern: String,
     pub serialize_non_strings: Option<bool>,
 }
 
@@ -32,17 +32,17 @@ pub mod generate {
                 _ => {
                     if self
                         .serialize_non_strings
-                        .or(schema.options().serialize_refs)
+                        .or(schema.options().serialize_non_strings)
                         .unwrap_or(false)
                     {
                         serde_json::to_string(&value)?
                     } else {
-                        return Err("Cannot convert non-string value to upper/lowercase".into());
+                        return Err("Cannot filter non-string value by regex".into());
                     }
                 }
             };
 
-            let regex = regex::Regex::new(&self.regex)?;
+            let regex = regex::Regex::new(&self.pattern)?;
             if regex.is_match(&str) {
                 Ok(value)
             } else {

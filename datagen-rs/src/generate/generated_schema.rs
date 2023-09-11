@@ -28,6 +28,21 @@ pub enum GeneratedSchema {
     Value(Value),
 }
 
+impl GeneratedSchema {
+    pub fn name(&self) -> &'static str {
+        match self {
+            GeneratedSchema::None => "None",
+            GeneratedSchema::Number(_) => "Number",
+            GeneratedSchema::Integer(_) => "Integer",
+            GeneratedSchema::Bool(_) => "Bool",
+            GeneratedSchema::String(_) => "String",
+            GeneratedSchema::Array(_) => "Array",
+            GeneratedSchema::Object(_) => "Object",
+            GeneratedSchema::Value(_) => "Value",
+        }
+    }
+}
+
 #[cfg(feature = "generate")]
 pub(crate) trait IntoGenerated: Sized {
     fn into_generated(self, schema: CurrentSchemaRef) -> Result<GeneratedSchema>;

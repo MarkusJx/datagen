@@ -1,8 +1,8 @@
 use crate::plugins::transform::filter::FilterTransform;
 use crate::plugins::transform::regex_filter::RegexFilter;
 use crate::plugins::transform::sort::SortTransform;
-use crate::plugins::transform::string_transform::ToLowerCase;
-use crate::plugins::transform::string_transform::ToUpperCase;
+use crate::plugins::transform::string_case_transform::ToLowerCase;
+use crate::plugins::transform::string_case_transform::ToUpperCase;
 use crate::plugins::transform::to_string::ToStringTransform;
 use crate::schema::reference::Reference;
 #[cfg(feature = "schema")]

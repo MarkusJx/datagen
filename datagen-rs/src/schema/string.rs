@@ -175,7 +175,7 @@ impl IntoGenerated for StringGenerator {
                         if let GeneratedSchema::String(str) = arg.as_ref() {
                             Ok((name, str.clone()))
                         } else if serialize_non_strings
-                            .or(schema.options().serialize_refs)
+                            .or(schema.options().serialize_non_strings)
                             .unwrap_or(false)
                         {
                             Ok((name, serde_json::to_string(&arg)?))

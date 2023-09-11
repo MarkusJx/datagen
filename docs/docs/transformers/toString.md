@@ -9,7 +9,9 @@ the value to a string or by using a [handlebars](https://handlebarsjs.com/guide/
 
 In this mode, the `toString` transformer will convert the value to a JSON
 string using [serde_json](https://docs.serde.rs/serde_json/index.html).
-The `toString` transformer has no additional properties in this mode.
+
+In order to use this mode, the `toString` transformer must be configured with
+the `subType` property set to `default`.
 
 ### Examples
 
@@ -21,7 +23,8 @@ The `toString` transformer has no additional properties in this mode.
   "value": 20,
   "transform": [
     {
-      "type": "toString"
+      "type": "toString",
+      "subType": "default"
     }
   ]
 }
@@ -50,7 +53,8 @@ Will result in:
   },
   "transform": [
     {
-      "type": "toString"
+      "type": "toString",
+      "subType": "default"
     }
   ]
 }
@@ -66,6 +70,9 @@ Will result in:
 
 In this mode, the `toString` transformer will use a [handlebars](https://handlebarsjs.com/guide/)
 template to convert the value to a string.
+
+In order to use this mode, the `toString` transformer must be configured with
+the `subType` property set to `format`.
 
 The `toString` transformer has the following properties in this mode:
 
@@ -93,6 +100,7 @@ Format an object as a CSV row:
   "transform": [
     {
       "type": "toString",
+      "subType": "format",
       "format": "{{name}},{{age}}"
     }
   ]

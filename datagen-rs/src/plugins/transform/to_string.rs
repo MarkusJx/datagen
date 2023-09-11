@@ -51,6 +51,7 @@ pub mod generate {
                     GeneratedSchema::Object(map) => {
                         let mut hbs = Handlebars::new();
                         hbs.register_template_string("template", format)?;
+                        hbs.set_strict_mode(true);
 
                         let data = map
                             .iter()
@@ -61,10 +62,10 @@ pub mod generate {
                                 GeneratedSchema::Integer(i) => Ok((k, i.to_string())),
                                 _ => {
                                     if serialize_non_strings
-                                        .or(schema.options().serialize_refs)
+                                        .or(schema.options().serialize_non_strings)
                                         .unwrap_or(false)
                                     {
-                                        Ok((k, serde_json::to_string(v)?))
+                                        Ok((k, serde_json::to_string(v.as_ref())?))
                                     } else {
                                         Err("Cannot format non-string".into())
                                     }

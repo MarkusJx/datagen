@@ -19,7 +19,7 @@ pub struct SchemaOptions {
     /// If not specified, the default is false and an
     /// error will be thrown if a non-string is referenced
     /// in a string schema.
-    pub serialize_refs: Option<bool>,
+    pub serialize_non_strings: Option<bool>,
     /// The serializer to use when serializing the generated data.
     /// If not specified, the default is JSON.
     pub serializer: Option<Serializer>,
