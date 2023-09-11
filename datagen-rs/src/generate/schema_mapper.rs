@@ -24,7 +24,7 @@ pub trait MapSchema {
     ) -> Result<Arc<GeneratedSchema>>;
 }
 
-#[cfg(feature = "generate")]
+#[cfg(feature = "map-schema")]
 pub mod generate {
     use crate::generate::current_schema::{CurrentSchema, CurrentSchemaRef};
     use crate::generate::generated_schema::GeneratedSchema;

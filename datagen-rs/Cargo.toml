@@ -19,8 +19,9 @@ regex = { version = "1.9", optional = true }
 
 [features]
 all = ["plugin", "serialize", "generate", "schema"]
-plugin = ["dep:libloading"]
+plugin = ["dep:libloading", "generate"]
 serialize = ["dep:serde", "indexmap/serde", "ordered-float/serde", "dep:serde_yaml", "dep:quick-xml"]
-generate = ["serialize", "plugin", "dep:fake", "dep:handlebars", "dep:rand", "dep:regex"]
+map-schema = ["serialize", "dep:handlebars", "dep:regex", "dep:rand"]
+generate = ["map-schema", "plugin", "dep:fake"]
 schema = ["dep:serde", "dep:schemars", "ordered-float/schemars"]
 send = []

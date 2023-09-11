@@ -3,8 +3,6 @@ use crate::schema::transform::AnyTransform;
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
-#[cfg(feature = "generate")]
-use std::vec;
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "schema", derive(JsonSchema))]
@@ -26,7 +24,7 @@ pub enum StringOrNumber {
     Number(f64),
 }
 
-#[cfg(feature = "generate")]
+#[cfg(feature = "map-schema")]
 pub mod generate {
     use crate::generate::current_schema::CurrentSchemaRef;
     use crate::generate::generated_schema::generate::IntoGeneratedArc;

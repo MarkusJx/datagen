@@ -1,6 +1,6 @@
 use crate::generate::generated_schema::GeneratedSchema;
 use crate::generate::schema_path::SchemaPath;
-#[cfg(feature = "generate")]
+#[cfg(feature = "map-schema")]
 use crate::schema::schema_definition::SchemaOptions;
 #[cfg(feature = "serialize")]
 use serde::Serialize;
@@ -18,7 +18,7 @@ pub(crate) struct SchemaValue {
     pub path: SchemaPath,
 }
 
-#[cfg(feature = "generate")]
+#[cfg(feature = "map-schema")]
 impl SchemaValue {
     pub(crate) fn finalize(
         &mut self,

@@ -1,10 +1,10 @@
-#[cfg(feature = "generate")]
+#[cfg(feature = "map-schema")]
 use crate::generate::generated_schema::GeneratedSchema;
-#[cfg(feature = "generate")]
+#[cfg(feature = "map-schema")]
 use crate::generate::resolved_reference::ResolvedReference;
-#[cfg(feature = "generate")]
+#[cfg(feature = "map-schema")]
 use crate::generate::schema_path::SchemaPath;
-#[cfg(feature = "generate")]
+#[cfg(feature = "map-schema")]
 use crate::generate::schema_value::SchemaProperties;
 use crate::generate::schema_value::SchemaValue;
 use crate::plugins::plugin::Plugin;
@@ -54,7 +54,7 @@ impl CurrentSchema {
         .into()
     }
 
-    #[cfg(feature = "generate")]
+    #[cfg(feature = "map-schema")]
     pub fn child(
         parent: CurrentSchemaRef,
         sibling: Option<CurrentSchemaRef>,
@@ -74,7 +74,7 @@ impl CurrentSchema {
         }
     }
 
-    #[cfg(feature = "generate")]
+    #[cfg(feature = "map-schema")]
     fn get_global_properties(&self) -> Arc<Mutex<SchemaProperties>> {
         if let Some(parent) = self.parent.as_ref() {
             parent.get_global_properties()
@@ -83,7 +83,7 @@ impl CurrentSchema {
         }
     }
 
-    #[cfg(feature = "generate")]
+    #[cfg(feature = "map-schema")]
     fn get_all_schemas(props: &SchemaProperties, path: &str) -> ResolvedReference {
         if let Some(props) = props.get(path) {
             if props.len() == 1 {
@@ -96,7 +96,7 @@ impl CurrentSchema {
         }
     }
 
-    #[cfg(feature = "generate")]
+    #[cfg(feature = "map-schema")]
     fn resolve_child_ref(&self, reference: String) -> Result<ResolvedReference> {
         if reference.starts_with("../") {
             self.parent
@@ -114,7 +114,7 @@ impl CurrentSchema {
         }
     }
 
-    #[cfg(feature = "generate")]
+    #[cfg(feature = "map-schema")]
     pub fn resolve_ref(&self, reference: String) -> Result<ResolvedReference> {
         if reference.starts_with("ref:") {
             let stripped = reference.strip_prefix("ref:").unwrap().to_string();
@@ -141,7 +141,7 @@ impl CurrentSchema {
         }
     }
 
-    #[cfg(feature = "generate")]
+    #[cfg(feature = "map-schema")]
     fn finalize_inner(&self, schema: Arc<GeneratedSchema>, path: &SchemaPath, remove: i32) {
         self.value.lock().unwrap().finalize(
             &self.options,
@@ -154,7 +154,7 @@ impl CurrentSchema {
         }
     }
 
-    #[cfg(feature = "generate")]
+    #[cfg(feature = "map-schema")]
     pub fn finalize(&self, schema: Arc<GeneratedSchema>) -> Arc<GeneratedSchema> {
         if self.finalized.load(Ordering::SeqCst) {
             return schema;

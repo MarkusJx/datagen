@@ -3,8 +3,10 @@ use crate::schema::transform::AnyTransform;
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "generate")]
 use std::sync::atomic::AtomicI64;
 
+#[cfg(feature = "generate")]
 static mut COUNTER: AtomicI64 = AtomicI64::new(0);
 
 #[derive(Debug, Clone)]

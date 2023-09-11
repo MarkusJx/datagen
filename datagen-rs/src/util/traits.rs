@@ -1,4 +1,4 @@
-#[cfg(feature = "generate")]
+#[cfg(feature = "map-schema")]
 pub mod generate {
     use crate::generate::current_schema::CurrentSchemaRef;
     use crate::generate::generated_schema::GeneratedSchema;

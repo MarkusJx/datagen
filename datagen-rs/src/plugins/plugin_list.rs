@@ -13,11 +13,13 @@ use crate::schema::array::Array;
 use crate::schema::flatten::{Flatten, FlattenableValue};
 #[cfg(feature = "plugin")]
 use crate::schema::object::Object;
+#[cfg(feature = "plugin")]
 use crate::schema::schema_definition::PluginInitArgs;
 #[cfg(feature = "plugin")]
 use crate::schema::schema_definition::Schema;
 #[cfg(feature = "plugin")]
 use crate::schema::schema_definition::Serializer;
+#[cfg(feature = "plugin")]
 use crate::schema::transform::AnyTransform;
 use crate::util::types::Result;
 #[cfg(feature = "plugin")]
