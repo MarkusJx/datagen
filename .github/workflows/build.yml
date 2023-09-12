@@ -33,10 +33,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: Add target
+      run: |
+        rustup target add ${{matrix.target}}
+        rustup target default ${{matrix.target}}
     - name: Rust Cache
       uses: Swatinem/rust-cache@v2.2.1
-    - name: Add target
-      run: rustup target add ${{matrix.target}}
     - name: Build cli
       run: cargo build --package cli --release --target ${{matrix.target}}
     - name: Build openaddresses plugin
