@@ -1,5 +1,5 @@
 #[cfg(feature = "plugin")]
-use crate::generate::generated_schema::IntoGeneratedArc;
+use crate::generate::generated_schema::generate::IntoGeneratedArc;
 #[cfg(feature = "plugin")]
 use crate::plugins::imported_plugin::ImportedPlugin;
 use crate::plugins::plugin::Plugin;
@@ -14,9 +14,13 @@ use crate::schema::flatten::{Flatten, FlattenableValue};
 #[cfg(feature = "plugin")]
 use crate::schema::object::Object;
 #[cfg(feature = "plugin")]
+use crate::schema::schema_definition::PluginInitArgs;
+#[cfg(feature = "plugin")]
 use crate::schema::schema_definition::Schema;
 #[cfg(feature = "plugin")]
 use crate::schema::schema_definition::Serializer;
+#[cfg(feature = "plugin")]
+use crate::schema::transform::AnyTransform;
 use crate::util::types::Result;
 #[cfg(feature = "plugin")]
 use serde_json::Value;
@@ -30,6 +34,14 @@ pub struct PluginList {
 }
 
 impl PluginList {
+    #[cfg(test)]
+    #[allow(dead_code)]
+    pub fn empty() -> Self {
+        Self {
+            plugins: HashMap::new(),
+        }
+    }
+
     #[cfg(feature = "plugin")]
     pub fn from_schema(
         schema: &Schema,
@@ -44,7 +56,14 @@ impl PluginList {
                 p.clone()
                     .into_iter()
                     .filter(|(name, _)| !additional.contains_key(name))
-                    .map(|(n, v)| Self::map_plugin(n, v))
+                    .map(|(name, args)| match args {
+                        PluginInitArgs::Args { path, args } => Self::map_plugin(
+                            name,
+                            args.clone().unwrap_or_default(),
+                            Some(path.clone()),
+                        ),
+                        PluginInitArgs::Value(v) => Self::map_plugin(name, v, None),
+                    })
                     .collect::<Result<HashMap<_, _>>>()
             })
             .map_or(Ok(None), |v| v.map(Some))?
@@ -84,7 +103,7 @@ impl PluginList {
             func(&schema.value)
                 .into_iter()
                 .filter(|p| !plugins.contains_key(p))
-                .map(|p| Self::map_plugin(p, Value::Null))
+                .map(|p| Self::map_plugin(p, Value::Null, None))
                 .collect::<Result<HashMap<_, _>>>()?,
         );
 
@@ -92,8 +111,27 @@ impl PluginList {
     }
 
     #[cfg(feature = "plugin")]
-    fn map_plugin(name: String, args: Value) -> Result<(String, Box<dyn Plugin>)> {
-        Ok((name.clone(), Box::new(ImportedPlugin::load(name, args)?)))
+    fn map_plugin(
+        name: String,
+        args: Value,
+        path: Option<String>,
+    ) -> Result<(String, Box<dyn Plugin>)> {
+        Ok((
+            name.clone(),
+            Box::new(ImportedPlugin::load(path.unwrap_or(name), args)?),
+        ))
+    }
+
+    #[cfg(feature = "plugin")]
+    fn transformers_to_vec(transform: &[AnyTransform], loaded: &[String]) -> Vec<String> {
+        transform
+            .iter()
+            .filter_map(|t| match t {
+                AnyTransform::Plugin { name, .. } => Some(name.clone()),
+                _ => None,
+            })
+            .filter(|name| !loaded.contains(name))
+            .collect()
     }
 
     #[cfg(feature = "plugin")]
@@ -104,7 +142,7 @@ impl PluginList {
             .flat_map(|(_, val)| Self::find_transformers(val))
             .collect::<Vec<String>>();
         if let Some(transform) = &object.transform {
-            props.push(transform.name.clone())
+            props.extend(Self::transformers_to_vec(transform, &props))
         }
 
         props
@@ -114,7 +152,7 @@ impl PluginList {
     fn find_array_transformers(array: &Array) -> Vec<String> {
         let mut props = Self::find_transformers(&array.items);
         if let Some(transform) = &array.transform {
-            props.push(transform.name.clone())
+            props.extend(Self::transformers_to_vec(transform, &props));
         }
 
         props
@@ -128,12 +166,12 @@ impl PluginList {
             .flat_map(|val| match val {
                 FlattenableValue::Object(obj) => Self::find_object_transformers(obj),
                 FlattenableValue::Reference(reference) => Self::map_transform(reference),
-                FlattenableValue::Generator(gen) => Self::map_transform(gen),
+                FlattenableValue::Plugin(gen) => Self::map_transform(gen),
                 FlattenableValue::Array(array) => Self::find_array_transformers(array),
             })
             .collect::<Vec<String>>();
         if let Some(transform) = &flatten.transform {
-            props.push(transform.name.clone())
+            props.extend(Self::transformers_to_vec(transform, &props));
         }
 
         props
@@ -142,7 +180,7 @@ impl PluginList {
     #[cfg(feature = "plugin")]
     fn map_transform<T: IntoGeneratedArc>(val: &T) -> Vec<String> {
         val.get_transform()
-            .map(|t| vec![t.name])
+            .map(|t| Self::transformers_to_vec(&t, &[]))
             .unwrap_or_default()
     }
 
@@ -160,13 +198,14 @@ impl PluginList {
                     Any::Reference(reference) => reference.get_transform(),
                     Any::Integer(integer) => IntoGeneratedArc::get_transform(integer),
                     Any::Number(number) => IntoGeneratedArc::get_transform(number),
+                    Any::Counter(counter) => IntoGeneratedArc::get_transform(counter),
                     Any::Bool(boolean) => IntoGeneratedArc::get_transform(boolean),
-                    Any::Generator(generator) => generator.get_transform(),
+                    Any::Plugin(plugin) => plugin.get_transform(),
                     Any::Object(_) => panic!("Object should be handled above"),
                     Any::Array(_) => panic!("Array should be handled above"),
                     Any::Flatten(_) => panic!("Flatten should be handled above"),
                 }
-                .map(|t| vec![t.name])
+                .map(|t| Self::transformers_to_vec(&t, &[]))
                 .unwrap_or_default(),
             },
             _ => vec![],
@@ -176,7 +215,7 @@ impl PluginList {
     #[cfg(feature = "plugin")]
     fn find_generators(any: &AnyValue) -> Vec<String> {
         match any {
-            AnyValue::Any(Any::Generator(gen)) => vec![gen.plugin_name.clone()],
+            AnyValue::Any(Any::Plugin(gen)) => vec![gen.plugin_name.clone()],
             AnyValue::Any(Any::Object(obj)) => obj
                 .properties
                 .iter()

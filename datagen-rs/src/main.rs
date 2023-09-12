@@ -1,8 +1,4 @@
-use crate::generate::current_schema::CurrentSchema;
-use crate::generate::generated_schema::IntoRandom;
-use crate::plugins::plugin_list::PluginList;
 use crate::util::helpers::{generate_random_data, read_schema, write_json_schema};
-use std::time::Instant;
 
 mod generate;
 mod plugins;

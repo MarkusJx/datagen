@@ -2,11 +2,14 @@
   "$schema": "./schema.json",
   "options": {
     "plugins": {
-      "openaddresses_plugin": {
-        "files": "./datagen-rs/us_ak_haines.geojson",
-        "backend": {
-          "type": "sqlite",
-          "databaseName": "addresses.db"
+      "addresses": {
+        "path": "openaddresses_plugin",
+        "args": {
+          "files": "./datagen-rs/us_ak_haines.geojson",
+          "backend": {
+            "type": "sqlite",
+            "databaseName": "addresses.db"
+          }
         }
       }
     },
@@ -18,7 +21,7 @@
   },
   "type": "array",
   "length": {
-    "value": 10
+    "value": 3
   },
   "items": {
     "type": "object",
@@ -73,8 +76,7 @@
       "addresses": {
         "type": "array",
         "length": {
-          "min": 0,
-          "max": 3
+          "value": 0
         },
         "items": {
           "type": "object",
@@ -141,13 +143,13 @@
                 "type": "format",
                 "format": "{{street}}, {{city}}, {{state}} {{zip}}, {{country}}",
                 "args": {
-                  "street": "ref:./addresses.street",
-                  "city": "ref:./addresses.city",
-                  "state": "ref:./addresses.state",
-                  "zip": "ref:./addresses.zip",
-                  "country": "ref:./addresses.country"
+                  "street": "ref:./street",
+                  "city": "ref:./city",
+                  "state": "ref:./state",
+                  "zip": "ref:./zip",
+                  "country": "ref:./country"
                 },
-                "serializeRefs": false
+                "serializeNonStrings": false
               }
             }
           }
@@ -161,8 +163,7 @@
       "relatedPersons": {
         "type": "array",
         "length": {
-          "min": 0,
-          "max": 3
+          "value": 3
         },
         "items": {
           "type": "object",
@@ -191,8 +192,21 @@
                 "ref:../../id"
               ]
             }
+          },
+          "transform": [
+            {
+              "type": "filter",
+              "field": "ref:./relatedParty",
+              "operator": "notEquals",
+              "other": null
+            }
+          ]
+        },
+        "transform": [
+          {
+            "type": "filterNonNull"
           }
-        }
+        ]
       },
       "openaddr": {
         "type": "flatten",
@@ -210,7 +224,7 @@
           },
           {
             "type": "generator",
-            "pluginName": "openaddresses_plugin",
+            "pluginName": "addresses",
             "args": {
               "street": "street",
               "houseNumber": "number",

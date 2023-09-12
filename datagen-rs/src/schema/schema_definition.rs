@@ -11,7 +11,7 @@ use serde_json::Value;
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serialize", serde(rename_all = "camelCase"))]
 pub struct SchemaOptions {
-    pub plugins: Option<IndexMap<String, Value>>,
+    pub plugins: Option<IndexMap<String, PluginInitArgs>>,
     pub ignore_not_found_local_refs: Option<bool>,
     pub max_ref_cache_size: Option<usize>,
     /// Whether to serialize references to strings when
@@ -19,10 +19,22 @@ pub struct SchemaOptions {
     /// If not specified, the default is false and an
     /// error will be thrown if a non-string is referenced
     /// in a string schema.
-    pub serialize_refs: Option<bool>,
+    pub serialize_non_strings: Option<bool>,
     /// The serializer to use when serializing the generated data.
     /// If not specified, the default is JSON.
     pub serializer: Option<Serializer>,
+}
+
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "schema", derive(JsonSchema))]
+#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
+#[cfg_attr(
+    feature = "serialize",
+    serde(untagged, deny_unknown_fields, rename_all = "camelCase")
+)]
+pub enum PluginInitArgs {
+    Args { path: String, args: Option<Value> },
+    Value(Value),
 }
 
 #[derive(Debug, Clone)]

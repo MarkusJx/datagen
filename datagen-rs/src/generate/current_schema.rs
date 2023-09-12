@@ -1,10 +1,10 @@
-#[cfg(feature = "map_schema")]
+#[cfg(feature = "map-schema")]
 use crate::generate::generated_schema::GeneratedSchema;
-#[cfg(feature = "generate")]
+#[cfg(feature = "map-schema")]
 use crate::generate::resolved_reference::ResolvedReference;
-#[cfg(feature = "map_schema")]
+#[cfg(feature = "map-schema")]
 use crate::generate::schema_path::SchemaPath;
-#[cfg(feature = "generate")]
+#[cfg(feature = "map-schema")]
 use crate::generate::schema_value::SchemaProperties;
 use crate::generate::schema_value::SchemaValue;
 use crate::plugins::plugin::Plugin;
@@ -13,21 +13,35 @@ use crate::schema::schema_definition::SchemaOptions;
 use crate::util::types::Result;
 #[cfg(feature = "generate")]
 use std::collections::BTreeMap;
+#[cfg(not(feature = "send"))]
+use std::rc::Rc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 #[cfg_attr(not(feature = "generate"), allow(dead_code))]
 pub struct CurrentSchema {
-    parent: Option<Arc<CurrentSchema>>,
+    parent: Option<CurrentSchemaRef>,
     value: Arc<Mutex<SchemaValue>>,
     options: Arc<SchemaOptions>,
     plugins: Arc<PluginList>,
+    finalized: AtomicBool,
 }
+
+#[cfg(feature = "send")]
+unsafe impl Send for CurrentSchema {}
+#[cfg(feature = "send")]
+unsafe impl Sync for CurrentSchema {}
+
+#[cfg(feature = "send")]
+pub type CurrentSchemaRef = Arc<CurrentSchema>;
+#[cfg(not(feature = "send"))]
+pub type CurrentSchemaRef = Rc<CurrentSchema>;
 
 impl CurrentSchema {
     #[cfg(feature = "generate")]
-    pub fn root(options: Arc<SchemaOptions>, plugins: Arc<PluginList>) -> Arc<Self> {
-        Arc::new(Self {
+    pub fn root(options: Arc<SchemaOptions>, plugins: Arc<PluginList>) -> CurrentSchemaRef {
+        Self {
             parent: None,
             value: Arc::new(Mutex::new(SchemaValue {
                 properties: Arc::new(Mutex::new(BTreeMap::new())),
@@ -35,13 +49,15 @@ impl CurrentSchema {
             })),
             options,
             plugins,
-        })
+            finalized: AtomicBool::default(),
+        }
+        .into()
     }
 
-    #[cfg(feature = "map_schema")]
+    #[cfg(feature = "map-schema")]
     pub fn child(
-        parent: Arc<CurrentSchema>,
-        sibling: Option<Arc<CurrentSchema>>,
+        parent: CurrentSchemaRef,
+        sibling: Option<CurrentSchemaRef>,
         path: String,
     ) -> CurrentSchema {
         CurrentSchema {
@@ -54,10 +70,11 @@ impl CurrentSchema {
             })),
             options: parent.options.clone(),
             plugins: parent.plugins.clone(),
+            finalized: AtomicBool::default(),
         }
     }
 
-    #[cfg(feature = "generate")]
+    #[cfg(feature = "map-schema")]
     fn get_global_properties(&self) -> Arc<Mutex<SchemaProperties>> {
         if let Some(parent) = self.parent.as_ref() {
             parent.get_global_properties()
@@ -66,20 +83,20 @@ impl CurrentSchema {
         }
     }
 
-    #[cfg(feature = "generate")]
+    #[cfg(feature = "map-schema")]
     fn get_all_schemas(props: &SchemaProperties, path: &str) -> ResolvedReference {
         if let Some(props) = props.get(path) {
             if props.len() == 1 {
                 ResolvedReference::Single(props.get(0).unwrap().clone())
             } else {
-                ResolvedReference::multiple(props.clone())
+                ResolvedReference::multiple(props.clone().into())
             }
         } else {
             ResolvedReference::none()
         }
     }
 
-    #[cfg(feature = "generate")]
+    #[cfg(feature = "map-schema")]
     fn resolve_child_ref(&self, reference: String) -> Result<ResolvedReference> {
         if reference.starts_with("../") {
             self.parent
@@ -97,7 +114,7 @@ impl CurrentSchema {
         }
     }
 
-    #[cfg(feature = "generate")]
+    #[cfg(feature = "map-schema")]
     pub fn resolve_ref(&self, reference: String) -> Result<ResolvedReference> {
         if reference.starts_with("ref:") {
             let stripped = reference.strip_prefix("ref:").unwrap().to_string();
@@ -124,7 +141,7 @@ impl CurrentSchema {
         }
     }
 
-    #[cfg(feature = "map_schema")]
+    #[cfg(feature = "map-schema")]
     fn finalize_inner(&self, schema: Arc<GeneratedSchema>, path: &SchemaPath, remove: i32) {
         self.value.lock().unwrap().finalize(
             &self.options,
@@ -137,12 +154,22 @@ impl CurrentSchema {
         }
     }
 
-    #[cfg(feature = "map_schema")]
+    #[cfg(feature = "map-schema")]
     pub fn finalize(&self, schema: Arc<GeneratedSchema>) -> Arc<GeneratedSchema> {
+        if self.finalized.load(Ordering::SeqCst) {
+            return schema;
+        }
+
         let path = self.value.lock().unwrap().path().clone();
-        self.finalize_inner(schema.clone(), &path, (path.normalized_len() as i32) - 1);
+        self.finalize_inner(schema.clone(), &path, (path.len() as i32) - 1);
+        self.finalized.store(true, Ordering::SeqCst);
 
         schema
+    }
+
+    #[cfg(feature = "map-schema")]
+    pub fn path(&self) -> SchemaPath {
+        self.value.lock().unwrap().path.clone()
     }
 
     pub fn get_plugin<'a>(&'a self, key: &String) -> Result<&'a dyn Plugin> {

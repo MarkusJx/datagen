@@ -1,18 +1,8 @@
-#[cfg(feature = "generate")]
-use crate::generate::current_schema::CurrentSchema;
-#[cfg(feature = "generate")]
-use crate::generate::generated_schema::{GeneratedSchema, IntoGenerated};
-use crate::schema::transform::Transform;
-#[cfg(feature = "generate")]
-use crate::util::types::Result;
-#[cfg(feature = "generate")]
-use rand::Rng;
+use crate::schema::transform::AnyTransform;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
-#[cfg(feature = "generate")]
-use std::sync::Arc;
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "schema", derive(JsonSchema))]
@@ -21,36 +11,46 @@ use std::sync::Arc;
 pub enum Integer {
     Random {
         #[cfg_attr(feature = "serialize", serde(skip_serializing_if = "Option::is_none"))]
-        min: Option<i32>,
+        min: Option<i64>,
         #[cfg_attr(feature = "serialize", serde(skip_serializing_if = "Option::is_none"))]
-        max: Option<i32>,
-        transform: Option<Transform>,
+        max: Option<i64>,
+        transform: Option<Vec<AnyTransform>>,
     },
     Constant {
-        value: i32,
-        transform: Option<Transform>,
+        value: i64,
+        transform: Option<Vec<AnyTransform>>,
     },
 }
 
 #[cfg(feature = "generate")]
-impl IntoGenerated for Integer {
-    fn into_generated(self, _: Arc<CurrentSchema>) -> Result<GeneratedSchema> {
-        Ok(match self {
-            Integer::Constant { value, .. } => GeneratedSchema::Integer(value),
-            Integer::Random { min, max, .. } => {
-                let mut rng = rand::thread_rng();
-                let min = min.unwrap_or(i32::MIN);
-                let max = max.unwrap_or(i32::MAX);
-                let value = rng.gen_range(min..=max);
-                GeneratedSchema::Integer(value)
-            }
-        })
-    }
+pub mod generate {
+    use crate::generate::current_schema::CurrentSchemaRef;
+    use crate::generate::generated_schema::generate::IntoGenerated;
+    use crate::generate::generated_schema::GeneratedSchema;
+    use crate::schema::integer::Integer;
+    use crate::schema::transform::AnyTransform;
+    use crate::util::types::Result;
+    use rand::Rng;
 
-    fn get_transform(&self) -> Option<Transform> {
-        match self {
-            Integer::Constant { transform, .. } => transform.clone(),
-            Integer::Random { transform, .. } => transform.clone(),
+    impl IntoGenerated for Integer {
+        fn into_generated(self, _: CurrentSchemaRef) -> Result<GeneratedSchema> {
+            Ok(match self {
+                Integer::Constant { value, .. } => GeneratedSchema::Integer(value),
+                Integer::Random { min, max, .. } => {
+                    let mut rng = rand::thread_rng();
+                    let min = min.unwrap_or(i64::MIN);
+                    let max = max.unwrap_or(i64::MAX);
+                    let value = rng.gen_range(min..=max);
+                    GeneratedSchema::Integer(value)
+                }
+            })
+        }
+
+        fn get_transform(&self) -> Option<Vec<AnyTransform>> {
+            match self {
+                Integer::Constant { transform, .. } => transform.clone(),
+                Integer::Random { transform, .. } => transform.clone(),
+            }
         }
     }
 }

@@ -1,3 +1,5 @@
+#[cfg(feature = "serialize")]
+use serde::{Serialize, Serializer};
 use std::collections::VecDeque;
 use std::fmt::Display;
 
@@ -10,14 +12,19 @@ impl SchemaPath {
         Self(VecDeque::new())
     }
 
-    #[cfg(feature = "map_schema")]
+    #[cfg(feature = "map-schema")]
     pub fn append(&self, path: String) -> SchemaPath {
         let mut res = self.0.clone();
         res.push_back(path);
         Self(res)
     }
 
-    #[cfg(feature = "map_schema")]
+    #[cfg(feature = "map-schema")]
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    #[cfg(any())]
     pub fn normalized_len(&self) -> usize {
         self.0
             .iter()
@@ -25,7 +32,7 @@ impl SchemaPath {
             .count()
     }
 
-    #[cfg(feature = "map_schema")]
+    #[cfg(feature = "map-schema")]
     pub fn pop(&self, num: i32) -> SchemaPath {
         if num < 0 {
             return self.clone();
@@ -43,7 +50,7 @@ impl SchemaPath {
         Self(res)
     }
 
-    #[cfg(feature = "map_schema")]
+    #[cfg(feature = "map-schema")]
     pub fn to_normalized_path(&self) -> String {
         self.0
             .iter()
@@ -51,6 +58,16 @@ impl SchemaPath {
             .cloned()
             .collect::<Vec<_>>()
             .join(".")
+    }
+}
+
+#[cfg(feature = "serialize")]
+impl Serialize for SchemaPath {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
     }
 }
 

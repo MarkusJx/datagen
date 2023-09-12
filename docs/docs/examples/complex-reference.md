@@ -85,5 +85,5 @@ as the full (internal) path to the `relatedPerson` is `root.[index].relatedPerso
 Traversing up the object tree twice will get you to the object at `root.[index]`.
 Adding `relatedPersons.relatedPerson` will now traverse back up the object, ignoring
 all indexes, thus returning all values of all `relatedPerson` fields in the `relatedPersons`
-array. Explaining this uing glob patterns, the full (global) path would look something
+array. Explaining this using glob patterns, the full (global) path would look something
 like this: `root.[index].relatedPersons.*.relatedPerson` (`[index]` would be replaced by an actual index in this example).

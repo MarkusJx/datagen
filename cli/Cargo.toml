@@ -3,6 +3,10 @@ name = "cli"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]]
+name = "datagen"
+path = "src/main.rs"
+
 [dependencies]
 datagen-rs = { path = "../datagen-rs", features = ["all"] }
 progress-plugin = { path = "../plugins/progress-plugin", features = [], default-features = false }

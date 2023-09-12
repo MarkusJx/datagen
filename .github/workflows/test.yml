@@ -1,0 +1,34 @@
+name: Test
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/main' && github.run_id || github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: cargo-bins/cargo-binstall@main
+      - name: Install nextest
+        run: cargo binstall --no-confirm cargo-nextest --secure
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2.2.1
+      - name: Test datagen-rs
+        run: cargo nextest run -p datagen-rs --features all --lib -P ci
+      - name: Create test summary
+        uses: test-summary/action@dist
+        if: always()
+        with:
+          show: all
+          paths: target/nextest/ci/junit.xml

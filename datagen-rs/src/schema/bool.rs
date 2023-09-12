@@ -1,18 +1,8 @@
-#[cfg(feature = "generate")]
-use crate::generate::current_schema::CurrentSchema;
-#[cfg(feature = "generate")]
-use crate::generate::generated_schema::{GeneratedSchema, IntoGenerated};
-use crate::schema::transform::Transform;
-#[cfg(feature = "generate")]
-use crate::util::types::Result;
-#[cfg(feature = "generate")]
-use rand::Rng;
+use crate::schema::transform::AnyTransform;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
-#[cfg(feature = "generate")]
-use std::sync::Arc;
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "schema", derive(JsonSchema))]
@@ -21,31 +11,41 @@ use std::sync::Arc;
 pub enum Bool {
     Random {
         probability: Option<f64>,
-        transform: Option<Transform>,
+        transform: Option<Vec<AnyTransform>>,
     },
     Constant {
         value: bool,
-        transform: Option<Transform>,
+        transform: Option<Vec<AnyTransform>>,
     },
 }
 
 #[cfg(feature = "generate")]
-impl IntoGenerated for Bool {
-    fn into_generated(self, _: Arc<CurrentSchema>) -> Result<GeneratedSchema> {
-        Ok(match self {
-            Bool::Constant { value, .. } => GeneratedSchema::Bool(value),
-            Bool::Random { probability, .. } => {
-                let mut rng = rand::thread_rng();
-                let value = rng.gen_bool(probability.unwrap_or(0.5));
-                GeneratedSchema::Bool(value)
-            }
-        })
-    }
+pub mod generate {
+    use crate::generate::current_schema::CurrentSchemaRef;
+    use crate::generate::generated_schema::generate::IntoGenerated;
+    use crate::generate::generated_schema::GeneratedSchema;
+    use crate::schema::bool::Bool;
+    use crate::schema::transform::AnyTransform;
+    use crate::util::types::Result;
+    use rand::Rng;
 
-    fn get_transform(&self) -> Option<Transform> {
-        match self {
-            Bool::Constant { transform, .. } => transform.clone(),
-            Bool::Random { transform, .. } => transform.clone(),
+    impl IntoGenerated for Bool {
+        fn into_generated(self, _: CurrentSchemaRef) -> Result<GeneratedSchema> {
+            Ok(match self {
+                Bool::Constant { value, .. } => GeneratedSchema::Bool(value),
+                Bool::Random { probability, .. } => {
+                    let mut rng = rand::thread_rng();
+                    let value = rng.gen_bool(probability.unwrap_or(0.5));
+                    GeneratedSchema::Bool(value)
+                }
+            })
+        }
+
+        fn get_transform(&self) -> Option<Vec<AnyTransform>> {
+            match self {
+                Bool::Constant { transform, .. } => transform.clone(),
+                Bool::Random { transform, .. } => transform.clone(),
+            }
         }
     }
 }

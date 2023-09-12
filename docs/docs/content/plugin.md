@@ -2,7 +2,7 @@
 name: generator
 ---
 
-The `generator` generator is a special generator which uses a plugin to generate data.
+The `generator` generator is a special generator which uses a [plugin](../../plugins) to generate data.
 This generator is used to call custom generators and takes the following properties:
 
 * `pluginName`: The path of the plugin to use to generate the data. This name must
@@ -19,7 +19,7 @@ These configuration options are passed to the plugin using the
 
 ## Example
 
-Use the `openaddresses` plugin to generate real addresses:
+Use the [`openaddresses` plugin](../../plugins/default/openaddresses) to generate real addresses:
 
 ```json
 {
@@ -36,7 +36,7 @@ Use the `openaddresses` plugin to generate real addresses:
     "value": 10
   },
   "items": {
-    "type": "generator",
+    "type": "plugin",
     "pluginName": "openaddresses_plugin",
     "args": {
       "street": "street",

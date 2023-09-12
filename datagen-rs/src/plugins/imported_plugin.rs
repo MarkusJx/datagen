@@ -1,4 +1,4 @@
-use crate::generate::current_schema::CurrentSchema;
+use crate::generate::current_schema::CurrentSchemaRef;
 use crate::generate::generated_schema::GeneratedSchema;
 use crate::plugins::plugin::{Plugin, PluginInitResult};
 use crate::util::plugin_error::MapPluginError;
@@ -58,7 +58,7 @@ impl Plugin for ImportedPlugin {
         self.0.plugin.name()
     }
 
-    fn generate(&self, schema: Arc<CurrentSchema>, args: Value) -> Result<Arc<GeneratedSchema>> {
+    fn generate(&self, schema: CurrentSchemaRef, args: Value) -> Result<Arc<GeneratedSchema>> {
         self.0
             .plugin
             .generate(schema, args)
@@ -67,7 +67,7 @@ impl Plugin for ImportedPlugin {
 
     fn transform(
         &self,
-        schema: Arc<CurrentSchema>,
+        schema: CurrentSchemaRef,
         value: Arc<GeneratedSchema>,
         args: Value,
     ) -> Result<Arc<GeneratedSchema>> {
