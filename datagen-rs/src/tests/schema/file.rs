@@ -63,8 +63,8 @@ fn test_file_not_found() {
     assert!(schema.is_err());
     let err = schema.unwrap_err().to_string();
     assert!(
-        err.contains("The system cannot find the file specified."),
-        "Expected error to contain 'The system cannot find the file specified.', but got: {}",
+        err.contains("The system cannot find the file specified.") || err.contains("No such file or directory"),
+        "Expected error to contain 'The system cannot find the file specified.' or 'No such file or directory', but got: {}",
         err
     );
 }
