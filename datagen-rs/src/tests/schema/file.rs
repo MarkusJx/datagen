@@ -1,6 +1,7 @@
 use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
 use crate::{assert_enum, generate_schema};
 use serde_json::Value;
+use std::env;
 use std::fs::File;
 use std::io::BufReader;
 
@@ -13,7 +14,12 @@ fn test_random_file() {
         "path": FILE_NAME,
         "mode": "random"
     })
-    .unwrap();
+    .unwrap_or_else(|_| {
+        panic!(
+            "Expected file to be found in: {:?}",
+            env::current_dir().unwrap()
+        )
+    });
 
     let file: Vec<Value> =
         serde_json::from_reader(BufReader::new(File::open(FILE_NAME).unwrap())).unwrap();
