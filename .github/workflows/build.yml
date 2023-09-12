@@ -46,11 +46,11 @@ jobs:
       with:
         name: datagen-${{runner.os}}-${{matrix.target}}
         path: |
-          target/release/datagen.exe
-          target/release/datagen
-          target/release/openaddresses_plugin.dll
-          target/release/libopenaddresses_plugin.dylib
-          target/release/libopenaddresses_plugin.so
+          target/*/release/datagen.exe
+          target/*/release/datagen
+          target/*/release/openaddresses_plugin.dll
+          target/*/release/libopenaddresses_plugin.dylib
+          target/*/release/libopenaddresses_plugin.so
 
   build-docs:
     runs-on: ubuntu-latest
