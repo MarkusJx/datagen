@@ -36,7 +36,7 @@ jobs:
     - name: Add target
       run: |
         rustup target add ${{matrix.target}}
-        rustup target default ${{matrix.target}}
+        rustup default stable-${{matrix.target}}
     - name: Rust Cache
       uses: Swatinem/rust-cache@v2.2.1
     - name: Build cli
