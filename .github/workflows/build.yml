@@ -17,28 +17,42 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+          - os: windows-latest
+            target: i686-pc-windows-msvc
+          - os: macos-latest
+            target: x86_64-apple-darwin
+          - os: macos-latest
+            target: aarch64-apple-darwin
 
     runs-on: ${{matrix.os}}
 
     steps:
     - uses: actions/checkout@v3
+    - name: Add target
+      run: rustup target add ${{matrix.target}}
     - name: Rust Cache
       uses: Swatinem/rust-cache@v2.2.1
+      with:
+        key: ${{matrix.target}}
     - name: Build cli
-      run: cargo build --package cli --release
+      run: cargo build --package cli --release --target ${{matrix.target}}
     - name: Build openaddresses plugin
-      run: cargo build --package openaddresses-plugin --release --features sqlite
+      run: cargo build --package openaddresses-plugin --release --features sqlite --target ${{matrix.target}}
     - name: Upload artifacts
       uses: actions/upload-artifact@v3.1.3
       with:
-        name: datagen-${{runner.os}}
+        name: datagen-${{runner.os}}-${{matrix.target}}
         path: |
-          target/release/datagen.exe
-          target/release/datagen
-          target/release/openaddresses_plugin.dll
-          target/release/libopenaddresses_plugin.dylib
-          target/release/libopenaddresses_plugin.so
+          target/*/release/datagen.exe
+          target/*/release/datagen
+          target/*/release/openaddresses_plugin.dll
+          target/*/release/libopenaddresses_plugin.dylib
+          target/*/release/libopenaddresses_plugin.so
 
   build-docs:
     runs-on: ubuntu-latest
