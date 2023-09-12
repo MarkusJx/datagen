@@ -76,7 +76,7 @@ database already exists, it will be used instead of creating a new one.
 ### Generate addresses
 
 In order to use the plugin, provide the `openaddresses-plugin` plugin
-name in the [`plugin`](../../../content/plugin.md) generator.
+name in the [`plugin`](../../../content/plugin) generator.
 
 The plugin accepts an object containing the names of the properties to
 generate as keys and the fields to use as values. The following field
