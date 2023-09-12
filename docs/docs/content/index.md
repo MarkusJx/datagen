@@ -17,3 +17,4 @@ You can also create your own generators.
 * [`flatten`](flatten.md)
 * [`plugin`](plugin.md)
 * [`reference`](reference.md)
+* [`file`](file.md)

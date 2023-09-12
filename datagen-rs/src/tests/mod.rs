@@ -1,4 +1,5 @@
 mod plugins;
+mod schema;
 
 mod util {
     use crate::generate::current_schema::{CurrentSchema, CurrentSchemaRef};
