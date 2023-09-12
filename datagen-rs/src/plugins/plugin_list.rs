@@ -201,6 +201,7 @@ impl PluginList {
                     Any::Counter(counter) => IntoGeneratedArc::get_transform(counter),
                     Any::Bool(boolean) => IntoGeneratedArc::get_transform(boolean),
                     Any::Plugin(plugin) => plugin.get_transform(),
+                    Any::File(file) => IntoGeneratedArc::get_transform(file),
                     Any::Object(_) => panic!("Object should be handled above"),
                     Any::Array(_) => panic!("Array should be handled above"),
                     Any::Flatten(_) => panic!("Flatten should be handled above"),

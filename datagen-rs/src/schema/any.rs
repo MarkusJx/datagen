@@ -2,6 +2,7 @@ use crate::schema::any_of::AnyOf;
 use crate::schema::array::Array;
 use crate::schema::bool::Bool;
 use crate::schema::counter::Counter;
+use crate::schema::file::File;
 use crate::schema::flatten::Flatten;
 use crate::schema::integer::Integer;
 use crate::schema::number::Number;
@@ -30,6 +31,7 @@ pub enum Any {
     Array(Box<Array>),
     Object(Box<Object>),
     Flatten(Flatten),
+    File(File),
 }
 
 #[cfg(feature = "generate")]
@@ -56,6 +58,7 @@ pub mod generate {
                 Any::Array(array) => array.into_random(schema),
                 Any::Object(object) => object.into_random(schema),
                 Any::Flatten(flatten) => flatten.into_random(schema),
+                Any::File(file) => file.into_random(schema),
             }
         }
 
