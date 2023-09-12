@@ -1,8 +1,6 @@
 use crate::schema::transform::AnyTransform;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
-#[cfg(feature = "serialize")]
-use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "schema", derive(JsonSchema))]
@@ -23,6 +21,9 @@ pub enum Number {
         transform: Option<Vec<AnyTransform>>,
     },
 }
+
+#[cfg(feature = "serialize")]
+use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "generate")]
 pub mod generate {

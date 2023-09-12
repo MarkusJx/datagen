@@ -23,7 +23,7 @@ impl<T: Plugin + 'static> From<Result<T>> for PluginInitResult {
 }
 
 pub trait Plugin: Debug {
-    fn name(&self) -> &'static str;
+    fn name(&self) -> String;
 
     #[allow(unused_variables)]
     fn generate(&self, schema: CurrentSchemaRef, args: Value) -> Result<Arc<GeneratedSchema>> {

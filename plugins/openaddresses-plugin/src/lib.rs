@@ -30,8 +30,8 @@ struct OpenAddressesPlugin {
 }
 
 impl Plugin for OpenAddressesPlugin {
-    fn name(&self) -> &'static str {
-        "openaddresses"
+    fn name(&self) -> String {
+        "openaddresses".into()
     }
 
     fn generate(&self, schema: CurrentSchemaRef, args: Value) -> Result<Arc<GeneratedSchema>> {

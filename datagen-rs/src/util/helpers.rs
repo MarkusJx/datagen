@@ -24,6 +24,13 @@ use std::path::Path;
 use std::sync::Arc;
 
 #[cfg(feature = "schema")]
+#[allow(unused)]
+pub fn get_schema_string() -> Result<String> {
+    let schema = schema_for!(Schema);
+    serde_json::to_string_pretty(&schema).map_err(|e| e.into())
+}
+
+#[cfg(feature = "schema")]
 pub fn write_json_schema<P: AsRef<Path>>(path: P) -> Result<()> {
     let file = File::create(path)?;
     let schema = schema_for!(Schema);

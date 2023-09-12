@@ -16,9 +16,9 @@ struct Args {
 }
 
 impl Plugin for LogPlugin {
-    fn name(&self) -> &'static str {
+    fn name(&self) -> String {
         println!("LogPlugin");
-        "log"
+        "log".into()
     }
 
     fn generate(&self, schema: CurrentSchemaRef, args: Value) -> Result<Arc<GeneratedSchema>> {
