@@ -1,6 +1,6 @@
 use crate::schema::array::Array;
-use crate::schema::generator::Generator;
 use crate::schema::object::Object;
+use crate::schema::plugin::Plugin;
 use crate::schema::reference::Reference;
 use crate::schema::transform::AnyTransform;
 #[cfg(feature = "schema")]
@@ -31,7 +31,7 @@ pub enum FlattenableValue {
     Object(Object),
     Array(Array),
     Reference(Reference),
-    Generator(Generator),
+    Plugin(Plugin),
 }
 
 #[cfg(feature = "generate")]
@@ -51,7 +51,7 @@ pub mod generate {
             match self {
                 FlattenableValue::Object(object) => object.into_random(schema),
                 FlattenableValue::Reference(reference) => reference.into_random(schema),
-                FlattenableValue::Generator(generator) => generator.into_random(schema),
+                FlattenableValue::Plugin(plugin) => plugin.into_random(schema),
                 FlattenableValue::Array(array) => array.into_random(schema),
             }
         }

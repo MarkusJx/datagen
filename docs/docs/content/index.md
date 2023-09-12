@@ -15,5 +15,5 @@ You can also create your own generators.
 * [`bool`](bool.md)
 * [`anyOf`](anyof.md)
 * [`flatten`](flatten.md)
-* [`generator`](generator.md)
+* [`plugin`](plugin.md)
 * [`reference`](reference.md)

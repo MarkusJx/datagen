@@ -19,7 +19,7 @@ These configuration options are passed to the plugin using the
 
 ## Example
 
-Use the `openaddresses` plugin to generate real addresses:
+Use the [`openaddresses` plugin](../../plugins/default/openaddresses.md) to generate real addresses:
 
 ```json
 {
@@ -36,7 +36,7 @@ Use the `openaddresses` plugin to generate real addresses:
     "value": 10
   },
   "items": {
-    "type": "generator",
+    "type": "plugin",
     "pluginName": "openaddresses_plugin",
     "args": {
       "street": "street",

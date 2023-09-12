@@ -46,8 +46,7 @@ must be accessed by the path to the plugin file.
 
 ```json
 {
-  "type": "string",
-  "value": "hello",
+  "type": "object",
   "options": {
     "plugins": {
       "path/to/my/plugin": {
@@ -55,12 +54,15 @@ must be accessed by the path to the plugin file.
       }
     }
   },
-  "transform": [
-    {
+  "properties": {
+    "pluginData": {
       "type": "plugin",
-      "name": "path/to/my/plugin"
+      "pluginName": "path/to/my/plugin",
+      "args": {
+        "my-arg": "my-value"
+      }
     }
-  ]
+  }
 }
 ```
 

@@ -235,16 +235,6 @@
               }
             }
           }
-        ],
-        "transform": [
-          {
-            "type": "toString",
-            "subType": "format",
-            "format": "{{street}} {{houseNumber}}, {{city}}"
-          },
-          {
-            "type": "toUpperCase"
-          }
         ]
       }
     }

@@ -5,7 +5,7 @@ pub mod array;
 pub mod bool;
 pub mod counter;
 pub mod flatten;
-pub mod generator;
+pub mod plugin;
 pub mod integer;
 pub mod number;
 pub mod object;

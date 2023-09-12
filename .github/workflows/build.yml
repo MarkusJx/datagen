@@ -34,8 +34,8 @@ jobs:
       with:
         name: datagen-${{runner.os}}
         path: |
-          target/release/cli.exe
-          target/release/cli
+          target/release/datagen.exe
+          target/release/datagen
           target/release/openaddresses_plugin.dll
           target/release/libopenaddresses_plugin.dylib
           target/release/libopenaddresses_plugin.so

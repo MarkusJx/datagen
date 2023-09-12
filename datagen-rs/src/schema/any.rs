@@ -3,10 +3,10 @@ use crate::schema::array::Array;
 use crate::schema::bool::Bool;
 use crate::schema::counter::Counter;
 use crate::schema::flatten::Flatten;
-use crate::schema::generator::Generator;
 use crate::schema::integer::Integer;
 use crate::schema::number::Number;
 use crate::schema::object::Object;
+use crate::schema::plugin::Plugin;
 use crate::schema::reference::Reference;
 use crate::schema::string::StringSchema;
 #[cfg(feature = "schema")]
@@ -26,7 +26,7 @@ pub enum Any {
     String(StringSchema),
     AnyOf(AnyOf),
     Reference(Reference),
-    Generator(Generator),
+    Plugin(Plugin),
     Array(Box<Array>),
     Object(Box<Object>),
     Flatten(Flatten),
@@ -52,7 +52,7 @@ pub mod generate {
                 Any::String(string) => string.into_random(schema),
                 Any::AnyOf(any_of) => any_of.into_random(schema),
                 Any::Reference(reference) => reference.into_random(schema),
-                Any::Generator(generator) => generator.into_random(schema),
+                Any::Plugin(plugin) => plugin.into_random(schema),
                 Any::Array(array) => array.into_random(schema),
                 Any::Object(object) => object.into_random(schema),
                 Any::Flatten(flatten) => flatten.into_random(schema),

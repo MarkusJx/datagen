@@ -9,7 +9,7 @@ use serde_json::Value;
 #[cfg_attr(feature = "schema", derive(JsonSchema))]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serialize", serde(rename_all = "camelCase"))]
-pub struct Generator {
+pub struct Plugin {
     pub plugin_name: String,
     pub args: Option<Value>,
     pub transform: Option<Vec<AnyTransform>>,
@@ -20,12 +20,12 @@ pub mod generate {
     use crate::generate::current_schema::CurrentSchemaRef;
     use crate::generate::generated_schema::generate::IntoGeneratedArc;
     use crate::generate::generated_schema::GeneratedSchema;
-    use crate::schema::generator::Generator;
+    use crate::schema::plugin::Plugin;
     use crate::schema::transform::AnyTransform;
     use crate::util::types::Result;
     use std::sync::Arc;
 
-    impl IntoGeneratedArc for Generator {
+    impl IntoGeneratedArc for Plugin {
         fn into_generated_arc(self, schema: CurrentSchemaRef) -> Result<Arc<GeneratedSchema>> {
             schema
                 .get_plugin(&self.plugin_name)?

@@ -22,7 +22,7 @@ use std::sync::{Arc, Mutex};
 #[cfg_attr(not(feature = "generate"), allow(dead_code))]
 pub struct CurrentSchema {
     parent: Option<CurrentSchemaRef>,
-    pub(crate) value: Arc<Mutex<SchemaValue>>,
+    value: Arc<Mutex<SchemaValue>>,
     options: Arc<SchemaOptions>,
     plugins: Arc<PluginList>,
     finalized: AtomicBool,
@@ -165,6 +165,11 @@ impl CurrentSchema {
         self.finalized.store(true, Ordering::SeqCst);
 
         schema
+    }
+
+    #[cfg(feature = "map-schema")]
+    pub fn path(&self) -> SchemaPath {
+        self.value.lock().unwrap().path.clone()
     }
 
     pub fn get_plugin<'a>(&'a self, key: &String) -> Result<&'a dyn Plugin> {

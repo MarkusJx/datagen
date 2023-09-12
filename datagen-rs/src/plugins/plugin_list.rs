@@ -166,7 +166,7 @@ impl PluginList {
             .flat_map(|val| match val {
                 FlattenableValue::Object(obj) => Self::find_object_transformers(obj),
                 FlattenableValue::Reference(reference) => Self::map_transform(reference),
-                FlattenableValue::Generator(gen) => Self::map_transform(gen),
+                FlattenableValue::Plugin(gen) => Self::map_transform(gen),
                 FlattenableValue::Array(array) => Self::find_array_transformers(array),
             })
             .collect::<Vec<String>>();
@@ -200,7 +200,7 @@ impl PluginList {
                     Any::Number(number) => IntoGeneratedArc::get_transform(number),
                     Any::Counter(counter) => IntoGeneratedArc::get_transform(counter),
                     Any::Bool(boolean) => IntoGeneratedArc::get_transform(boolean),
-                    Any::Generator(generator) => generator.get_transform(),
+                    Any::Plugin(plugin) => plugin.get_transform(),
                     Any::Object(_) => panic!("Object should be handled above"),
                     Any::Array(_) => panic!("Array should be handled above"),
                     Any::Flatten(_) => panic!("Flatten should be handled above"),
@@ -215,7 +215,7 @@ impl PluginList {
     #[cfg(feature = "plugin")]
     fn find_generators(any: &AnyValue) -> Vec<String> {
         match any {
-            AnyValue::Any(Any::Generator(gen)) => vec![gen.plugin_name.clone()],
+            AnyValue::Any(Any::Plugin(gen)) => vec![gen.plugin_name.clone()],
             AnyValue::Any(Any::Object(obj)) => obj
                 .properties
                 .iter()

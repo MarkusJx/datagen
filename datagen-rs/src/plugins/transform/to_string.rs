@@ -31,6 +31,7 @@ pub mod generate {
     use crate::generate::current_schema::CurrentSchemaRef;
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::plugins::transform::to_string::ToStringTransform;
+    use crate::util::generate_error::GenerateError;
     use crate::util::traits::generate::TransformTrait;
     use crate::util::types::Result;
     use handlebars::Handlebars;
@@ -67,7 +68,11 @@ pub mod generate {
                                     {
                                         Ok((k, serde_json::to_string(v.as_ref())?))
                                     } else {
-                                        Err("Cannot format non-string".into())
+                                        Err(GenerateError::new(
+                                            &schema,
+                                            &format!("Cannot format non-string value '{k}', which is of type {}", v.name()))
+                                            .into()
+                                        )
                                     }
                                 }
                             })
