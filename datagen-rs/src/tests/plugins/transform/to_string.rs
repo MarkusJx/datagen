@@ -165,7 +165,7 @@ fn test_format_invalid_object() {
     assert!(generated.is_err());
     assert_eq!(
         generated.unwrap_err().to_string(),
-        "Cannot format non-string".to_string()
+        "Error generating schema at path '': Cannot format non-string value 'a', which is of type Object".to_string()
     );
 }
 
