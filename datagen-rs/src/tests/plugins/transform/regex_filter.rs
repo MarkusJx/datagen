@@ -3,7 +3,7 @@ use crate::generate_schema;
 use crate::plugins::transform::regex_filter::RegexFilter;
 use crate::schema::any::Any;
 use crate::schema::any_value::AnyValue;
-use crate::schema::transform::{AnyTransform, Transform};
+use crate::schema::transform::Transform;
 use crate::tests::util::root_schema;
 use serde_json::json;
 
@@ -67,10 +67,10 @@ fn get_object_schema() -> AnyValue {
 fn update_schema(regex: &str, mut any: &mut AnyValue) {
     if let AnyValue::Any(Any::Object(obj)) = &mut any {
         if let Some(transform) = &mut obj.transform {
-            transform[0] = AnyTransform::Transform(Transform::RegexFilter(RegexFilter {
+            transform[0] = Transform::RegexFilter(RegexFilter {
                 pattern: regex.to_string(),
                 serialize_non_strings: Some(true),
-            }));
+            });
         }
     }
 }

@@ -1,8 +1,8 @@
 {
     "name": "datagen-node",
     "version": "0.0.0",
-    "main": "index.js",
-    "types": "index.d.ts",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
     "napi": {
         "name": "datagen-node",
         "triples": {
@@ -18,10 +18,18 @@
         "ava": "^5.1.1",
         "json-schema-to-typescript": "^13.1.1",
         "prettier": "^3.0.3",
-        "tsx": "^3.12.9"
+        "tsx": "^3.12.9",
+        "typescript": "^5.2.2"
     },
     "ava": {
-        "timeout": "3m"
+        "timeout": "3m",
+        "extensions": {
+            "ts": "module"
+        },
+        "nodeArguments": [
+            "--no-warnings",
+            "--loader=tsx"
+        ]
     },
     "engines": {
         "node": ">= 10"
@@ -37,7 +45,8 @@
         "artifacts": "napi artifacts",
         "build": "napi build --platform --release",
         "build:debug": "napi build --platform",
-        "postbuild": "tsx ts-src/scripts/postbuild.ts",
+        "postbuild": "tsx ts-src/scripts/postbuild.ts && tsc",
+        "pretest": "npm run build",
         "prepublishOnly": "napi prepublish -t npm",
         "test": "ava",
         "universal": "napi universal",

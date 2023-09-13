@@ -5,7 +5,7 @@ use crate::plugins::transform::filter::{FilterTransform, FilterTransformOp};
 use crate::schema::any_value::AnyValue;
 use crate::schema::object::Object;
 use crate::schema::string::StringSchema;
-use crate::schema::transform::{AnyTransform, ReferenceOrString, Transform};
+use crate::schema::transform::{ReferenceOrString, Transform};
 use crate::tests::util::root_schema;
 use serde_json::json;
 
@@ -13,12 +13,12 @@ fn create_filter(
     operator: FilterTransformOp,
     other: GeneratedSchema,
     field: Option<ReferenceOrString>,
-) -> AnyTransform {
-    AnyTransform::Transform(Transform::Filter(FilterTransform {
+) -> Transform {
+    Transform::Filter(FilterTransform {
         operator,
         other,
         field,
-    }))
+    })
 }
 
 #[test]

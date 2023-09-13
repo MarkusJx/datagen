@@ -9,7 +9,7 @@ crate-type = ["cdylib"]
 [dependencies]
 napi = { version = "2.13", default-features = false, features = [
     "napi8",
-    "deferred_trace",
+    #"deferred_trace",
     "async",
     "serde-json"] }
 napi-derive = "2.13"

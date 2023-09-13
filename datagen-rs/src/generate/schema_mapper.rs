@@ -1,6 +1,6 @@
 use crate::generate::current_schema::CurrentSchemaRef;
 use crate::generate::generated_schema::GeneratedSchema;
-use crate::schema::transform::AnyTransform;
+use crate::schema::transform::Transform;
 use crate::util::types::Result;
 use indexmap::IndexMap;
 use std::sync::Arc;
@@ -9,7 +9,7 @@ pub trait MapSchema {
     fn map_index_map<K, F: Fn(&CurrentSchemaRef, K) -> Result<Arc<GeneratedSchema>>>(
         &self,
         map: IndexMap<String, K>,
-        transform: Option<Vec<AnyTransform>>,
+        transform: Option<Vec<Transform>>,
         finalize: bool,
         func: F,
     ) -> Result<Arc<GeneratedSchema>>;
@@ -18,7 +18,7 @@ pub trait MapSchema {
         &self,
         num: usize,
         arg: K,
-        transform: Option<Vec<AnyTransform>>,
+        transform: Option<Vec<Transform>>,
         finalize: bool,
         func: F,
     ) -> Result<Arc<GeneratedSchema>>;
@@ -29,7 +29,7 @@ pub mod generate {
     use crate::generate::current_schema::{CurrentSchema, CurrentSchemaRef};
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::generate::schema_mapper::MapSchema;
-    use crate::schema::transform::AnyTransform;
+    use crate::schema::transform::Transform;
     use crate::util::traits::generate::TransformTrait;
     use crate::util::types::Result;
     use indexmap::IndexMap;
@@ -39,7 +39,7 @@ pub mod generate {
         fn map_index_map<K, F: Fn(&CurrentSchemaRef, K) -> Result<Arc<GeneratedSchema>>>(
             &self,
             map: IndexMap<String, K>,
-            transform: Option<Vec<AnyTransform>>,
+            transform: Option<Vec<Transform>>,
             finalize: bool,
             func: F,
         ) -> Result<Arc<GeneratedSchema>> {
@@ -72,7 +72,7 @@ pub mod generate {
             &self,
             length: usize,
             value: K,
-            transform: Option<Vec<AnyTransform>>,
+            transform: Option<Vec<Transform>>,
             finalize: bool,
             func: F,
         ) -> Result<Arc<GeneratedSchema>> {

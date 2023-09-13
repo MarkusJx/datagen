@@ -3,7 +3,8 @@ import { CurrentSchema } from './index';
 
 class TestPlugin implements Plugin {
     generate(schema: CurrentSchema, args: any): any {
-        console.log(schema.resolveRef("ref:test123"));
+        console.log(schema, args);
+        console.log(schema.resolveRef('ref:test123'));
         return {
             test: true,
         };

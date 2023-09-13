@@ -7,25 +7,26 @@ extern crate napi_derive;
 
 use crate::classes::node_plugin::NodePlugin;
 use datagen_rs::plugins::plugin::Plugin;
-use datagen_rs::util::helpers::get_schema_string;
+use datagen_rs::util::helpers::get_schema_value;
+use serde_json::Value;
 use std::collections::HashMap;
 
 #[napi]
-pub fn get_schema() -> napi::Result<String> {
-    get_schema_string().map_err(|e| napi::Error::from_reason(e.to_string()))
+pub fn get_schema() -> napi::Result<Value> {
+    get_schema_value().map_err(|e| napi::Error::from_reason(e.to_string()))
 }
 
 #[napi]
-pub async fn get_schema_async() -> napi::Result<String> {
-    get_schema_string().map_err(|e| napi::Error::from_reason(e.to_string()))
+pub async fn get_schema_async() -> napi::Result<Value> {
+    get_schema_value().map_err(|e| napi::Error::from_reason(e.to_string()))
 }
 
 pub fn generate_random_data(
-    schema: String,
+    schema: Value,
     additional_plugins: HashMap<String, &NodePlugin>,
 ) -> napi::Result<String> {
     let schema =
-        serde_json::from_str(&schema).map_err(|e| napi::Error::from_reason(e.to_string()))?;
+        serde_json::from_value(schema).map_err(|e| napi::Error::from_reason(e.to_string()))?;
 
     let mut plugins: Option<HashMap<String, Box<dyn Plugin>>> = None;
     if !additional_plugins.is_empty() {
@@ -44,7 +45,7 @@ pub fn generate_random_data(
 
 #[napi]
 pub fn generate_random_data_internal(
-    schema: String,
+    schema: Value,
     plugins: HashMap<String, &NodePlugin>,
 ) -> napi::Result<String> {
     generate_random_data(schema, plugins)
@@ -52,7 +53,7 @@ pub fn generate_random_data_internal(
 
 #[napi]
 pub async fn generate_random_data_internal_async(
-    schema: String,
+    schema: Value,
     plugins: HashMap<String, &NodePlugin>,
 ) -> napi::Result<String> {
     generate_random_data(schema, plugins)

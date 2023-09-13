@@ -25,7 +25,7 @@ impl CurrentSchema {
         }
     }
 
-    #[napi(ts_return_type = "Array<object>")]
+    #[napi(ts_return_type = "Array<any>")]
     pub fn resolve_ref(&self, env: Env, path: String) -> napi::Result<JsUnknown> {
         env.to_js_value(
             &self

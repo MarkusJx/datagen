@@ -7,7 +7,14 @@ import { generateRandomData } from './ts-src';
         args: {
             name: 'test',
         },
+        //*
+        transform: [
+            {
+                type: 'plugin',
+                name: 'node:../testPlugin.ts',
+            },
+        ], //*/
     });
-    
+
     console.log('Generated:', data);
 })();

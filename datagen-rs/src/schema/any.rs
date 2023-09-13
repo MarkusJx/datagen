@@ -40,7 +40,7 @@ pub mod generate {
     use crate::generate::generated_schema::generate::IntoGeneratedArc;
     use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
     use crate::schema::any::Any;
-    use crate::schema::transform::AnyTransform;
+    use crate::schema::transform::Transform;
     use crate::util::types::Result;
     use std::sync::Arc;
 
@@ -62,7 +62,7 @@ pub mod generate {
             }
         }
 
-        fn get_transform(&self) -> Option<Vec<AnyTransform>> {
+        fn get_transform(&self) -> Option<Vec<Transform>> {
             None
         }
     }

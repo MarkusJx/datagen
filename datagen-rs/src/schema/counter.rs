@@ -1,4 +1,4 @@
-use crate::schema::transform::AnyTransform;
+use crate::schema::transform::Transform;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
@@ -14,7 +14,7 @@ static mut COUNTER: AtomicI64 = AtomicI64::new(0);
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 pub struct Counter {
     pub step: Option<i64>,
-    pub transform: Option<Vec<AnyTransform>>,
+    pub transform: Option<Vec<Transform>>,
 }
 
 #[cfg(feature = "generate")]
@@ -23,7 +23,7 @@ pub mod generate {
     use crate::generate::generated_schema::generate::IntoGenerated;
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::schema::counter::{Counter, COUNTER};
-    use crate::schema::transform::AnyTransform;
+    use crate::schema::transform::Transform;
     use crate::util::types::Result;
     use std::sync::atomic::Ordering;
 
@@ -33,7 +33,7 @@ pub mod generate {
             Ok(GeneratedSchema::Integer(value))
         }
 
-        fn get_transform(&self) -> Option<Vec<AnyTransform>> {
+        fn get_transform(&self) -> Option<Vec<Transform>> {
             self.transform.clone()
         }
     }

@@ -1,5 +1,5 @@
 use crate::schema::any_value::AnyValue;
-use crate::schema::transform::AnyTransform;
+use crate::schema::transform::Transform;
 use indexmap::IndexMap;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 pub struct Object {
     pub properties: IndexMap<String, AnyValue>,
-    pub transform: Option<Vec<AnyTransform>>,
+    pub transform: Option<Vec<Transform>>,
 }
 
 #[cfg(feature = "generate")]
@@ -21,7 +21,7 @@ pub mod generate {
     use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
     use crate::generate::schema_mapper::MapSchema;
     use crate::schema::object::Object;
-    use crate::schema::transform::AnyTransform;
+    use crate::schema::transform::Transform;
     use crate::util::types::Result;
     use std::sync::Arc;
 
@@ -32,7 +32,7 @@ pub mod generate {
             })
         }
 
-        fn get_transform(&self) -> Option<Vec<AnyTransform>> {
+        fn get_transform(&self) -> Option<Vec<Transform>> {
             self.transform.clone()
         }
     }

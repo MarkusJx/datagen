@@ -1,5 +1,5 @@
 use crate::schema::any_value::AnyValue;
-use crate::schema::transform::AnyTransform;
+use crate::schema::transform::Transform;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
@@ -20,7 +20,7 @@ pub enum ArrayLength {
 pub struct Array {
     pub length: ArrayLength,
     pub items: AnyValue,
-    pub transform: Option<Vec<AnyTransform>>,
+    pub transform: Option<Vec<Transform>>,
 }
 
 #[cfg(feature = "generate")]
@@ -30,7 +30,7 @@ pub mod generate {
     use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
     use crate::generate::schema_mapper::MapSchema;
     use crate::schema::array::{Array, ArrayLength};
-    use crate::schema::transform::AnyTransform;
+    use crate::schema::transform::Transform;
     use crate::util::types::Result;
     use rand::Rng;
     use std::sync::Arc;
@@ -55,7 +55,7 @@ pub mod generate {
             })
         }
 
-        fn get_transform(&self) -> Option<Vec<AnyTransform>> {
+        fn get_transform(&self) -> Option<Vec<Transform>> {
             self.transform.clone()
         }
     }

@@ -20,11 +20,12 @@ use crate::schema::schema_definition::Schema;
 #[cfg(feature = "plugin")]
 use crate::schema::schema_definition::Serializer;
 #[cfg(feature = "plugin")]
-use crate::schema::transform::AnyTransform;
+use crate::schema::transform::Transform;
 use crate::util::types::Result;
 #[cfg(feature = "plugin")]
 use serde_json::Value;
 use std::collections::HashMap;
+use std::error::Error;
 #[cfg(feature = "plugin")]
 use std::sync::Arc;
 
@@ -82,7 +83,7 @@ impl PluginList {
             if !plugins.contains_key(plugin_name) {
                 plugins.insert(
                     plugin_name.clone(),
-                    Box::new(ImportedPlugin::load(plugin_name, Value::Null)?),
+                    Self::map_plugin(plugin_name.clone(), Value::Null, None)?.1,
                 );
             }
         }
@@ -118,16 +119,20 @@ impl PluginList {
     ) -> Result<(String, Box<dyn Plugin>)> {
         Ok((
             name.clone(),
-            Box::new(ImportedPlugin::load(path.unwrap_or(name), args)?),
+            Box::new(
+                ImportedPlugin::load(path.unwrap_or(name.clone()), args).map_err(
+                    |e| -> Box<dyn Error> { format!("Failed to load plugin '{name}': {e}").into() },
+                )?,
+            ),
         ))
     }
 
     #[cfg(feature = "plugin")]
-    fn transformers_to_vec(transform: &[AnyTransform], loaded: &[String]) -> Vec<String> {
+    fn transformers_to_vec(transform: &[Transform], loaded: &[String]) -> Vec<String> {
         transform
             .iter()
             .filter_map(|t| match t {
-                AnyTransform::Plugin { name, .. } => Some(name.clone()),
+                Transform::Plugin(plugin) => Some(plugin.name.clone()),
                 _ => None,
             })
             .filter(|name| !loaded.contains(name))

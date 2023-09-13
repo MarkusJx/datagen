@@ -1,4 +1,5 @@
 use crate::plugins::transform::filter::FilterTransform;
+use crate::plugins::transform::plugin_transform::PluginTransform;
 use crate::plugins::transform::regex_filter::RegexFilter;
 use crate::plugins::transform::sort::SortTransform;
 use crate::plugins::transform::string_case_transform::ToLowerCase;
@@ -9,21 +10,6 @@ use crate::schema::reference::Reference;
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
-
-#[derive(Debug, Clone)]
-#[cfg_attr(feature = "schema", derive(JsonSchema))]
-#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serialize", serde(untagged, deny_unknown_fields))]
-pub enum AnyTransform {
-    Transform(Transform),
-    Plugin {
-        /// The path of the plugin which will be used to transform the data
-        name: String,
-        /// The arguments which will be passed to the plugin
-        args: Option<Value>,
-    },
-}
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "schema", derive(JsonSchema))]
@@ -42,6 +28,7 @@ pub enum Transform {
     ToUpperCase(ToUpperCase),
     ToLowerCase(ToLowerCase),
     Sort(SortTransform),
+    Plugin(PluginTransform),
 }
 
 #[derive(Debug, Clone)]
@@ -58,7 +45,7 @@ pub mod generate {
     use crate::generate::current_schema::CurrentSchemaRef;
     use crate::generate::generated_schema::generate::IntoGeneratedArc;
     use crate::generate::generated_schema::GeneratedSchema;
-    use crate::schema::transform::{AnyTransform, ReferenceOrString, Transform};
+    use crate::schema::transform::{ReferenceOrString, Transform};
     use crate::util::traits::generate::{ResolveRef, TransformTrait};
     use crate::util::types::Result;
     use indexmap::IndexMap;
@@ -71,23 +58,6 @@ pub mod generate {
                     reference.into_generated_arc(schema.clone())
                 }
                 ReferenceOrString::String(string) => string.resolve_ref(schema),
-            }
-        }
-    }
-
-    impl TransformTrait for AnyTransform {
-        fn transform(
-            self,
-            schema: CurrentSchemaRef,
-            value: Arc<GeneratedSchema>,
-        ) -> Result<Arc<GeneratedSchema>> {
-            match self {
-                AnyTransform::Transform(transform) => transform.transform(schema, value),
-                AnyTransform::Plugin { name, args } => schema.get_plugin(&name)?.transform(
-                    schema.clone(),
-                    value,
-                    args.unwrap_or_default(),
-                ),
             }
         }
     }
@@ -124,6 +94,7 @@ pub mod generate {
                 Transform::ToUpperCase(to_upper_case) => to_upper_case.transform(schema, value),
                 Transform::RegexFilter(regex_filter) => regex_filter.transform(schema, value),
                 Transform::Sort(sort) => sort.transform(schema, value),
+                Transform::Plugin(plugin) => plugin.transform(schema, value),
             }
         }
     }

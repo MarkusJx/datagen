@@ -1,13 +1,17 @@
 import { CurrentSchema, NodePlugin } from '../index';
-import { AnyTransform, Array, Schema, Plugin as PluginSchema } from './types';
+import { Transform, Array, Schema, Plugin as PluginSchema } from './types';
 
 export interface Plugin {
-    generate?(schema: CurrentSchema, args: any): any;
-    transform?(schema: CurrentSchema, args: any, value: any): any;
-    serialize?(args: any, value: any): any;
+    generate?(schema: CurrentSchema, args: any): any | Promise<any>;
+    transform?(
+        schema: CurrentSchema,
+        args: any,
+        value: any
+    ): any | Promise<any>;
+    serialize?(args: any, value: any): string | Promise<string>;
 }
 
-export type InitFunction = (args: any) => Promise<Plugin>;
+export type InitFunction = (args: any) => Plugin | Promise<Plugin>;
 
 async function loadPlugin(name: string, args: any): Promise<Plugin> {
     let plugin = await import(name);
@@ -26,9 +30,14 @@ async function findPluginsInTransform(
         return;
     }
 
-    for (const transform of schema.transform as AnyTransform[]) {
-        if ((transform as any).type === 'plugin') {
-            const name = (transform as unknown as PluginSchema).pluginName;
+    for (const transform of schema.transform as Transform[]) {
+        // @ts-ignore
+        if (transform.type === 'plugin') {
+            const name = (transform as any).name;
+            if (!name) {
+                throw Error("Object 'transform' must have a name");
+            }
+
             if (name.startsWith('node:') && !plugins[name]) {
                 plugins[name] = await loadPlugin(name.substring(5), null);
             }
@@ -72,13 +81,99 @@ async function findNestedPlugins(
     }
 }
 
+function transformError(e: any): Error {
+    if (e instanceof Error) {
+        return e;
+    } else {
+        return Error(e.toString());
+    }
+}
+
+function callPluginFunction<
+    N extends keyof Plugin,
+    A extends Parameters<Required<Plugin>[N]>,
+>(
+    plugin: Plugin,
+    pluginName: string,
+    name: N,
+    err: Error | null,
+    callback: (res: ReturnType<Required<Plugin>[N]> | Error) => void,
+    ...args: A
+): void {
+    const fn = plugin[name];
+    if (err) {
+        return callback(err);
+    } else if (!fn) {
+        return callback(
+            Error(`Plugin '${pluginName}' does not support operation '${name}'`)
+        );
+    }
+
+    try {
+        // @ts-ignore
+        const res = fn.apply(plugin, args);
+        if (res instanceof Promise) {
+            res.then(
+                (res) => callback(res),
+                (err) => callback(transformError(err))
+            );
+        } else {
+            callback(res);
+        }
+    } catch (e) {
+        callback(transformError(e));
+    }
+}
+
+function createNodePlugin(name: string, plugin: Plugin): NodePlugin {
+    return new NodePlugin(
+        name,
+        (err, callback, schema, args) =>
+            callPluginFunction(
+                plugin,
+                name,
+                'generate',
+                err,
+                callback,
+                schema,
+                args
+            ),
+        (err, callback, schema, args, value) =>
+            callPluginFunction(
+                plugin,
+                name,
+                'transform',
+                err,
+                callback,
+                schema,
+                args,
+                value
+            ),
+        (err, callback, args, value) =>
+            callPluginFunction(
+                plugin,
+                name,
+                'serialize',
+                err,
+                callback,
+                args,
+                value
+            )
+    );
+}
+
 export async function findPlugins(
-    schema: Schema
+    schema: Schema,
+    extraPlugins: Record<string, Plugin>
 ): Promise<Record<string, NodePlugin>> {
-    const plugins: Record<string, Plugin> = {};
+    const plugins: Record<string, Plugin> = Object.assign({}, extraPlugins);
     const pluginsObj = schema.options?.plugins;
     if (pluginsObj) {
         for (const [key, value] of Object.entries(pluginsObj)) {
+            if (plugins[key]) {
+                throw Error(`Duplicate plugin name: ${key}`);
+            }
+
             if (key.startsWith('node:')) {
                 if (value && (value as any).path) {
                     plugins[key] = await loadPlugin(
@@ -97,49 +192,17 @@ export async function findPlugins(
         schema.options.serializer.type === 'plugin'
     ) {
         const name = schema.options.serializer.pluginName;
-        if (!plugins[name]) {
-            plugins[name] = await loadPlugin(name, null);
+        if (name.startsWith('node:') && !plugins[name]) {
+            plugins[name] = await loadPlugin(name.substring(5), null);
         }
     }
 
     await findNestedPlugins(schema, plugins);
+
     return Object.entries(plugins)
         .map(
             ([name, plugin]) =>
-                [
-                    name,
-                    new NodePlugin(
-                        name,
-                        (err, schema, args) => {
-                            console.log(err, schema, args);
-                            if (!plugin.generate) {
-                                throw new Error(
-                                    'Plugin does not support generate'
-                                );
-                            }
-
-                            return plugin.generate(schema, args);
-                        },
-                        ({ args, schema, value }) => {
-                            if (!plugin.transform) {
-                                throw new Error(
-                                    'Plugin does not support transform'
-                                );
-                            }
-
-                            return plugin.transform(schema, args, value);
-                        },
-                        ({ args, value }) => {
-                            if (!plugin.serialize) {
-                                throw new Error(
-                                    'Plugin does not support serialize'
-                                );
-                            }
-
-                            return plugin.serialize(args, value);
-                        }
-                    ),
-                ] as [string, NodePlugin]
+                [name, createNodePlugin(name, plugin)] as [string, NodePlugin]
         )
         .reduce(
             (acc, [name, plugin]) => {

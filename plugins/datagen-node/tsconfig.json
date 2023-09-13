@@ -20,7 +20,7 @@
         "resolveJsonModule": true,
         "noUnusedLocals": true,
         "noUnusedParameters": true,
-        "types": ["node", "webpack-env"]
+        "types": ["node"]
     },
-    "exclude": ["node_modules", "dist"]
+    "exclude": ["node_modules", "dist", "ts-src/scripts/postbuild.ts"]
 }

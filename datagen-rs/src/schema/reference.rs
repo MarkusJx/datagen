@@ -1,4 +1,4 @@
-use crate::schema::transform::AnyTransform;
+use crate::schema::transform::Transform;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
@@ -12,7 +12,7 @@ pub struct Reference {
     pub reference: String,
     pub except: Option<Vec<StringOrNumber>>,
     pub keep_all: Option<bool>,
-    pub transform: Option<Vec<AnyTransform>>,
+    pub transform: Option<Vec<Transform>>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -30,7 +30,7 @@ pub mod generate {
     use crate::generate::generated_schema::generate::IntoGeneratedArc;
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::schema::reference::{Reference, StringOrNumber};
-    use crate::schema::transform::AnyTransform;
+    use crate::schema::transform::Transform;
     use crate::util::types::Result;
     use rand::prelude::SliceRandom;
     use std::sync::Arc;
@@ -81,7 +81,7 @@ pub mod generate {
             })
         }
 
-        fn get_transform(&self) -> Option<Vec<AnyTransform>> {
+        fn get_transform(&self) -> Option<Vec<Transform>> {
             self.transform.clone()
         }
     }

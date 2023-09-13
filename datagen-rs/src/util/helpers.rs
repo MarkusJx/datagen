@@ -14,6 +14,8 @@ use crate::schema::schema_definition::Serializer;
 use crate::util::types::Result;
 #[cfg(feature = "schema")]
 use schemars::schema_for;
+#[cfg(feature = "schema")]
+use serde_json::Value;
 #[cfg(feature = "generate")]
 use std::collections::HashMap;
 #[cfg(any(feature = "schema", feature = "serialize"))]
@@ -25,9 +27,9 @@ use std::sync::Arc;
 
 #[cfg(feature = "schema")]
 #[allow(unused)]
-pub fn get_schema_string() -> Result<String> {
+pub fn get_schema_value() -> Result<Value> {
     let schema = schema_for!(Schema);
-    serde_json::to_string_pretty(&schema).map_err(|e| e.into())
+    serde_json::to_value(schema).map_err(|e| e.into())
 }
 
 #[cfg(feature = "schema")]

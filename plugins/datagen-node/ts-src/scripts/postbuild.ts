@@ -5,6 +5,6 @@ import * as path from 'path';
 
 (async () => {
     const schema = await getSchemaAsync();
-    const compiled = await compile(JSON.parse(schema) as JSONSchema, 'Schema');
-    await writeFile(path.join(__dirname, '..', 'types.d.ts'), compiled);
+    const compiled = await compile(schema as JSONSchema, 'Schema');
+    await writeFile(path.join(__dirname, '..', 'types.ts'), compiled);
 })();

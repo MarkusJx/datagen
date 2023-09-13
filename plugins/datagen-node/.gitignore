@@ -197,4 +197,4 @@ Cargo.lock
 *.node
 /index.d.ts
 /index.js
-/ts-src/types.d.ts
+/ts-src/types.ts
