@@ -5,3 +5,5 @@ functionality of the `datagen` tool. The following plugins are available:
 
 * [openaddresses](openaddresses-plugin/README.md)
 * [log](log-plugin/README.md)
+* [progress](progress-plugin/README.md)
+* [datagen-node](datagen-node/README.md)

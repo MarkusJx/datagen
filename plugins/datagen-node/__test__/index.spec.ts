@@ -1,5 +1,10 @@
 import test from 'ava';
-import { CurrentSchema, generateRandomData } from '../.';
+import {
+    CurrentSchema,
+    GenerateProgress,
+    generateRandomData,
+    generateRandomDataWithProgress,
+} from '../.';
 
 test('generate data', async (t) => {
     const generated = await generateRandomData({
@@ -437,4 +442,45 @@ test('serialize data with throwing plugin (async)', async (t) => {
                 "Failed to call function 'serialize' on plugin 'testPlugin': test",
         }
     );
+});
+
+test('generate data with imported plugin', async (t) => {
+    const generated = await generateRandomData({
+        type: 'plugin',
+        pluginName: `node:${__dirname}/testPlugin.ts`,
+    });
+
+    t.deepEqual(JSON.parse(generated), {
+        test: true,
+    });
+});
+
+test('generate data with progress', async (t) => {
+    const progresses: GenerateProgress[] = [];
+    await generateRandomDataWithProgress(
+        {
+            type: 'array',
+            length: {
+                value: 10,
+            },
+            items: {
+                type: 'string',
+                value: 'test',
+            },
+        },
+        (progress) => {
+            progresses.push(progress);
+        }
+    );
+
+    const expectedProgresses: GenerateProgress[] = [];
+    for (let i = 1; i <= 10; i++) {
+        expectedProgresses.push({
+            current: i,
+            total: 10,
+        });
+    }
+
+    t.is(progresses.length, 10);
+    t.deepEqual(progresses, expectedProgresses);
 });

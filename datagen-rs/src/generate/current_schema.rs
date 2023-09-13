@@ -13,8 +13,6 @@ use crate::schema::schema_definition::SchemaOptions;
 use crate::util::types::Result;
 #[cfg(feature = "generate")]
 use std::collections::BTreeMap;
-#[cfg(not(feature = "send"))]
-use std::rc::Rc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 
@@ -28,15 +26,10 @@ pub struct CurrentSchema {
     finalized: AtomicBool,
 }
 
-#[cfg(feature = "send")]
 unsafe impl Send for CurrentSchema {}
-#[cfg(feature = "send")]
 unsafe impl Sync for CurrentSchema {}
 
-#[cfg(feature = "send")]
 pub type CurrentSchemaRef = Arc<CurrentSchema>;
-#[cfg(not(feature = "send"))]
-pub type CurrentSchemaRef = Rc<CurrentSchema>;
 
 impl CurrentSchema {
     #[cfg(feature = "generate")]

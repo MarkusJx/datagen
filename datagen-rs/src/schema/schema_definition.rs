@@ -45,9 +45,7 @@ pub enum Serializer {
     Json {
         pretty: Option<bool>,
     },
-    Yaml {
-        pretty: Option<bool>,
-    },
+    Yaml,
     #[cfg_attr(feature = "serialize", serde(rename_all = "camelCase"))]
     Xml {
         root_element: String,

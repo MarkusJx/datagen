@@ -1,3 +1,3 @@
-# `datagen-node-darwin-x64`
+# `@datagen/node-darwin-x64`
 
-This is the **x86_64-apple-darwin** binary for `datagen-node`
+This is the **x86_64-apple-darwin** binary for `@datagen/node`

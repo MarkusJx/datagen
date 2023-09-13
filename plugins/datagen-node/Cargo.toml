@@ -13,7 +13,8 @@ napi = { version = "2.13", default-features = false, features = [
     "async",
     "serde-json"] }
 napi-derive = "2.13"
-datagen-rs = { path = "../../datagen-rs", features = ["all", "send"] }
+datagen-rs = { path = "../../datagen-rs", features = ["all"] }
+progress-plugin = { path = "../progress-plugin" }
 serde_json = "1.0"
 futures = "0.3"
 

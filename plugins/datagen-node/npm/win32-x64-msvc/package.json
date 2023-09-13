@@ -1,5 +1,5 @@
 {
-    "name": "datagen-node-win32-x64-msvc",
+    "name": "@datagen/node-win32-x64-msvc",
     "version": "0.0.0",
     "os": [
         "win32"

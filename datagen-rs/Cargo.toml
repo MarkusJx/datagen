@@ -25,4 +25,3 @@ serialize = ["dep:serde", "indexmap/serde", "ordered-float/serde", "dep:serde_ya
 map-schema = ["serialize", "dep:handlebars", "dep:regex", "dep:rand"]
 generate = ["map-schema", "plugin", "dep:fake"]
 schema = ["dep:serde", "dep:schemars", "ordered-float/schemars"]
-send = []

@@ -920,12 +920,6 @@
             "type"
           ],
           "properties": {
-            "pretty": {
-              "type": [
-                "boolean",
-                "null"
-              ]
-            },
             "type": {
               "type": "string",
               "enum": [

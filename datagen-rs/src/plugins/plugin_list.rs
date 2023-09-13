@@ -57,13 +57,21 @@ impl PluginList {
                 p.clone()
                     .into_iter()
                     .filter(|(name, _)| !additional.contains_key(name))
-                    .map(|(name, args)| match args {
-                        PluginInitArgs::Args { path, args } => Self::map_plugin(
-                            name,
-                            args.clone().unwrap_or_default(),
-                            Some(path.clone()),
-                        ),
-                        PluginInitArgs::Value(v) => Self::map_plugin(name, v, None),
+                    .map(|(name, args)| {
+                        if additional.contains_key(&name) {
+                            return Err(
+                                format!("A plugin with name '{name}' is already loaded").into()
+                            );
+                        }
+
+                        match args {
+                            PluginInitArgs::Args { path, args } => Self::map_plugin(
+                                name,
+                                args.clone().unwrap_or_default(),
+                                Some(path.clone()),
+                            ),
+                            PluginInitArgs::Value(v) => Self::map_plugin(name, v, None),
+                        }
                     })
                     .collect::<Result<HashMap<_, _>>>()
             })
