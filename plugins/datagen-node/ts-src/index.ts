@@ -5,10 +5,11 @@ import {
     generateRandomDataWithProgressInternal,
     getSchema,
     getSchemaAsync,
-} from '../index';
+} from '../native';
 import { findPlugins, Plugin } from './plugin';
-export { CurrentSchema, GenerateProgress } from '../index';
+export { CurrentSchema, GenerateProgress } from '../native';
 export type { Plugin, InitFunction } from './plugin';
+export * from './types';
 
 /**
  * Generates random data from a schema

@@ -12,6 +12,13 @@
             ]
         }
     },
+    "author": {
+        "name": "MarkusJx"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/MarkusJx/datagen"
+    },
     "license": "MIT",
     "devDependencies": {
         "@napi-rs/cli": "^2.16.2",
@@ -43,8 +50,8 @@
     },
     "scripts": {
         "artifacts": "napi artifacts",
-        "build": "napi build --platform --release",
-        "build:debug": "napi build --platform",
+        "build": "napi build --platform --release --js native.js --dts native.d.ts",
+        "build:debug": "napi build --platform --js native.js --dts native.d.ts",
         "postbuild": "tsx ts-src/scripts/postbuild.ts && tsc",
         "pretest": "npm run build",
         "prepublishOnly": "napi prepublish -t npm",

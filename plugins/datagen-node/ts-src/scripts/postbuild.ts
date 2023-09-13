@@ -1,4 +1,4 @@
-import { getSchemaAsync } from '../../index';
+import { getSchemaAsync } from '../../native';
 import { compile, JSONSchema } from 'json-schema-to-typescript';
 import { writeFile } from 'fs/promises';
 import * as path from 'path';

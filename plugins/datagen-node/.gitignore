@@ -195,6 +195,6 @@ Cargo.lock
 !.yarn/versions
 
 *.node
-/index.d.ts
-/index.js
+/native.d.ts
+/native.js
 /ts-src/types.ts

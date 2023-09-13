@@ -1,4 +1,4 @@
-import { CurrentSchema, NodePlugin } from '../index';
+import { CurrentSchema, NodePlugin } from '../native';
 import { Transform, Array, Schema, Plugin as PluginSchema } from './types';
 
 export interface Plugin {
