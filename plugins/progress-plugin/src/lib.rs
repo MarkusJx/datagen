@@ -182,8 +182,8 @@ impl<F: Fn(usize, usize)> ProgressPlugin<F> {
 }
 
 impl<F: Fn(usize, usize)> Plugin for ProgressPlugin<F> {
-    fn name(&self) -> &'static str {
-        "progress"
+    fn name(&self) -> String {
+        "progress".into()
     }
 
     fn generate(&self, schema: CurrentSchemaRef, args: Value) -> Result<Arc<GeneratedSchema>> {

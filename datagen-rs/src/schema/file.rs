@@ -1,4 +1,4 @@
-use crate::schema::transform::AnyTransform;
+use crate::schema::transform::Transform;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 pub struct File {
     pub path: String,
     pub mode: Option<FileMode>,
-    pub transform: Option<Vec<AnyTransform>>,
+    pub transform: Option<Vec<Transform>>,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -30,7 +30,7 @@ pub mod generate {
     use crate::generate::generated_schema::generate::IntoGenerated;
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::schema::file::{File, FileMode};
-    use crate::schema::transform::AnyTransform;
+    use crate::schema::transform::Transform;
     use crate::util::sequential_vec::SequentialVec;
     use crate::util::types::Result;
     use once_cell::sync::Lazy;
@@ -63,7 +63,7 @@ pub mod generate {
             Ok(GeneratedSchema::Value(value))
         }
 
-        fn get_transform(&self) -> Option<Vec<AnyTransform>> {
+        fn get_transform(&self) -> Option<Vec<Transform>> {
             self.transform.clone()
         }
     }

@@ -47,7 +47,7 @@ pub trait IntoRandom {
 pub mod generate {
     use crate::generate::current_schema::CurrentSchemaRef;
     use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
-    use crate::schema::transform::AnyTransform;
+    use crate::schema::transform::{Transform};
     use crate::util::traits::generate::TransformTrait;
     use crate::util::types::Result;
     use std::sync::Arc;
@@ -55,7 +55,7 @@ pub mod generate {
     pub(crate) trait IntoGenerated: Sized {
         fn into_generated(self, schema: CurrentSchemaRef) -> Result<GeneratedSchema>;
 
-        fn get_transform(&self) -> Option<Vec<AnyTransform>>;
+        fn get_transform(&self) -> Option<Vec<Transform>>;
 
         fn should_finalize(&self) -> bool {
             true
@@ -65,7 +65,7 @@ pub mod generate {
     pub(crate) trait IntoGeneratedArc: Sized {
         fn into_generated_arc(self, schema: CurrentSchemaRef) -> Result<Arc<GeneratedSchema>>;
 
-        fn get_transform(&self) -> Option<Vec<AnyTransform>>;
+        fn get_transform(&self) -> Option<Vec<Transform>>;
 
         fn should_finalize(&self) -> bool {
             true
@@ -80,7 +80,7 @@ pub mod generate {
             Ok(Arc::new(self.into_generated(schema)?))
         }
 
-        fn get_transform(&self) -> Option<Vec<AnyTransform>> {
+        fn get_transform(&self) -> Option<Vec<Transform>> {
             self.get_transform()
         }
 

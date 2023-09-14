@@ -1,5 +1,5 @@
 use crate::schema::reference::Reference;
-use crate::schema::transform::AnyTransform;
+use crate::schema::transform::Transform;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
@@ -59,11 +59,11 @@ pub enum FormatArg {
 pub enum StringSchema {
     Generated {
         generator: StringGenerator,
-        transform: Option<Vec<AnyTransform>>,
+        transform: Option<Vec<Transform>>,
     },
     Constant {
         value: String,
-        transform: Option<Vec<AnyTransform>>,
+        transform: Option<Vec<Transform>>,
     },
 }
 
@@ -73,7 +73,7 @@ pub mod generate {
     use crate::generate::generated_schema::generate::{IntoGenerated, IntoGeneratedArc};
     use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
     use crate::schema::string::{FormatArg, StringGenerator, StringSchema};
-    use crate::schema::transform::AnyTransform;
+    use crate::schema::transform::Transform;
     use crate::util::types::Result;
     use fake::faker::address::en::{
         CityName, CountryCode, CountryName, Latitude, Longitude, StateName, StreetName, ZipCode,
@@ -95,7 +95,7 @@ pub mod generate {
             }
         }
 
-        fn get_transform(&self) -> Option<Vec<AnyTransform>> {
+        fn get_transform(&self) -> Option<Vec<Transform>> {
             match self {
                 StringSchema::Constant { transform, .. } => transform.clone(),
                 StringSchema::Generated { transform, .. } => transform.clone(),
@@ -191,7 +191,7 @@ pub mod generate {
             })
         }
 
-        fn get_transform(&self) -> Option<Vec<AnyTransform>> {
+        fn get_transform(&self) -> Option<Vec<Transform>> {
             None
         }
 

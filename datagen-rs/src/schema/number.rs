@@ -1,8 +1,6 @@
-use crate::schema::transform::AnyTransform;
+use crate::schema::transform::Transform;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
-#[cfg(feature = "serialize")]
-use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "schema", derive(JsonSchema))]
@@ -16,13 +14,16 @@ pub enum Number {
         max: Option<f64>,
         #[cfg_attr(feature = "serialize", serde(skip_serializing_if = "Option::is_none"))]
         precision: Option<u8>,
-        transform: Option<Vec<AnyTransform>>,
+        transform: Option<Vec<Transform>>,
     },
     Constant {
         value: f64,
-        transform: Option<Vec<AnyTransform>>,
+        transform: Option<Vec<Transform>>,
     },
 }
+
+#[cfg(feature = "serialize")]
+use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "generate")]
 pub mod generate {
@@ -30,7 +31,7 @@ pub mod generate {
     use crate::generate::generated_schema::generate::IntoGenerated;
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::schema::number::Number;
-    use crate::schema::transform::AnyTransform;
+    use crate::schema::transform::Transform;
     use crate::util::types::Result;
     use rand::Rng;
 
@@ -57,7 +58,7 @@ pub mod generate {
             })
         }
 
-        fn get_transform(&self) -> Option<Vec<AnyTransform>> {
+        fn get_transform(&self) -> Option<Vec<Transform>> {
             match self {
                 Number::Constant { transform, .. } => transform.clone(),
                 Number::Random { transform, .. } => transform.clone(),

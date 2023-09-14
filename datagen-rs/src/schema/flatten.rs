@@ -2,7 +2,7 @@ use crate::schema::array::Array;
 use crate::schema::object::Object;
 use crate::schema::plugin::Plugin;
 use crate::schema::reference::Reference;
-use crate::schema::transform::AnyTransform;
+use crate::schema::transform::Transform;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
@@ -20,7 +20,7 @@ pub struct Flatten {
     /// not both, otherwise an error will be thrown.
     /// If no values are provided, null will be returned.
     pub values: Vec<FlattenableValue>,
-    pub transform: Option<Vec<AnyTransform>>,
+    pub transform: Option<Vec<Transform>>,
 }
 
 #[derive(Debug, Clone)]
@@ -40,7 +40,7 @@ pub mod generate {
     use crate::generate::generated_schema::generate::{IntoGenerated, IntoGeneratedArc};
     use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
     use crate::schema::flatten::{Flatten, FlattenableValue};
-    use crate::schema::transform::AnyTransform;
+    use crate::schema::transform::Transform;
     use crate::util::types::Result;
     use indexmap::IndexMap;
     use std::any::{Any, TypeId};
@@ -56,7 +56,7 @@ pub mod generate {
             }
         }
 
-        fn get_transform(&self) -> Option<Vec<AnyTransform>> {
+        fn get_transform(&self) -> Option<Vec<Transform>> {
             None
         }
     }
@@ -106,7 +106,7 @@ pub mod generate {
             }
         }
 
-        fn get_transform(&self) -> Option<Vec<AnyTransform>> {
+        fn get_transform(&self) -> Option<Vec<Transform>> {
             self.transform.clone()
         }
     }

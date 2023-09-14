@@ -54,7 +54,7 @@ impl ImportedPlugin {
 }
 
 impl Plugin for ImportedPlugin {
-    fn name(&self) -> &'static str {
+    fn name(&self) -> String {
         self.0.plugin.name()
     }
 

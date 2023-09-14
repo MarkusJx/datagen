@@ -2,7 +2,7 @@
 pub mod generate {
     use crate::generate::current_schema::CurrentSchemaRef;
     use crate::generate::generated_schema::GeneratedSchema;
-    use crate::schema::transform::AnyTransform;
+    use crate::schema::transform::Transform;
     use crate::util::types::Result;
     use std::sync::Arc;
 
@@ -14,7 +14,7 @@ pub mod generate {
         ) -> Result<Arc<GeneratedSchema>>;
     }
 
-    impl TransformTrait for Vec<AnyTransform> {
+    impl TransformTrait for Vec<Transform> {
         fn transform(
             self,
             schema: CurrentSchemaRef,

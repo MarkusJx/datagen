@@ -14,6 +14,8 @@ use crate::schema::schema_definition::Serializer;
 use crate::util::types::Result;
 #[cfg(feature = "schema")]
 use schemars::schema_for;
+#[cfg(feature = "schema")]
+use serde_json::Value;
 #[cfg(feature = "generate")]
 use std::collections::HashMap;
 #[cfg(any(feature = "schema", feature = "serialize"))]
@@ -22,6 +24,13 @@ use std::fs::File;
 use std::path::Path;
 #[cfg(feature = "generate")]
 use std::sync::Arc;
+
+#[cfg(feature = "schema")]
+#[allow(unused)]
+pub fn get_schema_value() -> Result<Value> {
+    let schema = schema_for!(Schema);
+    serde_json::to_value(schema).map_err(|e| e.into())
+}
 
 #[cfg(feature = "schema")]
 pub fn write_json_schema<P: AsRef<Path>>(path: P) -> Result<()> {
@@ -55,11 +64,7 @@ pub fn generate_random_data(
             .then(|| serde_json::to_string_pretty(&generated))
             .unwrap_or_else(|| serde_json::to_string(&generated))
             .map_err(Into::into),
-        Serializer::Yaml { pretty } => pretty
-            .unwrap_or(false)
-            .then(|| serde_yaml::to_string(&generated))
-            .unwrap_or_else(|| serde_yaml::to_string(&generated))
-            .map_err(Into::into),
+        Serializer::Yaml => serde_yaml::to_string(&generated).map_err(Into::into),
         Serializer::Xml { root_element } => {
             quick_xml::se::to_string_with_root(root_element, &generated).map_err(Into::into)
         }
