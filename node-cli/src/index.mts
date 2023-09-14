@@ -23,7 +23,7 @@ const builder: BuilderCallback<{}, Args> = (command) => {
         .showHelpOnFail(true);
 };
 
-const handler: YargsHandler<Args> = async ({ schema }) => {
+const handler: YargsHandler<Args> = async ({ schema, output }) => {
     let bar: SingleBar | null = null;
 
     const read = await fs.readFile(schema, 'utf-8');
@@ -50,7 +50,11 @@ const handler: YargsHandler<Args> = async ({ schema }) => {
     // @ts-ignore
     bar?.stop();
 
-    console.log(res);
+    if (output) {
+        await fs.writeFile(output, res, 'utf-8');
+    } else {
+        console.log(res);
+    }
 };
 
 yargs(process.argv.slice(2))
