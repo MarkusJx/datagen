@@ -70,6 +70,13 @@ const config = {
             label: 'Docs',
           },
           {
+            to: "/docs/plugins",
+            //type: 'docSidebar',
+            sidebarId: 'docsSidebar',
+            position: 'left',
+            label: 'Plugins',
+          },
+          {
             to: '/docs/examples',
             label: 'Examples',
             sidebarId: 'docsSidebar',

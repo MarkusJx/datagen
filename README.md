@@ -19,6 +19,20 @@ but features more complex references and a plugin system.
 Simply grab a [binary built during a workflow run](https://github.com/MarkusJx/datagen/actions/workflows/build.yml?query=branch%3Amain)
 or build it yourself using `cargo build -p cli --release`.
 
+### Command-line interface
+
+`datagen` provides a command-line interface either written in Rust or TypeScript.
+
+#### Rust CLI
+
+The Rust CLI is the main CLI and is the most feature-rich CLI. It is also the fastest CLI.
+
+##### Installation
+
+You can download a binary from the [releases page](https://github.com/MarkusJx/datagen/releases)
+or build it yourself using `cargo build -p cli --release`.
+The node CLI can be installed using `npm install -g @datagen/cli`.
+
 ### Quick start
 
 Create a file called `schema.json` with the following content:
