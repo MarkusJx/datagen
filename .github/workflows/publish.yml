@@ -1,0 +1,69 @@
+name: Publish
+on:
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Dry run'
+        type: boolean
+        required: false
+        default: false
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-cargo:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+          - os: windows-latest
+            target: i686-pc-windows-msvc
+          - os: macos-latest
+            target: x86_64-apple-darwin
+          - os: macos-latest
+            target: aarch64-apple-darwin
+
+    runs-on: ${{matrix.os}}
+    steps:
+    - uses: actions/checkout@v3
+    - name: Add target
+      run: rustup target add ${{matrix.target}}
+    - name: Build cli
+      run: cargo build --package cli --release --target ${{matrix.target}}
+    - name: Build openaddresses plugin
+      run: cargo build --package openaddresses-plugin --release --features sqlite --target ${{matrix.target}}
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3.1.3
+      with:
+        name: datagen-${{runner.os}}-${{matrix.target}}
+        path: |
+          target/*/release/datagen.exe
+          target/*/release/datagen
+          target/*/release/openaddresses_plugin.dll
+          target/*/release/libopenaddresses_plugin.dylib
+          target/*/release/libopenaddresses_plugin.so
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: [ build-cargo ]
+    steps:
+      - name: Download all Artifacts
+        uses: actions/download-artifact@v2.0.10
+      - name: Move artifacts
+        shell: bash
+        run: |
+          mv */* .
+          find . -type d -empty -delete
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        if: github.ref == 'refs/heads/main' && github.event.inputs.dry-run != 'true'
+        with:
+          generateReleaseNotes: true
+          draft: true
+          tag: ${{github.event.inputs.version}}
+          artifacts: "datagen*,*openaddress*"
+          token: ${{ secrets.GITHUB_TOKEN }}
