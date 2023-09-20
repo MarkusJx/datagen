@@ -1,0 +1,55 @@
+# Using node.js plugins
+
+When using node.js plugins, the name of the plugin must be prepended
+by `node:` to tell datagen that the plugin is a node.js plugin.
+
+Node.js plugins can be used like any other plugin.
+
+## Example: Import a plugin inside the `options` object
+
+```json
+{
+    "options": {
+        "plugins": {
+            "node:my-plugin": {
+                "arg0": "test"
+            }
+        }
+    }
+}
+```
+
+Or, using a name alias:
+
+```json
+{
+    "options": {
+        "plugins": {
+            "my-plugin": {
+                "path": "node:my-plugin",
+                "args": {
+                    "arg0": "test"
+                }
+            }
+        }
+    }
+}
+```
+
+This will import `my-plugin` using `require(){:ts}`. This also allows
+for imports from the local file system.
+
+## Example: Import a plugin directly as a generator
+
+As with any other plugin, node plugins don't require to be declared
+inside the `options` object.
+
+```json
+{
+    "type": "plugin",
+    "pluginName": "node:my-plugin",
+    "args": {
+        "arg0": "test"
+    }
+}
+```
