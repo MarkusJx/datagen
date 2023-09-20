@@ -8,64 +8,58 @@ person from being related to themselves or to the same person twice.
 
 ```json
 {
-    "type": "array",
-    "length": {
-        "min": 100,
-        "max": 10000
-    },
-    "items": {
-        "type": "object",
-        "properties": {
-            "id": {
-                "type": "string",
-                "generator": {
-                    "type": "uuid"
-                }
-            },
-            "firstName": {
-                "type": "string",
-                "generator": {
-                    "type": "firstName"
-                }
-            },
-            "lastName": {
-                "type": "string",
-                "generator": {
-                    "type": "lastName"
-                }
-            },
-            "relatedPersons": {
-                "type": "array",
-                "length": {
-                    "min": 0,
-                    "max": 3
-                },
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "relatedPerson": {
-                            "type": "reference",
-                            "reference": "id",
-                            "except": [
-                                "ref:../../relatedPersons.relatedPerson",
-                                "ref:../../id"
-                            ]
-                        },
-                        "relationshipType": {
-                            "type": "anyOf",
-                            "values": [
-                                "parent",
-                                "child",
-                                "sibling",
-                                "spouse",
-                                "friend"
-                            ]
-                        }
-                    }
-                }
-            }
+  "type": "array",
+  "length": {
+    "min": 100,
+    "max": 10000
+  },
+  "items": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "generator": {
+          "type": "uuid"
         }
+      },
+      "firstName": {
+        "type": "string",
+        "generator": {
+          "type": "firstName"
+        }
+      },
+      "lastName": {
+        "type": "string",
+        "generator": {
+          "type": "lastName"
+        }
+      },
+      "relatedPersons": {
+        "type": "array",
+        "length": {
+          "min": 0,
+          "max": 3
+        },
+        "items": {
+          "type": "object",
+          "properties": {
+            "relatedPerson": {
+              "type": "reference",
+              "reference": "id",
+              "except": [
+                "ref:../../relatedPersons.relatedPerson",
+                "ref:../../id"
+              ]
+            },
+            "relationshipType": {
+              "type": "anyOf",
+              "values": ["parent", "child", "sibling", "spouse", "friend"]
+            }
+          }
+        }
+      }
     }
+  }
 }
 ```
 

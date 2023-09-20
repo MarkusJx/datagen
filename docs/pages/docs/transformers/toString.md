@@ -17,14 +17,14 @@ the `subType` property set to `default`.
 
 ```json
 {
-    "type": "integer",
-    "value": 20,
-    "transform": [
-        {
-            "type": "toString",
-            "subType": "default"
-        }
-    ]
+  "type": "integer",
+  "value": 20,
+  "transform": [
+    {
+      "type": "toString",
+      "subType": "default"
+    }
+  ]
 }
 ```
 
@@ -38,23 +38,23 @@ Will result in:
 
 ```json
 {
-    "type": "object",
-    "properties": {
-        "name": {
-            "type": "string",
-            "value": "John"
-        },
-        "age": {
-            "type": "integer",
-            "value": 20
-        }
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "value": "John"
     },
-    "transform": [
-        {
-            "type": "toString",
-            "subType": "default"
-        }
-    ]
+    "age": {
+      "type": "integer",
+      "value": 20
+    }
+  },
+  "transform": [
+    {
+      "type": "toString",
+      "subType": "default"
+    }
+  ]
 }
 ```
 
@@ -74,9 +74,9 @@ the `subType` property set to `format`.
 
 The `toString` transformer has the following properties in this mode:
 
--   `format`: The handlebars template to use to convert the value to a string.
--   `serializeNonStrings`: Optional. If set to `true`, non-string and non-numeric values will be serialized
-    using [serde_json](https://docs.serde.rs/serde_json/index.html) before being passed to the template.
+- `format`: The handlebars template to use to convert the value to a string.
+- `serializeNonStrings`: Optional. If set to `true`, non-string and non-numeric values will be serialized
+  using [serde_json](https://docs.serde.rs/serde_json/index.html) before being passed to the template.
 
 ### Example
 
@@ -84,23 +84,23 @@ Format an object as a CSV row:
 
 ```json
 {
-    "type": "object",
-    "properties": {
-        "name": {
-            "type": "string",
-            "value": "John"
-        },
-        "age": {
-            "type": "integer",
-            "value": 20
-        }
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "value": "John"
     },
-    "transform": [
-        {
-            "type": "toString",
-            "subType": "format",
-            "format": "{{name}},{{age}}"
-        }
-    ]
+    "age": {
+      "type": "integer",
+      "value": 20
+    }
+  },
+  "transform": [
+    {
+      "type": "toString",
+      "subType": "format",
+      "format": "{{name}},{{age}}"
+    }
+  ]
 }
 ```

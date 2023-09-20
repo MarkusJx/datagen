@@ -17,24 +17,24 @@ name provided in the `plugins` object.
 
 ```json
 {
-    "type": "string",
-    "value": "hello",
-    "options": {
-        "plugins": {
-            "my-plugin": {
-                "path": "path/to/my/plugin",
-                "args": {
-                    "my-arg": "my-value"
-                }
-            }
+  "type": "string",
+  "value": "hello",
+  "options": {
+    "plugins": {
+      "my-plugin": {
+        "path": "path/to/my/plugin",
+        "args": {
+          "my-arg": "my-value"
         }
-    },
-    "transform": [
-        {
-            "type": "plugin",
-            "name": "my-plugin"
-        }
-    ]
+      }
+    }
+  },
+  "transform": [
+    {
+      "type": "plugin",
+      "name": "my-plugin"
+    }
+  ]
 }
 ```
 
@@ -44,23 +44,23 @@ must be accessed by the path to the plugin file.
 
 ```json
 {
-    "type": "object",
-    "options": {
-        "plugins": {
-            "path/to/my/plugin": {
-                "my-arg": "my-value"
-            }
-        }
-    },
-    "properties": {
-        "pluginData": {
-            "type": "plugin",
-            "pluginName": "path/to/my/plugin",
-            "args": {
-                "my-arg": "my-value"
-            }
-        }
+  "type": "object",
+  "options": {
+    "plugins": {
+      "path/to/my/plugin": {
+        "my-arg": "my-value"
+      }
     }
+  },
+  "properties": {
+    "pluginData": {
+      "type": "plugin",
+      "pluginName": "path/to/my/plugin",
+      "args": {
+        "my-arg": "my-value"
+      }
+    }
+  }
 }
 ```
 
@@ -74,13 +74,13 @@ for the plugin when using it.
 
 ```json
 {
-    "type": "string",
-    "value": "hello",
-    "transform": [
-        {
-            "type": "plugin",
-            "name": "path/to/my/plugin"
-        }
-    ]
+  "type": "string",
+  "value": "hello",
+  "transform": [
+    {
+      "type": "plugin",
+      "name": "path/to/my/plugin"
+    }
+  ]
 }
 ```

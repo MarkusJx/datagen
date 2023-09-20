@@ -9,13 +9,13 @@ Node.js plugins can be used like any other plugin.
 
 ```json
 {
-    "options": {
-        "plugins": {
-            "node:my-plugin": {
-                "arg0": "test"
-            }
-        }
+  "options": {
+    "plugins": {
+      "node:my-plugin": {
+        "arg0": "test"
+      }
     }
+  }
 }
 ```
 
@@ -23,16 +23,16 @@ Or, using a name alias:
 
 ```json
 {
-    "options": {
-        "plugins": {
-            "my-plugin": {
-                "path": "node:my-plugin",
-                "args": {
-                    "arg0": "test"
-                }
-            }
+  "options": {
+    "plugins": {
+      "my-plugin": {
+        "path": "node:my-plugin",
+        "args": {
+          "arg0": "test"
         }
+      }
     }
+  }
 }
 ```
 
@@ -46,10 +46,10 @@ inside the `options` object.
 
 ```json
 {
-    "type": "plugin",
-    "pluginName": "node:my-plugin",
-    "args": {
-        "arg0": "test"
-    }
+  "type": "plugin",
+  "pluginName": "node:my-plugin",
+  "args": {
+    "arg0": "test"
+  }
 }
 ```

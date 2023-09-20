@@ -28,13 +28,9 @@ package and looks like this:
 
 ```ts
 interface Plugin {
-    generate?(schema: CurrentSchema, args: any): any | Promise<any>;
-    transform?(
-        schema: CurrentSchema,
-        args: any,
-        value: any
-    ): any | Promise<any>;
-    serialize?(args: any, value: any): string | Promise<string>;
+  generate?(schema: CurrentSchema, args: any): any | Promise<any>;
+  transform?(schema: CurrentSchema, args: any, value: any): any | Promise<any>;
+  serialize?(args: any, value: any): string | Promise<string>;
 }
 ```
 
@@ -50,24 +46,24 @@ You may want to implement your plugin as follows:
 import { Plugin, CurrentSchema } from '@datagen/node';
 
 class MyPlugin implements Plugin {
-    constructor(args: any) {
-        // Initialize the plugin
-    }
+  constructor(args: any) {
+    // Initialize the plugin
+  }
 
-    generate(schema: CurrentSchema, args: any): any {
-        // Generate a new value
-    }
+  generate(schema: CurrentSchema, args: any): any {
+    // Generate a new value
+  }
 
-    transform(schema: CurrentSchema, args: any, value: any): any {
-        // Transform a value
-    }
+  transform(schema: CurrentSchema, args: any, value: any): any {
+    // Transform a value
+  }
 
-    serialize(args: any, value: any): string {
-        // Serialize a value
-    }
+  serialize(args: any, value: any): string {
+    // Serialize a value
+  }
 }
 
 export default function pluginConstructor(args: any): Plugin {
-    return new MyPlugin(args);
+  return new MyPlugin(args);
 }
 ```

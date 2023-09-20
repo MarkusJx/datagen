@@ -1,16 +1,16 @@
 {
-    "index": {
-        "title": "datagen",
-        "display": "hidden"
-    },
-    "docs": {
-        "title": "Docs",
-        "type": "page",
-        "href": "/docs"
-    },
-    "examples": {
-        "title": "Examples",
-        "type": "page",
-        "href": "/examples"
-    }
+  "index": {
+    "title": "datagen",
+    "display": "hidden"
+  },
+  "docs": {
+    "title": "Docs",
+    "type": "page",
+    "href": "/docs"
+  },
+  "examples": {
+    "title": "Examples",
+    "type": "page",
+    "href": "/examples"
+  }
 }

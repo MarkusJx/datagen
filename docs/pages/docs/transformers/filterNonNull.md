@@ -10,13 +10,13 @@ The `filterNonNull` transformer has no additional properties.
 
 ```json
 {
-    "type": "array",
-    "value": ["hello", null, "world"],
-    "transform": [
-        {
-            "type": "filterNonNull"
-        }
-    ]
+  "type": "array",
+  "value": ["hello", null, "world"],
+  "transform": [
+    {
+      "type": "filterNonNull"
+    }
+  ]
 }
 ```
 
@@ -30,28 +30,28 @@ Will result in:
 
 ```json
 {
-    "type": "object",
-    "properties": {
-        "name": {
-            "type": "string",
-            "value": "John"
-        },
-        "age": {
-            "type": "integer",
-            "value": 20
-        }
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "value": "John"
     },
-    "transform": [
-        {
-            "type": "filter",
-            "field": "ref:./name",
-            "operator": "notEquals",
-            "other": "John"
-        },
-        {
-            "type": "filterNonNull"
-        }
-    ]
+    "age": {
+      "type": "integer",
+      "value": 20
+    }
+  },
+  "transform": [
+    {
+      "type": "filter",
+      "field": "ref:./name",
+      "operator": "notEquals",
+      "other": "John"
+    },
+    {
+      "type": "filterNonNull"
+    }
+  ]
 }
 ```
 
@@ -59,6 +59,6 @@ Will result in:
 
 ```json
 {
-    "age": 20
+  "age": 20
 }
 ```

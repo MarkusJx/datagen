@@ -8,7 +8,7 @@ It has two modes: `constant` and `random`.
 In constant mode, the `integer` generator generates a fixed integer.
 This mode has one input:
 
--   `value`: The fixed integer to generate
+- `value`: The fixed integer to generate
 
 ### Example
 
@@ -16,8 +16,8 @@ Generate the number `10`:
 
 ```json
 {
-    "type": "integer",
-    "value": 10
+  "type": "integer",
+  "value": 10
 }
 ```
 
@@ -32,10 +32,10 @@ Generate the number `10` inside an object:
 
 ```json
 {
-    "type": "object",
-    "properties": {
-        "int": 10
-    }
+  "type": "object",
+  "properties": {
+    "int": 10
+  }
 }
 ```
 
@@ -44,8 +44,8 @@ Generate the number `10` inside an object:
 In random mode, the `integer` generator generates a random integer.
 This mode has two optional inputs:
 
--   `min`: The minimum value to generate. Defaults to [`i64::MIN`](https://doc.rust-lang.org/std/primitive.i64.html#associatedconstant.MIN)
--   `max`: The maximum value to generate. Defaults to [`i64::MAX`](https://doc.rust-lang.org/std/primitive.i64.html#associatedconstant.MAX)
+- `min`: The minimum value to generate. Defaults to [`i64::MIN`](https://doc.rust-lang.org/std/primitive.i64.html#associatedconstant.MIN)
+- `max`: The maximum value to generate. Defaults to [`i64::MAX`](https://doc.rust-lang.org/std/primitive.i64.html#associatedconstant.MAX)
 
 ### Example
 
@@ -53,7 +53,7 @@ Generate a random integer:
 
 ```json
 {
-    "type": "number"
+  "type": "number"
 }
 ```
 
@@ -61,8 +61,8 @@ Generate a random integer between `0` and `100`:
 
 ```json
 {
-    "type": "number",
-    "min": 0,
-    "max": 100
+  "type": "number",
+  "min": 0,
+  "max": 100
 }
 ```

@@ -8,7 +8,7 @@ It has two modes: `constant` and `random`.
 In constant mode, the `bool` generator generates a boolean value.
 This mode has one input:
 
--   `value`: The fixed boolean value to generate
+- `value`: The fixed boolean value to generate
 
 ### Example
 
@@ -16,8 +16,8 @@ Generate the boolean `true`:
 
 ```json
 {
-    "type": "bool",
-    "value": true
+  "type": "bool",
+  "value": true
 }
 ```
 
@@ -32,10 +32,10 @@ Generate the boolean `false` inside an object:
 
 ```json
 {
-    "type": "object",
-    "properties": {
-        "boolean": false
-    }
+  "type": "object",
+  "properties": {
+    "boolean": false
+  }
 }
 ```
 
@@ -44,7 +44,7 @@ Generate the boolean `false` inside an object:
 In random mode, the `bool` generator generates a random boolean value.
 This mode has one optional input:
 
--   `probability`: The probability of generating `true`. Defaults to `0.5`.
+- `probability`: The probability of generating `true`. Defaults to `0.5`.
 
 ### Example
 
@@ -52,7 +52,7 @@ Generate a random boolean value:
 
 ```json
 {
-    "type": "bool"
+  "type": "bool"
 }
 ```
 
@@ -60,7 +60,7 @@ Generate a random boolean value with a custom probability:
 
 ```json
 {
-    "type": "bool",
-    "probability": 0.75
+  "type": "bool",
+  "probability": 0.75
 }
 ```

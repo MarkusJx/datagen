@@ -4,8 +4,8 @@ A `string` value. This generator can be accessed by a [shorthand](#shorthand) co
 using arguments, defining either a fixed value or a generated value.
 The `string` generator may take the following arguments:
 
--   `value`: A fixed value to insert
--   `generator`: A [generator](#generators) for this string
+- `value`: A fixed value to insert
+- `generator`: A [generator](#generators) for this string
 
 ## Shorthand
 
@@ -19,10 +19,10 @@ Insert a fixed string value names "city" inside an object:
 
 ```json
 {
-    "type": "object",
-    "properties": {
-        "city": "New York"
-    }
+  "type": "object",
+  "properties": {
+    "city": "New York"
+  }
 }
 ```
 
@@ -39,10 +39,10 @@ The `uuid` generator generates a random
 
 ```json
 {
-    "type": "string",
-    "generator": {
-        "type": "uuid"
-    }
+  "type": "string",
+  "generator": {
+    "type": "uuid"
+  }
 }
 ```
 
@@ -52,10 +52,10 @@ The `email` generator generates a random e-mail address:
 
 ```json
 {
-    "type": "string",
-    "generator": {
-        "type": "email"
-    }
+  "type": "string",
+  "generator": {
+    "type": "email"
+  }
 }
 ```
 
@@ -65,10 +65,10 @@ The `firstName` generator generates a random first name:
 
 ```json
 {
-    "type": "string",
-    "generator": {
-        "type": "firstName"
-    }
+  "type": "string",
+  "generator": {
+    "type": "firstName"
+  }
 }
 ```
 
@@ -78,10 +78,10 @@ The `lastName` generator generates a random last name:
 
 ```json
 {
-    "type": "string",
-    "generator": {
-        "type": "email"
-    }
+  "type": "string",
+  "generator": {
+    "type": "email"
+  }
 }
 ```
 
@@ -93,10 +93,10 @@ related to [`firstName`](#firstname) or [`lastName`](#lastname).
 
 ```json
 {
-    "type": "string",
-    "generator": {
-        "type": "fullName"
-    }
+  "type": "string",
+  "generator": {
+    "type": "fullName"
+  }
 }
 ```
 
@@ -106,10 +106,10 @@ The `username` generator generates a random (internet) username.
 
 ```json
 {
-    "type": "string",
-    "generator": {
-        "type": "username"
-    }
+  "type": "string",
+  "generator": {
+    "type": "username"
+  }
 }
 ```
 
@@ -119,10 +119,10 @@ The `city` generator generates a random city name.
 
 ```json
 {
-    "type": "string",
-    "generator": {
-        "type": "city"
-    }
+  "type": "string",
+  "generator": {
+    "type": "city"
+  }
 }
 ```
 
@@ -132,10 +132,10 @@ The `country` generator generates a random country name.
 
 ```json
 {
-    "type": "string",
-    "generator": {
-        "type": "country"
-    }
+  "type": "string",
+  "generator": {
+    "type": "country"
+  }
 }
 ```
 
@@ -146,10 +146,10 @@ The `countryCode` generator generates a random
 
 ```json
 {
-    "type": "string",
-    "generator": {
-        "type": "countryCode"
-    }
+  "type": "string",
+  "generator": {
+    "type": "countryCode"
+  }
 }
 ```
 
@@ -159,10 +159,10 @@ The `street` generator generates a random street name.
 
 ```json
 {
-    "type": "string",
-    "generator": {
-        "type": "street"
-    }
+  "type": "string",
+  "generator": {
+    "type": "street"
+  }
 }
 ```
 
@@ -172,10 +172,10 @@ The `state` generator generates a random state name.
 
 ```json
 {
-    "type": "string",
-    "generator": {
-        "type": "state"
-    }
+  "type": "string",
+  "generator": {
+    "type": "state"
+  }
 }
 ```
 
@@ -185,10 +185,10 @@ The `zipCode` generator generates a random zip code.
 
 ```json
 {
-    "type": "string",
-    "generator": {
-        "type": "zipCode"
-    }
+  "type": "string",
+  "generator": {
+    "type": "zipCode"
+  }
 }
 ```
 
@@ -201,10 +201,10 @@ using [`format`](#format).
 
 ```json
 {
-    "type": "string",
-    "generator": {
-        "type": "country"
-    }
+  "type": "string",
+  "generator": {
+    "type": "country"
+  }
 }
 ```
 
@@ -212,18 +212,18 @@ Get the latitude as a string:
 
 ```json
 {
-    "type": "string",
-    "generator": {
-        "type": "format",
-        "format": "{{latitude}}",
-        "args": {
-            "latitude": {
-                "generator": {
-                    "type": "latitude"
-                }
-            }
+  "type": "string",
+  "generator": {
+    "type": "format",
+    "format": "{{latitude}}",
+    "args": {
+      "latitude": {
+        "generator": {
+          "type": "latitude"
         }
+      }
     }
+  }
 }
 ```
 
@@ -233,10 +233,10 @@ Equal to [`latitude`](#latitude), the `longitude` generator generates a random l
 
 ```json
 {
-    "type": "string",
-    "generator": {
-        "type": "longitude"
-    }
+  "type": "string",
+  "generator": {
+    "type": "longitude"
+  }
 }
 ```
 
@@ -246,10 +246,10 @@ The `phone` generator generates a random phone number.
 
 ```json
 {
-    "type": "string",
-    "generator": {
-        "type": "phone"
-    }
+  "type": "string",
+  "generator": {
+    "type": "phone"
+  }
 }
 ```
 
@@ -258,45 +258,45 @@ The `phone` generator generates a random phone number.
 The `format` generator formats strings using [handlebars](https://handlebarsjs.com/guide/)
 templates. This generator requires the following inputs:
 
--   `format`: The format to use
--   `args`: An key-value object containing the values to fill in. The value may be
-    a simple string a [`string` schema](string.md), a simple number or a [`reference`](reference.md).
--   `serializeNonStrings`: Whether to serialize non-string values to strings if they are
-    already not string values. If set to false and a non-string is passed in through
-    a [reference](#references), an error will be returned. This does not
-    affect non-string values returned by string generators, like [`latitude`](#latitude), these
-    kinds of values will always be converted to strings when passed into `format`.
+- `format`: The format to use
+- `args`: An key-value object containing the values to fill in. The value may be
+  a simple string a [`string` schema](string.md), a simple number or a [`reference`](reference.md).
+- `serializeNonStrings`: Whether to serialize non-string values to strings if they are
+  already not string values. If set to false and a non-string is passed in through
+  a [reference](#references), an error will be returned. This does not
+  affect non-string values returned by string generators, like [`latitude`](#latitude), these
+  kinds of values will always be converted to strings when passed into `format`.
 
 #### Example: Generate the full name of a person
 
 ```json
 {
-    "type": "object",
-    "properties": {
-        "firstName": {
-            "type": "string",
-            "generator": {
-                "type": "firstname"
-            }
-        },
-        "lastName": {
-            "type": "string",
-            "generator": {
-                "type": "lastname"
-            }
-        },
-        "fullName": {
-            "type": "string",
-            "generator": {
-                "type": "format",
-                "format": "{{firstName}} {{lastName}}",
-                "args": {
-                    "firstName": "ref:./firstName",
-                    "lastName": "ref:./lastName"
-                }
-            }
+  "type": "object",
+  "properties": {
+    "firstName": {
+      "type": "string",
+      "generator": {
+        "type": "firstname"
+      }
+    },
+    "lastName": {
+      "type": "string",
+      "generator": {
+        "type": "lastname"
+      }
+    },
+    "fullName": {
+      "type": "string",
+      "generator": {
+        "type": "format",
+        "format": "{{firstName}} {{lastName}}",
+        "args": {
+          "firstName": "ref:./firstName",
+          "lastName": "ref:./lastName"
         }
+      }
     }
+  }
 }
 ```
 
@@ -304,9 +304,9 @@ The result will look something like this:
 
 ```json
 {
-    "firstName": "Wilford",
-    "lastName": "Schulist",
-    "fullName": "Wilford Schulist"
+  "firstName": "Wilford",
+  "lastName": "Schulist",
+  "fullName": "Wilford Schulist"
 }
 ```
 
@@ -326,16 +326,16 @@ shorthand string expression, copying its contents into its current position:
 
 ```json
 {
-    "type": "object",
-    "properties": {
-        "id": {
-            "type": "string",
-            "generator": {
-                "type": "uuid"
-            }
-        },
-        "idCopy": "ref:./id"
-    }
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "generator": {
+        "type": "uuid"
+      }
+    },
+    "idCopy": "ref:./id"
+  }
 }
 ```
 
@@ -343,8 +343,8 @@ Will result in:
 
 ```json
 {
-    "id": "294993aa-adb6-4902-8f2b-38284ddd6779",
-    "idCopy": "294993aa-adb6-4902-8f2b-38284ddd6779"
+  "id": "294993aa-adb6-4902-8f2b-38284ddd6779",
+  "idCopy": "294993aa-adb6-4902-8f2b-38284ddd6779"
 }
 ```
 
@@ -356,30 +356,30 @@ an not using a shorthand string value:
 
 ```json
 {
-    "type": "object",
-    "properties": {
-        "person": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string",
-                    "generator": {
-                        "type": "uuid"
-                    }
-                },
-                "name": {
-                    "type": "string",
-                    "generator": {
-                        "type": "fullName"
-                    }
-                }
-            }
+  "type": "object",
+  "properties": {
+    "person": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "generator": {
+            "type": "uuid"
+          }
         },
-        "personCopy": {
-            "type": "string",
-            "value": "ref:person"
+        "name": {
+          "type": "string",
+          "generator": {
+            "type": "fullName"
+          }
         }
+      }
+    },
+    "personCopy": {
+      "type": "string",
+      "value": "ref:person"
     }
+  }
 }
 ```
 
@@ -387,13 +387,13 @@ Will produce a result similar to this:
 
 ```json
 {
-    "person": {
-        "id": "3a106f78-74f5-4ecd-b79d-414488c03e9d",
-        "name": "Adriel Wilderman"
-    },
-    "personCopy": {
-        "id": "3a106f78-74f5-4ecd-b79d-414488c03e9d",
-        "name": "Adriel Wilderman"
-    }
+  "person": {
+    "id": "3a106f78-74f5-4ecd-b79d-414488c03e9d",
+    "name": "Adriel Wilderman"
+  },
+  "personCopy": {
+    "id": "3a106f78-74f5-4ecd-b79d-414488c03e9d",
+    "name": "Adriel Wilderman"
+  }
 }
 ```

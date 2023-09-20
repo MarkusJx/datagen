@@ -1,10 +1,10 @@
 {
-    "filter": "filter",
-    "filterNonNull": "filterNonNull",
-    "regexFilter": "regexFilter",
-    "sort": "sort",
-    "toUpperCase": "toUpperCase",
-    "toLowerCase": "toLowerCase",
-    "toString": "toString",
-    "plugin": "plugin"
+  "filter": "filter",
+  "filterNonNull": "filterNonNull",
+  "regexFilter": "regexFilter",
+  "sort": "sort",
+  "toUpperCase": "toUpperCase",
+  "toLowerCase": "toLowerCase",
+  "toString": "toString",
+  "plugin": "plugin"
 }

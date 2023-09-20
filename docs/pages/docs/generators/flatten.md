@@ -3,10 +3,10 @@
 The `flatten` generator is a special generator that can be used to flatten
 multiple objects or arrays into a single object or array. It has one parameter:
 
--   `values`: The values to flatten. These can be [`objects`](object.md),
-    [`arrays`](array.md), or [`references`](reference.md). These values must all
-    return either objects or arrays, not both, otherwise an error will be thrown.
-    If no values are provided, null will be returned.
+- `values`: The values to flatten. These can be [`objects`](object.md),
+  [`arrays`](array.md), or [`references`](reference.md). These values must all
+  return either objects or arrays, not both, otherwise an error will be thrown.
+  If no values are provided, null will be returned.
 
 ## Example
 
@@ -14,21 +14,21 @@ Flatten two objects into one:
 
 ```json
 {
-    "type": "flatten",
-    "values": [
-        {
-            "type": "object",
-            "properties": {
-                "field1": "value1"
-            }
-        },
-        {
-            "type": "object",
-            "properties": {
-                "field2": "value2"
-            }
-        }
-    ]
+  "type": "flatten",
+  "values": [
+    {
+      "type": "object",
+      "properties": {
+        "field1": "value1"
+      }
+    },
+    {
+      "type": "object",
+      "properties": {
+        "field2": "value2"
+      }
+    }
+  ]
 }
 ```
 
@@ -36,7 +36,7 @@ The result will look like this:
 
 ```json
 {
-    "field1": "value1",
-    "field2": "value2"
+  "field1": "value1",
+  "field2": "value2"
 }
 ```

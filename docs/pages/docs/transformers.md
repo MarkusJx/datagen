@@ -11,13 +11,13 @@ to the value in order.
 
 ```json
 {
-    "type": "string",
-    "value": "hello",
-    "transform": [
-        {
-            "type": "toUpperCase"
-        }
-    ]
+  "type": "string",
+  "value": "hello",
+  "transform": [
+    {
+      "type": "toUpperCase"
+    }
+  ]
 }
 ```
 
@@ -29,11 +29,11 @@ Will generate:
 
 ## Available Transformers
 
--   [`filter`](transformers/filter.md)
--   [`filterNonNull`](transformers/filterNonNull.md)
--   [`toString`](transformers/toString.md)
--   [`toLowerCase`](transformers/toLowerCase.md)
--   [`toUpperCase`](transformers/toUpperCase.md)
--   [`plugin`](transformers/plugin.md)
--   [`sort`](transformers/sort.md)
--   [`regexFilter`](transformers/regexFilter.md)
+- [`filter`](transformers/filter.md)
+- [`filterNonNull`](transformers/filterNonNull.md)
+- [`toString`](transformers/toString.md)
+- [`toLowerCase`](transformers/toLowerCase.md)
+- [`toUpperCase`](transformers/toUpperCase.md)
+- [`plugin`](transformers/plugin.md)
+- [`sort`](transformers/sort.md)
+- [`regexFilter`](transformers/regexFilter.md)

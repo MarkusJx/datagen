@@ -15,10 +15,10 @@ The following options are available:
 The serializer is responsible for serializing the generated data to a string.
 The following serializers are available:
 
--   `json` (default)
--   `yaml`
--   `xml`
--   `plugin` (see [plugins](plugins.md))
+- `json` (default)
+- `yaml`
+- `xml`
+- `plugin` (see [plugins](plugins.md))
 
 ### Serializer Options
 
@@ -49,23 +49,23 @@ This serializer has no options.
 
 ```json
 {
-    "options": {
-        "plugins": [
-            {
-                "name": "my-plugin",
-                "args": {
-                    "foo": "bar"
-                }
-            }
-        ],
-        "maxRefCacheSize": 100,
-        "serializeNonStrings": true,
-        "serializer": {
-            "type": "json",
-            "pretty": true
+  "options": {
+    "plugins": [
+      {
+        "name": "my-plugin",
+        "args": {
+          "foo": "bar"
         }
-    },
-    "type": "string",
-    "value": "Hello World!"
+      }
+    ],
+    "maxRefCacheSize": 100,
+    "serializeNonStrings": true,
+    "serializer": {
+      "type": "json",
+      "pretty": true
+    }
+  },
+  "type": "string",
+  "value": "Hello World!"
 }
 ```

@@ -8,7 +8,7 @@ It takes the following arguments:
 assuming the values are comparable. If the values are not comparable, an error
 will be thrown.
 
--   `reverse`: If true, the array is sorted in reverse order.
+- `reverse`: If true, the array is sorted in reverse order.
 
 The sort key can be a string, referencing a value of an object
 in the array. This does only work for objects nested directly in the array,
@@ -19,18 +19,18 @@ in the array. This does only work for objects nested directly in the array,
 
 ```json
 {
-    "type": "array",
-    "length": {
-        "value": 5
-    },
-    "items": {
-        "type": "integer",
-        "min": 0,
-        "max": 100
-    },
-    "transform": {
-        "type": "sort"
-    }
+  "type": "array",
+  "length": {
+    "value": 5
+  },
+  "items": {
+    "type": "integer",
+    "min": 0,
+    "max": 100
+  },
+  "transform": {
+    "type": "sort"
+  }
 }
 ```
 
@@ -38,28 +38,28 @@ in the array. This does only work for objects nested directly in the array,
 
 ```json
 {
-    "type": "array",
-    "length": {
-        "value": 5
-    },
-    "items": {
-        "type": "object",
-        "properties": {
-            "a": {
-                "type": "integer",
-                "min": 0,
-                "max": 100
-            },
-            "b": {
-                "type": "integer",
-                "min": 0,
-                "max": 100
-            }
-        }
-    },
-    "transform": {
-        "type": "sort",
-        "by": "a"
+  "type": "array",
+  "length": {
+    "value": 5
+  },
+  "items": {
+    "type": "object",
+    "properties": {
+      "a": {
+        "type": "integer",
+        "min": 0,
+        "max": 100
+      },
+      "b": {
+        "type": "integer",
+        "min": 0,
+        "max": 100
+      }
     }
+  },
+  "transform": {
+    "type": "sort",
+    "by": "a"
+  }
 }
 ```

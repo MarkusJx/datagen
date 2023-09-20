@@ -1,13 +1,13 @@
 {
-    "array": "array",
-    "object": "object",
-    "integer": "integer",
-    "number": "number",
-    "string": "string",
-    "bool": "bool",
-    "anyof": "anyOf",
-    "flatten": "flatten",
-    "plugin": "plugin",
-    "reference": "reference",
-    "file": "file"
+  "array": "array",
+  "object": "object",
+  "integer": "integer",
+  "number": "number",
+  "string": "string",
+  "bool": "bool",
+  "anyof": "anyOf",
+  "flatten": "flatten",
+  "plugin": "plugin",
+  "reference": "reference",
+  "file": "file"
 }

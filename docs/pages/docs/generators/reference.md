@@ -21,16 +21,16 @@ Generate a random UUID and copy it into another field:
 
 ```json
 {
-    "type": "object",
-    "properties": {
-        "id": {
-            "type": "string",
-            "generator": {
-                "type": "uuid"
-            }
-        },
-        "idCopy": "ref:./id"
-    }
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "generator": {
+        "type": "uuid"
+      }
+    },
+    "idCopy": "ref:./id"
+  }
 }
 ```
 
@@ -39,15 +39,15 @@ Generate a random UUID and copy it into another field:
 A reference may also be created using the `reference` generator.
 This generator has three inputs:
 
--   `reference`: The normalized path to the field to reference. This path may
-    or may not start with the `"ref:"` prefix.
--   `except`: References or values to exclude from the reference. This is useful
-    when the reference is inside the field being referenced. In order to exclude a
-    reference, the reference must be a string that starts with `"ref:"` and contains
-    the normalized path to the field to exclude.
--   `keepAll`: If set to `true`, the reference will keep all the fields found
-    by the reference and return an array if there is more than one. If set to `false`,
-    a random field will be returned from the reference.
+- `reference`: The normalized path to the field to reference. This path may
+  or may not start with the `"ref:"` prefix.
+- `except`: References or values to exclude from the reference. This is useful
+  when the reference is inside the field being referenced. In order to exclude a
+  reference, the reference must be a string that starts with `"ref:"` and contains
+  the normalized path to the field to exclude.
+- `keepAll`: If set to `true`, the reference will keep all the fields found
+  by the reference and return an array if there is more than one. If set to `false`,
+  a random field will be returned from the reference.
 
 #### Example
 
@@ -55,19 +55,19 @@ Generate a random UUID and copy it into another field:
 
 ```json
 {
-    "type": "object",
-    "properties": {
-        "id": {
-            "type": "string",
-            "generator": {
-                "type": "uuid"
-            }
-        },
-        "idCopy": {
-            "type": "reference",
-            "reference": "./id"
-        }
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "generator": {
+        "type": "uuid"
+      }
+    },
+    "idCopy": {
+      "type": "reference",
+      "reference": "./id"
     }
+  }
 }
 ```
 
@@ -83,18 +83,18 @@ For example if you have the following schema:
 
 ```json
 {
-    "type": "object",
-    "properties": {
-        "field1": {
-            "type": "object",
-            "properties": {
-                "field2": {
-                    "type": "string",
-                    "value": "test"
-                }
-            }
+  "type": "object",
+  "properties": {
+    "field1": {
+      "type": "object",
+      "properties": {
+        "field2": {
+          "type": "string",
+          "value": "test"
         }
+      }
     }
+  }
 }
 ```
 
@@ -111,21 +111,21 @@ For example, if you have the following schema:
 
 ```json
 {
-    "type": "object",
-    "properties": {
-        "field1": {
-            "type": "array",
-            "length": {
-                "value": 10
-            },
-            "items": {
-                "type": "object",
-                "properties": {
-                    "field2": "test"
-                }
-            }
+  "type": "object",
+  "properties": {
+    "field1": {
+      "type": "array",
+      "length": {
+        "value": 10
+      },
+      "items": {
+        "type": "object",
+        "properties": {
+          "field2": "test"
         }
+      }
     }
+  }
 }
 ```
 
@@ -164,23 +164,23 @@ will count as an object. For example, if you have this schema:
 
 ```json
 {
-    "type": "object",
-    "properties": {
-        "field1": "test",
-        "field2": {
-            "type": "array",
-            "length": {
-                "value": 10
-            },
-            "items": {
-                "type": "object",
-                "properties": {
-                    "field3": "ref:../../field1",
-                    "field4": "test"
-                }
-            }
+  "type": "object",
+  "properties": {
+    "field1": "test",
+    "field2": {
+      "type": "array",
+      "length": {
+        "value": 10
+      },
+      "items": {
+        "type": "object",
+        "properties": {
+          "field3": "ref:../../field1",
+          "field4": "test"
         }
+      }
     }
+  }
 }
 ```
 
@@ -218,23 +218,23 @@ Get all the `field1` fields from the root object:
 
 ```json
 {
-    "type": "object",
-    "properties": {
-        "field1": "test",
-        "field2": {
-            "type": "array",
-            "length": {
-                "value": 10
-            },
-            "items": {
-                "type": "object",
-                "properties": {
-                    "field1": "field1",
-                    "field2": "field1"
-                }
-            }
+  "type": "object",
+  "properties": {
+    "field1": "test",
+    "field2": {
+      "type": "array",
+      "length": {
+        "value": 10
+      },
+      "items": {
+        "type": "object",
+        "properties": {
+          "field1": "field1",
+          "field2": "field1"
         }
+      }
     }
+  }
 }
 ```
 

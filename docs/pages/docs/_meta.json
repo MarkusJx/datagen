@@ -1,7 +1,7 @@
 {
-    "index": "Introduction",
-    "generators": "Generators",
-    "plugins": "Plugins",
-    "transformers": "Transformers",
-    "options": "Options"
+  "index": "Introduction",
+  "generators": "Generators",
+  "plugins": "Plugins",
+  "transformers": "Transformers",
+  "options": "Options"
 }
