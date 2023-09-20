@@ -10,6 +10,7 @@ use std::fmt::Display;
 use std::rc::Rc;
 use std::sync::Arc;
 
+#[allow(improper_ctypes_definitions)]
 type InitFn = unsafe extern "C" fn(args: *mut Value) -> PluginInitResult;
 type VersionFn = unsafe extern "C" fn() -> *mut c_char;
 

@@ -58,6 +58,7 @@
         "test": "ava",
         "universal": "napi universal",
         "version": "napi version",
-        "format": "prettier --write ."
+        "format": "prettier --write .",
+        "lint": "prettier --check ."
     }
 }

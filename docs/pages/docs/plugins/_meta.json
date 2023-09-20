@@ -1,0 +1,6 @@
+{
+  "createPlugin": "Creating a new plugin",
+  "default": "Default Plugins",
+  "node": "Node.js plugins",
+  "usePlugin": "Using plugins"
+}

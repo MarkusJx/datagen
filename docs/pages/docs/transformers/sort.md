@@ -1,0 +1,65 @@
+# sort
+
+The `sort` transformer sorts an input array.
+
+It takes the following arguments:
+
+\*`by`: The key to sort by. If not specified, the array is sorted by its values,
+assuming the values are comparable. If the values are not comparable, an error
+will be thrown.
+
+- `reverse`: If true, the array is sorted in reverse order.
+
+The sort key can be a string, referencing a value of an object
+in the array. This does only work for objects nested directly in the array,
+
+## Examples
+
+### Sort an integer array
+
+```json
+{
+  "type": "array",
+  "length": {
+    "value": 5
+  },
+  "items": {
+    "type": "integer",
+    "min": 0,
+    "max": 100
+  },
+  "transform": {
+    "type": "sort"
+  }
+}
+```
+
+### Sort an object array
+
+```json
+{
+  "type": "array",
+  "length": {
+    "value": 5
+  },
+  "items": {
+    "type": "object",
+    "properties": {
+      "a": {
+        "type": "integer",
+        "min": 0,
+        "max": 100
+      },
+      "b": {
+        "type": "integer",
+        "min": 0,
+        "max": 100
+      }
+    }
+  },
+  "transform": {
+    "type": "sort",
+    "by": "a"
+  }
+}
+```

@@ -1,0 +1,106 @@
+# toString
+
+The `toString` transformer converts a value to a string, either by converting
+the value to a string or by using a [handlebars](https://handlebarsjs.com/guide/) template.
+
+## Convert a value to a string
+
+In this mode, the `toString` transformer will convert the value to a JSON
+string using [serde_json](https://docs.serde.rs/serde_json/index.html).
+
+In order to use this mode, the `toString` transformer must be configured with
+the `subType` property set to `default`.
+
+### Examples
+
+#### Convert an integer to a string
+
+```json
+{
+  "type": "integer",
+  "value": 20,
+  "transform": [
+    {
+      "type": "toString",
+      "subType": "default"
+    }
+  ]
+}
+```
+
+Will result in:
+
+```json
+"20"
+```
+
+#### Convert an object to a string
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "value": "John"
+    },
+    "age": {
+      "type": "integer",
+      "value": 20
+    }
+  },
+  "transform": [
+    {
+      "type": "toString",
+      "subType": "default"
+    }
+  ]
+}
+```
+
+Will result in:
+
+```json
+"{\"name\":\"John\",\"age\":20}"
+```
+
+## Use a handlebars template
+
+In this mode, the `toString` transformer will use a [handlebars](https://handlebarsjs.com/guide/)
+template to convert the value to a string.
+
+In order to use this mode, the `toString` transformer must be configured with
+the `subType` property set to `format`.
+
+The `toString` transformer has the following properties in this mode:
+
+- `format`: The handlebars template to use to convert the value to a string.
+- `serializeNonStrings`: Optional. If set to `true`, non-string and non-numeric values will be serialized
+  using [serde_json](https://docs.serde.rs/serde_json/index.html) before being passed to the template.
+
+### Example
+
+Format an object as a CSV row:
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "value": "John"
+    },
+    "age": {
+      "type": "integer",
+      "value": 20
+    }
+  },
+  "transform": [
+    {
+      "type": "toString",
+      "subType": "format",
+      "format": "{{name}},{{age}}"
+    }
+  ]
+}
+```
