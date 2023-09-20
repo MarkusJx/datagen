@@ -4,7 +4,7 @@
 The following options are available:
 
 | Option                | Description                                                                                                   | Default   |
-| --------------------- |---------------------------------------------------------------------------------------------------------------| --------- |
+| --------------------- | ------------------------------------------------------------------------------------------------------------- | --------- |
 | `plugins`             | The [plugins](plugins.md) to use.                                                                             | `[]`      |
 | `maxRefCacheSize`     | The maximum number of references to cache.<br/>Lowering this value will increase the performance of the tool. | unlimited |
 | `serializeNonStrings` | Whether to serialize non-string values. Can be overridden by property values.                                 | `false`   |
