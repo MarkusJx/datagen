@@ -24,6 +24,12 @@ impl SchemaPath {
         self.0.len()
     }
 
+    #[cfg(feature = "map-schema")]
+    #[allow(dead_code)]
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
     #[cfg(any())]
     pub fn normalized_len(&self) -> usize {
         self.0

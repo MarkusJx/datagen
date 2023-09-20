@@ -1,0 +1,65 @@
+name: Lint
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/main' && github.run_id || github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-clippy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2.2.1
+        with:
+          key: clippy
+      - name: Clippy
+        run: cargo clippy --all-targets -- -D warnings
+
+  lint-node:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: npm
+
+      - name: Install datagen-node dependencies
+        run: npm ci
+        working-directory: plugins/datagen-node
+      - name: Lint datagen-node
+        run: npm run lint
+        working-directory: plugins/datagen-node
+
+      - name: Install node-cli dependencies
+        run: npm ci
+        working-directory: node-cli
+      - name: Lint node-cli
+        run: npm run lint
+        working-directory: node-cli
+
+  lint-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+        working-directory: docs
+      - name: Lint docs
+        run: npm run lint
+        working-directory: docs
+      - name: Check links
+        uses: gaurav-nelson/github-action-markdown-link-check@v1
+        with:
+          folder-path: docs/pages

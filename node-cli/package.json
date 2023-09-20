@@ -6,7 +6,8 @@
     "type": "module",
     "scripts": {
         "build": "tsc",
-        "format": "prettier --write ."
+        "format": "prettier --write .",
+        "lint": "prettier --check ."
     },
     "author": "MarkusJx",
     "repository": {
