@@ -31,10 +31,17 @@ jobs:
           node-version: 18
           cache: npm
           cache-dependency-path: ./docs/package-lock.json
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2.2.1
+      - name: Install wasm-pack
+        run: npm install -g wasm-pack
 
       - name: Install dependencies
         run: npm ci
         working-directory: docs
+      - name: Build datagen-wasm
+        run: wasm-pack build --target web --release
+        working-directory: datagen-wasm
       - name: Build website
         run: npm run build
         working-directory: docs

@@ -5,6 +5,7 @@ The result schema can be defined using a JSON file.
 
 The readme is still a work in progress, but you can check out
 the [docs](https://markusjx.github.io/datagen/) for more information and examples.
+Check out the [demo](https://markusjx.github.io/datagen/demo/) to see `datagen` in action.
 
 ## Similar projects
 

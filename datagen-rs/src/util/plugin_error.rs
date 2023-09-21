@@ -12,8 +12,9 @@ pub(crate) struct PluginError {
 }
 
 #[cfg(feature = "native-plugin")]
-mod native {
+pub mod native {
     use crate::plugins::imported_plugin::ImportedPlugin;
+    use crate::plugins::plugin::Plugin;
     use crate::util::plugin_error::PluginError;
     use crate::util::types::Result;
     use std::error::Error;

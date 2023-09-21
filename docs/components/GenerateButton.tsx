@@ -3,6 +3,7 @@ import { generateRandomData } from 'datagen-wasm';
 import { Button } from 'nextra/components';
 import DemoGrid from './DemoGrid';
 import { FormControlLabel, FormGroup, Switch } from '@mui/material';
+import { generateData } from '../util/util';
 
 interface Props {
   setGenerated(data: string): void;
@@ -22,7 +23,9 @@ const GenerateButton: React.FC<Props> = ({
   disabled,
 }) => {
   return (
-    <DemoGrid sx={{ marginLeft: '60%', gridTemplateColumns: '65% 35%' }}>
+    <DemoGrid
+      sx={{ width: '40%', gridTemplateColumns: '65% 35%', margin: '0 auto' }}
+    >
       <FormGroup>
         <FormControlLabel
           disabled={disabled}
@@ -38,16 +41,7 @@ const GenerateButton: React.FC<Props> = ({
       </FormGroup>
       <Button
         disabled={disabled}
-        onClick={async () => {
-          try {
-            setGenerating(true);
-            setGenerated(await generateRandomData(JSON.parse(schema)));
-          } catch (e) {
-            setGenerated('Error: ' + e.message);
-          } finally {
-            setGenerating(false);
-          }
-        }}
+        onClick={() => generateData(schema, setGenerating, setGenerated, false)}
       >
         Generate
       </Button>

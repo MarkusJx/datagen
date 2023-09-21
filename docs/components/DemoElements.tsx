@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Callout } from 'nextra/components';
-import defaultSchema from './defaultSchema';
 import { useMonaco } from '@monaco-editor/react';
-import init, { generateRandomData } from 'datagen-wasm';
+import init from 'datagen-wasm';
 import DemoGrid from './DemoGrid';
 import GenerateButton from './GenerateButton';
 import SchemaEditor from './SchemaEditor';
 import GeneratedViewer from './GeneratedViewer';
 import { CircularProgress } from '@mui/material';
+import defaultSchema from '../util/defaultSchema';
+import { generateData } from '../util/util';
 
 const DemoElements: React.FC = () => {
   const [initialized, setInitialized] = useState(false);
@@ -24,6 +25,7 @@ const DemoElements: React.FC = () => {
     try {
       await init();
       setInitialized(true);
+      await generateData(schema, setGenerating, setGenerated, false);
     } catch (e) {
       setError(e.message);
     }
@@ -62,24 +64,17 @@ const DemoElements: React.FC = () => {
             monaco={monaco}
             schema={schema}
             disabled={generating}
-            setSchema={async (schema) => {
+            setSchema={(schema) => {
               setSchema(schema);
               if (autoRefresh && !generating) {
-                let parsed: string;
                 try {
-                  parsed = JSON.parse(schema);
-                } catch (_) {
-                  return;
-                }
-
-                setGenerating(true);
-                try {
-                  setGenerated(await generateRandomData(parsed));
-                } catch (e) {
-                  setGenerated('Error: ' + e.message);
-                } finally {
-                  setGenerating(false);
-                }
+                  return generateData(
+                    JSON.parse(schema),
+                    setGenerating,
+                    setGenerated,
+                    true
+                  );
+                } catch (_) {}
               }
             }}
           />
