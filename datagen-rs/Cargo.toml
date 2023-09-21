@@ -19,7 +19,7 @@ handlebars = { version = "4", optional = true }
 regex = { version = "1.9", optional = true }
 
 [features]
-all = ["plugin", "serialize", "generate", "schema"]
+all = ["plugin", "serialize", "generate", "schema", "native-plugin"]
 plugin = ["generate"]
 native-plugin = ["dep:libloading", "plugin"]
 serialize = ["dep:serde", "indexmap/serde", "ordered-float/serde", "dep:serde_yaml", "dep:quick-xml"]
