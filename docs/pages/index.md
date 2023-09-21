@@ -2,9 +2,9 @@
 
 A random data generator.
 
-Check out the [docs](docs/index.md) for more information on how
-to use `datagen`. Check out the [examples](examples/index.md) for
-examples and try out the [demo](demo/index.mdx)
+Check out the [docs](docs) for more information on how
+to use `datagen`. Check out the [examples](examples) for
+examples and try out the [demo](demo)
 to see `datagen` in action.
 
 ### Quick start
