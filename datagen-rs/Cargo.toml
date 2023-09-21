@@ -20,7 +20,8 @@ regex = { version = "1.9", optional = true }
 
 [features]
 all = ["plugin", "serialize", "generate", "schema"]
-plugin = ["dep:libloading", "generate"]
+plugin = ["generate"]
+native-plugin = ["dep:libloading", "plugin"]
 serialize = ["dep:serde", "indexmap/serde", "ordered-float/serde", "dep:serde_yaml", "dep:quick-xml"]
 map-schema = ["serialize", "dep:handlebars", "dep:regex", "dep:rand"]
 generate = ["map-schema", "plugin", "dep:fake"]

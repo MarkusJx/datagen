@@ -12,11 +12,14 @@ use datagen_rs::schema::any_of::AnyOf;
 use datagen_rs::schema::any_value::AnyValue;
 use datagen_rs::schema::array::{Array, ArrayLength};
 use datagen_rs::schema::object::Object;
+#[cfg(not(feature = "plugin"))]
+use datagen_rs::schema::schema_definition::Schema;
 use datagen_rs::util::traits::generate::TransformTrait;
 use datagen_rs::util::types::Result;
 use rand::prelude::SliceRandom;
 use rand::Rng;
 use serde_json::Value;
+use std::collections::HashMap;
 use std::fmt::Debug;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
@@ -36,7 +39,32 @@ impl<F: Fn(usize, usize)> Debug for ProgressPlugin<F> {
     }
 }
 
+#[cfg(not(feature = "plugin"))]
+pub struct PluginWithSchemaResult {
+    pub schema: Schema,
+    pub plugins: HashMap<String, Box<dyn Plugin>>,
+}
+
 impl<F: Fn(usize, usize)> ProgressPlugin<F> {
+    #[cfg(not(feature = "plugin"))]
+    pub fn with_schema(mut schema: Schema, callback: F) -> Result<PluginWithSchemaResult>
+    where
+        F: Fn(usize, usize) + 'static,
+    {
+        let progress: Box<dyn Plugin> = Box::new(ProgressPlugin::new(callback));
+
+        schema.value = AnyValue::Any(Any::Plugin(datagen_rs::schema::plugin::Plugin {
+            plugin_name: "progress".into(),
+            args: Some(serde_json::to_value(schema.value).map_err(|e| e.to_string())?),
+            transform: None,
+        }));
+
+        Ok(PluginWithSchemaResult {
+            schema,
+            plugins: vec![("progress".into(), progress)].into_iter().collect(),
+        })
+    }
+
     #[cfg(not(feature = "plugin"))]
     pub fn new(callback: F) -> Self {
         Self {

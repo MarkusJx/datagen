@@ -22,10 +22,16 @@
   },
   "homepage": "https://github.com/MarkusJx/datagen#readme",
   "dependencies": {
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@monaco-editor/react": "^4.5.2",
+    "@mui/material": "^5.14.10",
+    "datagen-wasm": "file:../datagen-wasm/pkg",
     "next": "^13.0.6",
     "nextra": "latest",
     "nextra-theme-docs": "latest",
     "react": "^18.2.0",
+    "react-device-detect": "^2.2.3",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {

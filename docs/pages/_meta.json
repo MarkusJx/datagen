@@ -12,5 +12,10 @@
     "title": "Examples",
     "type": "page",
     "href": "/examples"
+  },
+  "demo": {
+    "title": "Demo",
+    "type": "page",
+    "href": "/demo"
   }
 }

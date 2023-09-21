@@ -1,6 +1,6 @@
 #[cfg(feature = "plugin")]
 use crate::generate::generated_schema::generate::IntoGeneratedArc;
-#[cfg(feature = "plugin")]
+#[cfg(feature = "native-plugin")]
 use crate::plugins::imported_plugin::ImportedPlugin;
 use crate::plugins::plugin::Plugin;
 #[cfg(feature = "plugin")]
@@ -25,6 +25,7 @@ use crate::util::types::Result;
 #[cfg(feature = "plugin")]
 use serde_json::Value;
 use std::collections::HashMap;
+#[cfg(feature = "native-plugin")]
 use std::error::Error;
 #[cfg(feature = "plugin")]
 use std::sync::Arc;
@@ -119,7 +120,7 @@ impl PluginList {
         Ok(())
     }
 
-    #[cfg(feature = "plugin")]
+    #[cfg(feature = "native-plugin")]
     fn map_plugin(
         name: String,
         args: Value,
@@ -133,6 +134,15 @@ impl PluginList {
                 )?,
             ),
         ))
+    }
+
+    #[cfg(all(not(feature = "native-plugin"), feature = "plugin"))]
+    fn map_plugin(
+        _name: String,
+        _args: Value,
+        _path: Option<String>,
+    ) -> Result<(String, Box<dyn Plugin>)> {
+        Err("Native plugin support is not enabled".into())
     }
 
     #[cfg(feature = "plugin")]
