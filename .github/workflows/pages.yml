@@ -33,6 +33,15 @@ jobs:
           cache-dependency-path: ./docs/package-lock.json
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2.2.1
+      - name: Cache nextjs
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.npm
+            ${{ github.workspace }}/docs/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/docs/package-lock.json') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('**/docs/package-lock.json') }}-
       - name: Install wasm-pack
         run: npm install -g wasm-pack
 
