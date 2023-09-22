@@ -27,7 +27,7 @@ const DemoElements: React.FC = () => {
     'schema',
     JSON.stringify(defaultSchema, null, 2)
   );
-  const [generated, setGenerated] = useState<string | null>(null);
+  const [generated, setGenerated] = useState<string>('Generating...');
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [generateProgress, setGenerateProgress] = useState(0);

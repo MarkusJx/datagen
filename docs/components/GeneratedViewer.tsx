@@ -3,7 +3,7 @@ import MonacoEditor from '@monaco-editor/react';
 import { getSchemaFormat, SchemaFormat } from '../util/util';
 
 interface Props {
-  data: string | null;
+  data: string;
   schema: string;
 }
 
@@ -18,7 +18,7 @@ const GeneratedViewer: React.FC<Props> = ({ data, schema }) => {
     <MonacoEditor
       height="70vh"
       language={language}
-      value={data ?? undefined}
+      value={data}
       theme="vs-dark"
       options={{
         readOnly: true,
