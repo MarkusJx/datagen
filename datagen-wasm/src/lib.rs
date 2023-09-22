@@ -12,7 +12,7 @@ pub struct GenerateProgress {
 }
 
 #[wasm_bindgen(js_name = "getSchema")]
-pub async fn get_schema() -> Result<JsValue, JsError> {
+pub fn get_schema() -> Result<JsValue, JsError> {
     match get_schema_value() {
         Ok(v) => serde_wasm_bindgen::to_value(&v).map_err(Into::into),
         Err(e) => Err(JsError::new(&e.to_string())),
@@ -20,7 +20,7 @@ pub async fn get_schema() -> Result<JsValue, JsError> {
 }
 
 #[wasm_bindgen(js_name = "generateRandomData")]
-pub async fn generate_random_data(
+pub fn generate_random_data(
     schema: JsValue,
     progress_callback: Option<js_sys::Function>,
 ) -> Result<String, JsError> {

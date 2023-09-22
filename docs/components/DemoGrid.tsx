@@ -9,7 +9,6 @@ interface Props {
 
 const StyledDiv = styled('div')`
   display: grid;
-  row-gap: 2rem;
 `;
 
 const DemoGrid: React.FC<Props> = ({ children, maxWidth, sx }) => {

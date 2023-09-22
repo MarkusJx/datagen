@@ -14,4 +14,3 @@ getrandom = { version = "0", features = ["js"] }
 js-sys = "0.3"
 wasm-bindgen = { version = "0.2", features = ["serde", "serde_json", "serde-serialize"] }
 serde-wasm-bindgen = "0.5"
-wasm-bindgen-futures = "0.4"

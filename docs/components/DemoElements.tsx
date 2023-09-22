@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Callout } from 'nextra/components';
 import { useMonaco } from '@monaco-editor/react';
 import init from 'datagen-wasm';
@@ -6,36 +6,49 @@ import DemoGrid from './DemoGrid';
 import GenerateButton from './GenerateButton';
 import SchemaEditor from './SchemaEditor';
 import GeneratedViewer from './GeneratedViewer';
-import { CircularProgress } from '@mui/material';
+import { CircularProgress, LinearProgress } from '@mui/material';
 import defaultSchema from '../util/defaultSchema';
-import { generateData } from '../util/util';
+import useDemoWorker from '../hooks/useDemoWorker';
+import Center from './Center';
 
 const DemoElements: React.FC = () => {
   const [initialized, setInitialized] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [warning, setWarning] = useState<string | null>(null);
   const [schema, setSchema] = useState<string>(
     JSON.stringify(defaultSchema, null, 2)
   );
   const [generated, setGenerated] = useState<string | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [generateProgress, setGenerateProgress] = useState(100);
   const monaco = useMonaco();
-
-  const initDatagen = async () => {
-    try {
-      await init();
-      setInitialized(true);
-      await generateData(schema, setGenerating, setGenerated, false);
-    } catch (e) {
-      setError(e.message);
+  const generateData = useDemoWorker(
+    async () => {
+      try {
+        await init();
+        setInitialized(true);
+        await generateData(schema, setGenerating, setGenerated, false);
+      } catch (e: any) {
+        console.error(e);
+        setError(e.message);
+      }
+    },
+    () => {
+      setWarning(
+        'Unable to load demo: Web Workers and/or WebAssembly are not supported ' +
+          'in this browser. Please try a different browser.'
+      );
     }
+  );
+
+  const handleGenerateProgress = (progress: number) => {
+    setGenerateProgress(progress * 100);
   };
 
-  useEffect(() => {
-    initDatagen().then();
-  }, []);
-
-  if (error) {
+  if (warning) {
+    return <Callout type="warning">{warning}</Callout>;
+  } else if (error) {
     return (
       <Callout type="error">Failed to initialize datagen: {error}</Callout>
     );
@@ -50,7 +63,13 @@ const DemoElements: React.FC = () => {
           autoRefresh={autoRefresh}
           setAutoRefresh={setAutoRefresh}
           setGenerating={setGenerating}
+          generateProgress={handleGenerateProgress}
           disabled={generating}
+        />
+        <LinearProgress
+          variant="determinate"
+          value={generateProgress}
+          sx={{ marginTop: '2rem' }}
         />
         <DemoGrid
           sx={{
@@ -72,7 +91,8 @@ const DemoElements: React.FC = () => {
                     JSON.parse(schema),
                     setGenerating,
                     setGenerated,
-                    true
+                    true,
+                    handleGenerateProgress
                   );
                 } catch (_) {}
               }
@@ -83,7 +103,14 @@ const DemoElements: React.FC = () => {
       </DemoGrid>
     );
   } else {
-    return <CircularProgress />;
+    return (
+      <DemoGrid sx={{ rowGap: '2rem' }}>
+        <Callout type="info">Loading demo</Callout>
+        <Center>
+          <CircularProgress />
+        </Center>
+      </DemoGrid>
+    );
   }
 };
 

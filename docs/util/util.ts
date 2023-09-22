@@ -1,19 +1,19 @@
-import { generateRandomData } from 'datagen-wasm';
-
-export const generateData = async (
-  schema: any,
-  setGenerating: (generating: boolean) => void,
-  setGenerated: (data: string) => void,
-  isParsed: boolean
-) => {
+export const wasmSupported = () => {
   try {
-    setGenerating(true);
-    setGenerated(
-      await generateRandomData(isParsed ? schema : JSON.parse(schema))
-    );
-  } catch (e) {
-    setGenerated('Error: ' + e.message);
-  } finally {
-    setGenerating(false);
-  }
+    if (
+      typeof WebAssembly === 'object' &&
+      typeof WebAssembly.instantiate === 'function'
+    ) {
+      const module = new WebAssembly.Module(
+        Uint8Array.of(0x0, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00)
+      );
+      if (module instanceof WebAssembly.Module)
+        return new WebAssembly.Instance(module) instanceof WebAssembly.Instance;
+    }
+  } catch (e) {}
+  return false;
+};
+
+export const webWorkersSupported = () => {
+  return typeof Worker !== 'undefined';
 };
