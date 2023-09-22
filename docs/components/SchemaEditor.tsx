@@ -8,12 +8,7 @@ interface Props {
   disabled?: boolean;
 }
 
-const SchemaEditor: React.FC<Props> = ({
-  monaco,
-  schema,
-  setSchema,
-  disabled,
-}) => {
+const SchemaEditor: React.FC<Props> = ({ monaco, schema, setSchema }) => {
   monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
     validate: true,
     allowComments: false,
@@ -32,7 +27,7 @@ const SchemaEditor: React.FC<Props> = ({
       language="json"
       value={schema}
       theme="vs-dark"
-      onChange={(value, ev) => setSchema(value)}
+      onChange={(value) => setSchema(value ?? '')}
       options={{
         scrollBeyondLastLine: false,
       }}

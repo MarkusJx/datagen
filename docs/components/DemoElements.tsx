@@ -87,13 +87,13 @@ const DemoElements: React.FC = () => {
               setSchema(schema);
               if (autoRefresh && !generating) {
                 try {
-                  return generateData(
+                  generateData(
                     JSON.parse(schema),
                     setGenerating,
                     setGenerated,
                     true,
                     handleGenerateProgress
-                  );
+                  ).catch(console.error);
                 } catch (_) {}
               }
             }}

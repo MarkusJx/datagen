@@ -1,7 +1,6 @@
 import React from 'react';
 import DemoGrid from './DemoGrid';
 import {
-  CircularProgress,
   createTheme,
   FormControlLabel,
   FormGroup,

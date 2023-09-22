@@ -10,7 +10,7 @@ const GeneratedViewer: React.FC<Props> = ({ data }) => {
     <MonacoEditor
       height="70vh"
       language="json"
-      value={data}
+      value={data ?? undefined}
       theme="vs-dark"
       options={{
         readOnly: true,
