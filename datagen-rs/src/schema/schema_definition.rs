@@ -49,6 +49,7 @@ pub enum Serializer {
     #[cfg_attr(feature = "serialize", serde(rename_all = "camelCase"))]
     Xml {
         root_element: String,
+        pretty: Option<bool>,
     },
     #[cfg_attr(feature = "serialize", serde(rename_all = "camelCase"))]
     Plugin {

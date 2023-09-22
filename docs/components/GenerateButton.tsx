@@ -47,12 +47,16 @@ const GenerateButton: React.FC<Props> = ({
   generateProgress,
   disabled,
 }) => {
-  const generateData = useDemoWorker();
+  const { generateRandomData } = useDemoWorker();
 
   return (
     <ThemeProvider theme={theme}>
       <DemoGrid
-        sx={{ width: '40%', gridTemplateColumns: '65% 35%', margin: '0 auto' }}
+        sx={{
+          width: '40%',
+          gridTemplateColumns: 'auto max-content',
+          margin: '0 auto',
+        }}
       >
         <FormGroup>
           <FormControlLabel
@@ -78,7 +82,7 @@ const GenerateButton: React.FC<Props> = ({
           loading={disabled}
           variant="outlined"
           onClick={() =>
-            generateData(
+            generateRandomData(
               schema,
               setGenerating,
               setGenerated,

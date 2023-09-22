@@ -19,14 +19,27 @@ use datagen_rs::util::types::Result;
 use rand::prelude::SliceRandom;
 use rand::Rng;
 use serde_json::Value;
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap, VecDeque};
 use std::fmt::Debug;
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
+
+#[derive(PartialEq, Eq, PartialOrd, Ord)]
+struct RandomArrayLength {
+    min: u32,
+    max: u32,
+}
+
+impl RandomArrayLength {
+    fn new(min: u32, max: u32) -> Self {
+        Self { min, max }
+    }
+}
 
 pub struct ProgressPlugin<F: Fn(usize, usize)> {
     total_elements: AtomicUsize,
     progress: AtomicUsize,
+    arrays: Mutex<BTreeMap<RandomArrayLength, VecDeque<u32>>>,
     callback: F,
 }
 
@@ -70,6 +83,7 @@ impl<F: Fn(usize, usize)> ProgressPlugin<F> {
         Self {
             total_elements: AtomicUsize::new(0),
             progress: AtomicUsize::new(0),
+            arrays: Mutex::new(BTreeMap::new()),
             callback,
         }
     }
@@ -96,12 +110,26 @@ impl<F: Fn(usize, usize)> ProgressPlugin<F> {
         }
     }
 
+    fn get_array_length(&self, len: &ArrayLength) -> Result<u32> {
+        match len {
+            ArrayLength::Random { min, max } => self
+                .arrays
+                .lock()
+                .unwrap()
+                .get_mut(&RandomArrayLength::new(*min, *max))
+                .ok_or("Array length not found".to_string())?
+                .pop_front()
+                .ok_or("Array length not found".into()),
+            ArrayLength::Constant { value } => Ok(*value),
+        }
+    }
+
     fn convert_array(
         &self,
         schema: CurrentSchemaRef,
         array: Array,
     ) -> Result<Arc<GeneratedSchema>> {
-        let len = array.length.get_length();
+        let len = self.get_array_length(&array.length)?;
         schema.map_array(
             len as _,
             array.items,
@@ -121,7 +149,9 @@ impl<F: Fn(usize, usize)> ProgressPlugin<F> {
         object: Object,
     ) -> Result<Arc<GeneratedSchema>> {
         schema.map_index_map(object.properties, object.transform, true, |cur, value| {
-            self.convert_any_value(cur.clone(), value)
+            let res = self.convert_any_value(cur.clone(), value)?;
+            self.increase_count();
+            Ok(res)
         })
     }
 
@@ -161,14 +191,14 @@ impl<F: Fn(usize, usize)> ProgressPlugin<F> {
         Ok(schema.finalize(res))
     }
 
-    pub fn map_any(val: &mut AnyValue) -> usize {
+    pub fn map_any(&self, val: &mut AnyValue) -> usize {
         if let AnyValue::Any(any) = val {
             match any {
-                Any::Array(array) => Self::map_array(array.as_mut()),
+                Any::Array(array) => self.map_array(array.as_mut()),
                 Any::Object(object) => {
-                    let mut len = 0;
+                    let mut len = 1;
                     for (_, value) in &mut object.properties {
-                        len += Self::map_any(value);
+                        len += self.map_any(value);
                     }
 
                     len
@@ -188,24 +218,46 @@ impl<F: Fn(usize, usize)> ProgressPlugin<F> {
                         any_of.values.drain(num as usize..);
                     }
 
-                    let mut len = 0;
+                    let mut len = 1;
                     for val in &mut any_of.values {
-                        len += Self::map_any(val);
+                        len += self.map_any(val);
                     }
                     len
                 }
-                _ => 0,
+                _ => 1,
             }
         } else {
-            0
+            1
         }
     }
 
-    fn map_array(val: &mut Array) -> usize {
-        let len = val.length.get_length();
-        val.length = ArrayLength::Constant { value: len };
+    fn add_array_len(&self, len: &ArrayLength) -> u32 {
+        match len {
+            ArrayLength::Random { min, max } => {
+                let mut arrays = self.arrays.lock().unwrap();
 
-        Self::map_any(&mut val.items) * len as usize + len as usize
+                let entry = arrays
+                    .entry(RandomArrayLength::new(*min, *max))
+                    .or_insert_with(VecDeque::new);
+                let mut rng = rand::thread_rng();
+                let res = rng.gen_range(*min..=*max);
+                entry.push_back(res);
+
+                res
+            }
+            ArrayLength::Constant { value } => *value,
+        }
+    }
+
+    fn map_array(&self, val: &mut Array) -> usize {
+        let len = self.add_array_len(&val.length);
+
+        let mut res = 1;
+        for _ in 0..len {
+            res += self.map_any(&mut val.items);
+        }
+
+        res
     }
 }
 
@@ -218,7 +270,7 @@ impl<F: Fn(usize, usize)> Plugin for ProgressPlugin<F> {
         let mut val: AnyValue = serde_json::from_value(args)?;
 
         self.total_elements
-            .store(Self::map_any(&mut val), Ordering::SeqCst);
+            .store(self.map_any(&mut val), Ordering::SeqCst);
         self.convert_any_value(schema, val)
     }
 }

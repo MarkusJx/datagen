@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ModuleThread, spawn, Thread, Worker } from 'threads';
 import { wasmSupported, webWorkersSupported } from '../util/util';
 import type {
@@ -17,13 +17,16 @@ type DemoWorkerCallback = (
   isParsed: boolean,
   progressCallback?: (progress: number) => void
 ) => Promise<void>;
+type DemoWorker = {
+  workerInitialized: boolean;
+  generateRandomData: DemoWorkerCallback;
+};
 type LoadCallback = () => void | Promise<void>;
 
-const useDemoWorker = (
-  onLoaded?: LoadCallback,
-  onUnsupported?: LoadCallback
-): DemoWorkerCallback => {
+const useDemoWorker = (onUnsupported?: LoadCallback): DemoWorker => {
   const worker = useRef<ModuleThread<GenerateWorker>>();
+  const [initialized, setInitialized] = useState(false);
+
   useEffect(() => {
     if (!webWorkersSupported() || !wasmSupported()) {
       if (onUnsupported) {
@@ -40,10 +43,9 @@ const useDemoWorker = (
           )
         );
 
-        if (onLoaded) {
-          await onLoaded();
-        }
+        setInitialized(true);
       };
+
       load().catch(console.error);
     }
 
@@ -54,52 +56,55 @@ const useDemoWorker = (
     };
   }, []);
 
-  return async (
-    schema,
-    setGenerating,
-    setGenerated,
-    isParsed,
-    progressCallback
-  ) => {
-    if (!worker.current) throw new Error('Worker not loaded');
+  return {
+    workerInitialized: initialized,
+    generateRandomData: async (
+      schema,
+      setGenerating,
+      setGenerated,
+      isParsed,
+      progressCallback
+    ) => {
+      if (!worker.current) throw new Error('Worker not loaded');
 
-    try {
-      setGenerating(true);
-      const res = worker.current.generateRandomDataWebWorker(
-        isParsed ? schema : JSON.parse(schema),
-        !!progressCallback
-      );
+      try {
+        setGenerating(true);
+        const res = worker.current.generateRandomDataWebWorker(
+          isParsed ? schema : JSON.parse(schema),
+          !!progressCallback
+        );
 
-      if (!!progressCallback) {
-        res.subscribe({
-          next(value: GenerateWorkerProgress) {
-            if (value.data) {
-              progressCallback(1);
-              setGenerated(value.data);
-            } else {
-              progressCallback(value.progress);
-            }
-          },
-          complete() {
+        if (progressCallback) {
+          res.subscribe({
+            next(value: GenerateWorkerProgress) {
+              if (value.data) {
+                progressCallback(1);
+                setGenerated(value.data);
+              } else {
+                progressCallback(value.progress);
+              }
+            },
+            complete() {
+              setGenerating(false);
+            },
+            error(e) {
+              console.error(e);
+              setGenerated('Error: ' + e.message);
+              setGenerating(false);
+            },
+          });
+        } else {
+          try {
+            setGenerated((await res) as string);
+          } finally {
             setGenerating(false);
-          },
-          error(e) {
-            console.error(e);
-            setGenerated('Error: ' + e.message);
-            setGenerating(false);
-          },
-        });
-      } else {
-        try {
-          setGenerated((await res) as string);
-        } finally {
-          setGenerating(false);
+          }
         }
+      } catch (e: any) {
+        console.error(e);
+        setGenerated('Error: ' + e.message);
       }
-    } catch (e: any) {
-      console.error(e);
-      setGenerated('Error: ' + e.message);
-    }
+    },
   };
 };
 

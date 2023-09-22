@@ -1,49 +1,68 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Callout } from 'nextra/components';
 import { useMonaco } from '@monaco-editor/react';
-import init from 'datagen-wasm';
 import DemoGrid from './DemoGrid';
 import GenerateButton from './GenerateButton';
 import SchemaEditor from './SchemaEditor';
 import GeneratedViewer from './GeneratedViewer';
-import { CircularProgress, LinearProgress } from '@mui/material';
+import {
+  Button,
+  CircularProgress,
+  Grid,
+  IconButton,
+  LinearProgress,
+  Tooltip,
+} from '@mui/material';
+import DownloadIcon from '@mui/icons-material/Download';
 import defaultSchema from '../util/defaultSchema';
 import useDemoWorker from '../hooks/useDemoWorker';
 import Center from './Center';
+import useLocalStorage from '../hooks/useLocalStorage';
+import { downloadFile, getSchemaFormat } from '../util/util';
 
 const DemoElements: React.FC = () => {
-  const [initialized, setInitialized] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [warning, setWarning] = useState<string | null>(null);
-  const [schema, setSchema] = useState<string>(
+  const [schemaLoaded, schema, setSchema, resetSchema] = useLocalStorage(
+    'schema',
     JSON.stringify(defaultSchema, null, 2)
   );
   const [generated, setGenerated] = useState<string | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [generating, setGenerating] = useState(false);
-  const [generateProgress, setGenerateProgress] = useState(100);
+  const [generateProgress, setGenerateProgress] = useState(0);
   const monaco = useMonaco();
-  const generateData = useDemoWorker(
-    async () => {
-      try {
-        await init();
-        setInitialized(true);
-        await generateData(schema, setGenerating, setGenerated, false);
-      } catch (e: any) {
-        console.error(e);
-        setError(e.message);
-      }
-    },
-    () => {
-      setWarning(
-        'Unable to load demo: Web Workers and/or WebAssembly are not supported ' +
-          'in this browser. Please try a different browser.'
-      );
-    }
-  );
+  const { workerInitialized, generateRandomData } = useDemoWorker(() => {
+    setWarning(
+      'Unable to load demo: Web Workers and/or WebAssembly are not supported ' +
+        'in this browser. Please try a different browser.'
+    );
+  });
 
   const handleGenerateProgress = (progress: number) => {
     setGenerateProgress(progress * 100);
+  };
+
+  useEffect(() => {
+    if (schemaLoaded && workerInitialized) {
+      generateRandomData(
+        schema,
+        setGenerating,
+        setGenerated,
+        false,
+        handleGenerateProgress
+      ).catch((e) => {
+        console.error(e);
+        setError(e.message);
+      });
+    }
+  }, [schemaLoaded, workerInitialized]);
+
+  const handleDownload = () => {
+    if (generated) {
+      const format = getSchemaFormat(schema);
+      downloadFile(generated, 'generated', format);
+    }
   };
 
   if (warning) {
@@ -54,7 +73,7 @@ const DemoElements: React.FC = () => {
     );
   }
 
-  if (initialized && monaco) {
+  if (workerInitialized && schemaLoaded && monaco) {
     return (
       <DemoGrid maxWidth="80vw">
         <GenerateButton
@@ -87,7 +106,7 @@ const DemoElements: React.FC = () => {
               setSchema(schema);
               if (autoRefresh && !generating) {
                 try {
-                  generateData(
+                  generateRandomData(
                     JSON.parse(schema),
                     setGenerating,
                     setGenerated,
@@ -98,8 +117,26 @@ const DemoElements: React.FC = () => {
               }
             }}
           />
-          <GeneratedViewer data={generated} />
+          <GeneratedViewer data={generated} schema={schema} />
         </DemoGrid>
+        <Grid
+          container
+          gap={2}
+          justifyContent="right"
+          sx={{ marginTop: '2rem' }}
+        >
+          <Button onClick={resetSchema}>Reset schema</Button>
+          <Tooltip title="Download the generated data">
+            <IconButton
+              aria-label="download"
+              size="medium"
+              color="primary"
+              onClick={handleDownload}
+            >
+              <DownloadIcon fontSize="inherit" />
+            </IconButton>
+          </Tooltip>
+        </Grid>
       </DemoGrid>
     );
   } else {

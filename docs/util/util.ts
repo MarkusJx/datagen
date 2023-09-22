@@ -17,3 +17,38 @@ export const wasmSupported = () => {
 export const webWorkersSupported = () => {
   return typeof Worker !== 'undefined';
 };
+
+export const downloadFile = (
+  data: string,
+  filename: string,
+  format: SchemaFormat
+) => {
+  const blob = new Blob([data], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `${filename}.${format}`;
+  link.click();
+};
+
+export const enum SchemaFormat {
+  JSON = 'json',
+  YAML = 'yaml',
+  XML = 'xml',
+}
+
+export const getSchemaFormat = (schema: string): SchemaFormat => {
+  try {
+    const parsed = JSON.parse(schema);
+    switch (parsed?.options?.serializer?.type?.toLowerCase()) {
+      case 'yaml':
+        return SchemaFormat.YAML;
+      case 'xml':
+        return SchemaFormat.XML;
+      case 'json':
+        return SchemaFormat.JSON;
+    }
+  } catch (_) {}
+
+  return SchemaFormat.JSON;
+};
