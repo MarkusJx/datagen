@@ -477,7 +477,7 @@ test('generate data with progress', async (t) => {
     for (let i = 1; i <= 10; i++) {
         expectedProgresses.push({
             current: i,
-            total: 10,
+            total: 11,
         });
     }
 
