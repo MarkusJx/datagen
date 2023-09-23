@@ -1,28 +1,33 @@
-import React from 'react';
-import MonacoEditor from '@monaco-editor/react';
+import React, { useEffect } from 'react';
+import MonacoEditor, { useMonaco } from '@monaco-editor/react';
 import { useTheme } from 'nextra-theme-docs';
+import jsonSchema from '../../packages/schema/dist/schema.json';
 
 interface Props {
-  monaco: typeof import('monaco-editor/esm/vs/editor/editor.api');
   schema: string;
   setSchema: (schema: string) => void;
-  disabled?: boolean;
 }
 
-const SchemaEditor: React.FC<Props> = ({ monaco, schema, setSchema }) => {
+const SchemaEditor: React.FC<Props> = ({ schema, setSchema }) => {
   const { theme } = useTheme();
+  const monaco = useMonaco();
 
-  monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
-    validate: true,
-    allowComments: false,
-    enableSchemaRequest: true,
-    schemas: [
-      {
-        uri: 'https://raw.githubusercontent.com/MarkusJx/datagen/main/datagen-rs/schema.json',
-        fileMatch: ['*'],
-      },
-    ],
-  });
+  useEffect(() => {
+    if (!monaco) return;
+
+    monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
+      validate: true,
+      allowComments: false,
+      enableSchemaRequest: true,
+      schemas: [
+        {
+          uri: '',
+          schema: jsonSchema,
+          fileMatch: ['*'],
+        },
+      ],
+    });
+  }, [monaco]);
 
   return (
     <MonacoEditor

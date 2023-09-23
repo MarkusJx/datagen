@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Callout } from 'nextra/components';
-import { useMonaco } from '@monaco-editor/react';
 import DemoGrid from './DemoGrid';
 import GenerateButton from './GenerateButton';
 import SchemaEditor from './SchemaEditor';
@@ -23,7 +22,6 @@ const DemoElements: React.FC = () => {
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [generateProgress, setGenerateProgress] = useState(0);
-  const monaco = useMonaco();
   const { workerInitialized, generateRandomData } = useDemoWorker(() => {
     setWarning(
       'Unable to load demo: Web Workers and/or WebAssembly are not supported ' +
@@ -35,6 +33,11 @@ const DemoElements: React.FC = () => {
     setGenerateProgress(progress * 100);
   };
 
+  const handleError = (e: any) => {
+    console.error(e);
+    setError(e.message);
+  };
+
   useEffect(() => {
     if (schemaLoaded && workerInitialized) {
       generateRandomData(
@@ -43,10 +46,7 @@ const DemoElements: React.FC = () => {
         setGenerated,
         false,
         handleGenerateProgress
-      ).catch((e) => {
-        console.error(e);
-        setError(e.message);
-      });
+      ).catch(handleError);
     }
   }, [schemaLoaded, workerInitialized]);
 
@@ -60,7 +60,7 @@ const DemoElements: React.FC = () => {
           setGenerated,
           true,
           handleGenerateProgress
-        ).catch(console.error);
+        ).catch(handleError);
       } catch (_) {}
     }
   };
@@ -73,7 +73,7 @@ const DemoElements: React.FC = () => {
     );
   }
 
-  if (workerInitialized && schemaLoaded && monaco) {
+  if (workerInitialized && schemaLoaded) {
     return (
       <DemoGrid maxWidth="80vw">
         <GenerateButton
@@ -98,12 +98,7 @@ const DemoElements: React.FC = () => {
             },
           }}
         >
-          <SchemaEditor
-            monaco={monaco}
-            schema={schema}
-            disabled={generating}
-            setSchema={handleUpdateSchema}
-          />
+          <SchemaEditor schema={schema} setSchema={handleUpdateSchema} />
           <GeneratedViewer data={generated} schema={schema} />
         </DemoGrid>
         <EditorActions
