@@ -19,7 +19,7 @@
         "sourceMap": true,
         "resolveJsonModule": true,
         "noUnusedLocals": true,
-        "noUnusedParameters": true,
+        "noUnusedParameters": true
     },
     "exclude": ["node_modules", "dist"]
 }
