@@ -1,4 +1,4 @@
-# Creating a node.js plugin
+# Creating node.js plugins
 
 Node.js plugins are installed as npm packages. To create a plugin, you need to
 create a new npm package. This can be done with the `npm init` command.
@@ -7,27 +7,29 @@ create a new npm package. This can be done with the `npm init` command.
 npm init
 ```
 
-This will create a new npm package. You can then add the `@datagen/node` package as a
+This will create a new npm package. You can then add the `@datagen/types` package as a
 dependency, if desired, as this package provides typescript types for the plugin
 API.
 
 ```bash
-npm install @datagen/node
+npm install --save-dev @datagen/types
 ```
 
 You can then create a new file, for example `index.ts`, and start writing your
 plugin. A plugin must export a function with the following signature:
 
 ```ts
-export default function pluginConstructor(args: any): Plugin;
+export type PluginInitFunction = (
+  args: any
+) => DatagenPlugin | Promise<DatagenPlugin>;
 ```
 
 The `args` parameter is an object containing the arguments passed to the plugin
-in the configuration file. The `Plugin` type is defined in the `@datagen/node`
+in the configuration file. The `DatagenPlugin` type is defined in the `@datagen/types`
 package and looks like this:
 
 ```ts
-interface Plugin {
+interface DatagenPlugin {
   generate?(schema: CurrentSchema, args: any): any | Promise<any>;
   transform?(schema: CurrentSchema, args: any, value: any): any | Promise<any>;
   serialize?(args: any, value: any): string | Promise<string>;
@@ -43,9 +45,9 @@ generated. The `transform` method is called when a value is transformed. The
 You may want to implement your plugin as follows:
 
 ```ts
-import { Plugin, CurrentSchema } from '@datagen/node';
+import { DatagenPlugin, CurrentSchema } from '@datagen/types';
 
-class MyPlugin implements Plugin {
+class MyPlugin implements DatagenPlugin {
   constructor(args: any) {
     // Initialize the plugin
   }
@@ -63,7 +65,7 @@ class MyPlugin implements Plugin {
   }
 }
 
-export default function pluginConstructor(args: any): Plugin {
+export default function pluginConstructor(args: any): DatagenPlugin {
   return new MyPlugin(args);
 }
 ```

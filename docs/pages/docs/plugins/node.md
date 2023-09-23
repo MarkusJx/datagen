@@ -8,5 +8,5 @@ These plugins can only be used with the Node.js version of `datagen`. See the
 [main documentation](https://github.com/MarkusJx/datagen/blob/main/README.md)
 for more information.
 
-Check the [create a node.js plugin](node/create.md) page for more information on how
+Check the [creating node.js plugins](node/create.md) page for more information on how
 to create a plugin.

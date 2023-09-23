@@ -15,7 +15,7 @@ pub unsafe extern "C" fn _plugin_create(
 }
 ```
 
-Check out the [Create a new plugin](plugins/createPlugin.md) page for more
+Check out the [Creating plugins](plugins/createPlugin.mdx) page for more
 information on how to create a plugin.
 
 Check out the [Using plugins](plugins/usePlugin.md) page for more information

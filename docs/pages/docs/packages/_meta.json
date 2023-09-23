@@ -1,0 +1,4 @@
+{
+  "node": "@datagen/node",
+  "nodeTypes": "@datagen/types"
+}
