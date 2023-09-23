@@ -4,7 +4,7 @@
   "description": "The schema for datagen",
   "main": "dist/types.ts",
   "scripts": {
-    "prebuild": "cd ../../datagen-wasm && wasm-pack build -t nodejs --release -d node-pkg --features schema",
+    "prebuild": "cd ../../datagen-wasm && wasm-pack build -t nodejs -d node-pkg --dev --features schema",
     "build": "tsx src/build.ts"
   },
   "repository": {
