@@ -3,7 +3,8 @@ import {
     CurrentSchema,
     GenerateProgress,
     generateRandomData,
-    generateRandomDataWithProgress,
+    getJsonSchema,
+    getJsonSchemaAsync,
 } from '../.';
 
 test('generate data', async (t) => {
@@ -24,6 +25,7 @@ test('generate data with plugin', async (t) => {
                 name: 'test',
             },
         },
+        null,
         {
             testPlugin: {
                 generate(schema: CurrentSchema, args: any): any {
@@ -53,6 +55,7 @@ test('transform data with plugin', async (t) => {
                 },
             ],
         },
+        null,
         {
             testPlugin: {
                 transform(schema: CurrentSchema, args: any, value: any): any {
@@ -83,6 +86,7 @@ test('serialize data with plugin', async (t) => {
                 },
             },
         },
+        null,
         {
             testPlugin: {
                 serialize(args: any, value: any): any {
@@ -124,6 +128,7 @@ test('generate data with async plugin', async (t) => {
                 },
             },
         },
+        null,
         {
             testPlugin: {
                 async generate(schema: CurrentSchema, args: any): Promise<any> {
@@ -160,6 +165,7 @@ test('generate data with invalid plugin', async (t) => {
                 type: 'plugin',
                 pluginName: 'testPlugin',
             },
+            null,
             {
                 testPlugin: {},
             }
@@ -185,6 +191,7 @@ test('transform data with invalid plugin', async (t) => {
                     },
                 ],
             },
+            null,
             {
                 testPlugin: {},
             }
@@ -210,6 +217,7 @@ test('serialize data with invalid plugin', async (t) => {
                     },
                 },
             },
+            null,
             {
                 testPlugin: {},
             }
@@ -229,6 +237,7 @@ test('generate data with invalid plugin name', async (t) => {
                 type: 'plugin',
                 pluginName: 'testPlugin',
             },
+            null,
             {}
         ),
         {
@@ -251,6 +260,7 @@ test('transform data with invalid plugin name', async (t) => {
                     },
                 ],
             },
+            null,
             {}
         ),
         {
@@ -273,6 +283,7 @@ test('serialize data with invalid plugin name', async (t) => {
                     },
                 },
             },
+            null,
             {}
         ),
         {
@@ -289,6 +300,7 @@ test('generate data with throwing plugin', async (t) => {
                 type: 'plugin',
                 pluginName: 'testPlugin',
             },
+            null,
             {
                 testPlugin: {
                     generate(): any {
@@ -318,6 +330,7 @@ test('transform data with throwing plugin', async (t) => {
                     },
                 ],
             },
+            null,
             {
                 testPlugin: {
                     transform(): any {
@@ -347,6 +360,7 @@ test('serialize data with throwing plugin', async (t) => {
                     },
                 },
             },
+            null,
             {
                 testPlugin: {
                     serialize(): any {
@@ -370,6 +384,7 @@ test('generate data with throwing plugin (async)', async (t) => {
                 type: 'plugin',
                 pluginName: 'testPlugin',
             },
+            null,
             {
                 testPlugin: {
                     async generate(): Promise<any> {
@@ -399,6 +414,7 @@ test('transform data with throwing plugin (async)', async (t) => {
                     },
                 ],
             },
+            null,
             {
                 testPlugin: {
                     async transform(): Promise<any> {
@@ -428,6 +444,7 @@ test('serialize data with throwing plugin (async)', async (t) => {
                     },
                 },
             },
+            null,
             {
                 testPlugin: {
                     async serialize(): Promise<any> {
@@ -457,7 +474,7 @@ test('generate data with imported plugin', async (t) => {
 
 test('generate data with progress', async (t) => {
     const progresses: GenerateProgress[] = [];
-    await generateRandomDataWithProgress(
+    await generateRandomData(
         {
             type: 'array',
             length: {
@@ -483,4 +500,18 @@ test('generate data with progress', async (t) => {
 
     t.is(progresses.length, 10);
     t.deepEqual(progresses, expectedProgresses);
+});
+
+test('get json schema', (t) => {
+    const schema = getJsonSchema();
+    t.is(typeof schema, 'object');
+    t.not(schema, null);
+    t.not(schema, undefined);
+});
+
+test('get json schema async', async (t) => {
+    const schema = await getJsonSchemaAsync();
+    t.is(typeof schema, 'object');
+    t.not(schema, null);
+    t.not(schema, undefined);
 });

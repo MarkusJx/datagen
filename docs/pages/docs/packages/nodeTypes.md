@@ -2,7 +2,9 @@
 
 The `@datagen/types` package provides TypeScript types for the `@datagen/node` package.
 This package includes a TypeScript JSON schema definition as well as the JSON schema
-itself. Additionally, types for [creating node.js plugins](../plugins/node/create) are included.
+itself. Additionally, types for
+[creating node.js plugins](https://markusjx.github.io/datagen/docs/plugins/node/create/)
+are included.
 
 ## Installation
 
@@ -33,11 +35,12 @@ import { Schema } from '@datagen/types';
 
 The types for creating node.js plugins are also provided by this package. These types
 can be used to create plugins that can be used with the `@datagen/node` package.
-The main plugin type is `DatagenPlugin{:ts}` and can be imported using
+The main plugin type is `DatagenPlugin` and can be imported using
 
 ```ts
 import { DatagenPlugin } from '@datagen/types';
 ```
 
-Check out the [node.js plugin documentation](../plugins/node/create) for more information
-on creating node.js plugins.
+Check out the
+[node.js plugin documentation](https://markusjx.github.io/datagen/docs/plugins/node/create/)
+for more information on creating node.js plugins.
