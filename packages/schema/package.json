@@ -4,9 +4,8 @@
   "description": "The schema for datagen",
   "main": "dist/types.ts",
   "scripts": {
-    "prebuild": "cd ../../datagen-wasm && wasm-pack build --target nodejs --release --features schema",
-    "build": "tsx src/build.ts",
-    "postbuild": "cd ../../datagen-wasm && wasm-pack build --target web --release"
+    "prebuild": "cd ../../datagen-wasm && wasm-pack build -t nodejs --release -d node-pkg --features schema",
+    "build": "tsx src/build.ts"
   },
   "repository": {
     "type": "git",
@@ -19,6 +18,7 @@
   },
   "homepage": "https://github.com/MarkusJx/datagen#readme",
   "devDependencies": {
+    "datagen-wasm": "file:../../datagen-wasm/node-pkg",
     "json-schema-to-typescript": "^13.1.1",
     "tsx": "^3.12.10",
     "wasm-pack": "^0.12.1"

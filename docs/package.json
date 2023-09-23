@@ -5,6 +5,7 @@
   "description": "Nextra docs template",
   "scripts": {
     "dev": "next dev",
+    "prebuild": "cd ../datagen-wasm && wasm-pack build -t web --release",
     "build": "next build",
     "start": "next start",
     "format": "prettier --write .",
@@ -42,7 +43,8 @@
     "@types/node": "18.11.10",
     "markdown-link-check": "^3.11.2",
     "prettier": "^3.0.3",
-    "typescript": "^4.9.3"
+    "typescript": "^4.9.3",
+    "wasm-pack": "^0.12.1"
   },
   "prettier": {
     "printWidth": 80,
