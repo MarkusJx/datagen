@@ -33,6 +33,8 @@ jobs:
           cache-dependency-path: ./docs/package-lock.json
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2.2.1
+        with:
+          key: docs
       - name: Cache nextjs
         uses: actions/cache@v3
         with:
