@@ -5,13 +5,14 @@ import type {
   GenerateDataWebWorker,
   GenerateWorkerProgress,
 } from '../worker/demo';
+import { Schema } from '@datagen/schema';
 
 type GenerateWorker = {
   generateRandomDataWebWorker: GenerateDataWebWorker;
 };
 
 type DemoWorkerCallback = (
-  schema: any,
+  schema: Schema | string,
   setGenerating: (generating: boolean) => void,
   setGenerated: (data: string) => void,
   isParsed: boolean,
@@ -70,7 +71,7 @@ const useDemoWorker = (onUnsupported?: LoadCallback): DemoWorker => {
       try {
         setGenerating(true);
         const res = worker.current.generateRandomDataWebWorker(
-          isParsed ? schema : JSON.parse(schema),
+          isParsed ? schema : JSON.parse(schema as string),
           !!progressCallback
         );
 

@@ -7,10 +7,13 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-datagen-rs = { path = "../datagen-rs", features = ["plugin", "serialize", "generate", "schema"] }
+datagen-rs = { path = "../datagen-rs", features = ["plugin", "serialize", "generate"] }
 progress-plugin = { path = "../plugins/progress-plugin" }
 serde_json = "1.0"
 getrandom = { version = "0", features = ["js"] }
 js-sys = "0.3"
 wasm-bindgen = { version = "0.2", features = ["serde", "serde_json", "serde-serialize"] }
 serde-wasm-bindgen = "0.5"
+
+[features]
+schema = ["datagen-rs/schema"]

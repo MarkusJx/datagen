@@ -38,6 +38,7 @@
     "threads": "^1.7.0"
   },
   "devDependencies": {
+    "@datagen/schema": "file:../packages/schema",
     "@types/node": "18.11.10",
     "markdown-link-check": "^3.11.2",
     "prettier": "^3.0.3",

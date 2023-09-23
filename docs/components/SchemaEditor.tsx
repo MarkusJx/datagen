@@ -1,5 +1,6 @@
 import React from 'react';
 import MonacoEditor from '@monaco-editor/react';
+import { useTheme } from 'nextra-theme-docs';
 
 interface Props {
   monaco: typeof import('monaco-editor/esm/vs/editor/editor.api');
@@ -9,6 +10,8 @@ interface Props {
 }
 
 const SchemaEditor: React.FC<Props> = ({ monaco, schema, setSchema }) => {
+  const { theme } = useTheme();
+
   monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
     validate: true,
     allowComments: false,
@@ -26,7 +29,7 @@ const SchemaEditor: React.FC<Props> = ({ monaco, schema, setSchema }) => {
       height="70vh"
       language="json"
       value={schema}
-      theme="vs-dark"
+      theme={theme === 'dark' ? 'vs-dark' : 'light'}
       onChange={(value) => setSchema(value ?? '')}
       options={{
         scrollBeyondLastLine: false,

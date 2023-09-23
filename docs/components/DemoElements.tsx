@@ -5,20 +5,12 @@ import DemoGrid from './DemoGrid';
 import GenerateButton from './GenerateButton';
 import SchemaEditor from './SchemaEditor';
 import GeneratedViewer from './GeneratedViewer';
-import {
-  Button,
-  CircularProgress,
-  Grid,
-  IconButton,
-  LinearProgress,
-  Tooltip,
-} from '@mui/material';
-import DownloadIcon from '@mui/icons-material/Download';
+import { CircularProgress, LinearProgress } from '@mui/material';
 import defaultSchema from '../util/defaultSchema';
 import useDemoWorker from '../hooks/useDemoWorker';
 import Center from './Center';
 import useLocalStorage from '../hooks/useLocalStorage';
-import { downloadFile, getSchemaFormat } from '../util/util';
+import EditorActions from './EditorActions';
 
 const DemoElements: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
@@ -58,10 +50,18 @@ const DemoElements: React.FC = () => {
     }
   }, [schemaLoaded, workerInitialized]);
 
-  const handleDownload = () => {
-    if (generated) {
-      const format = getSchemaFormat(schema);
-      downloadFile(generated, 'generated', format);
+  const handleUpdateSchema = (schema: string) => {
+    setSchema(schema);
+    if (autoRefresh && !generating) {
+      try {
+        generateRandomData(
+          JSON.parse(schema),
+          setGenerating,
+          setGenerated,
+          true,
+          handleGenerateProgress
+        ).catch(console.error);
+      } catch (_) {}
     }
   };
 
@@ -102,41 +102,16 @@ const DemoElements: React.FC = () => {
             monaco={monaco}
             schema={schema}
             disabled={generating}
-            setSchema={(schema) => {
-              setSchema(schema);
-              if (autoRefresh && !generating) {
-                try {
-                  generateRandomData(
-                    JSON.parse(schema),
-                    setGenerating,
-                    setGenerated,
-                    true,
-                    handleGenerateProgress
-                  ).catch(console.error);
-                } catch (_) {}
-              }
-            }}
+            setSchema={handleUpdateSchema}
           />
           <GeneratedViewer data={generated} schema={schema} />
         </DemoGrid>
-        <Grid
-          container
-          gap={2}
-          justifyContent="right"
-          sx={{ marginTop: '2rem' }}
-        >
-          <Button onClick={resetSchema}>Reset schema</Button>
-          <Tooltip title="Download the generated data">
-            <IconButton
-              aria-label="download"
-              size="medium"
-              color="primary"
-              onClick={handleDownload}
-            >
-              <DownloadIcon fontSize="inherit" />
-            </IconButton>
-          </Tooltip>
-        </Grid>
+        <EditorActions
+          resetSchema={resetSchema}
+          schema={schema}
+          generated={generated}
+          disabled={generating}
+        />
       </DemoGrid>
     );
   } else {

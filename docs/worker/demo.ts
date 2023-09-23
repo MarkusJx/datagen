@@ -7,6 +7,7 @@ export type GenerateWorkerProgress = {
   data: string | null;
 };
 export type GenerateDataWebWorker = typeof generateRandomDataWebWorker;
+const SEND_INTERVAL = 250;
 
 const generateWithProgress = async (
   subscriber: SubscriptionObserver<GenerateWorkerProgress>,
@@ -21,7 +22,7 @@ const generateWithProgress = async (
   let lastSend = new Date().getTime();
   const result = generateRandomData(data, (progress: GenerateProgress) => {
     try {
-      if (new Date().getTime() - lastSend >= 1000) {
+      if (new Date().getTime() - lastSend >= SEND_INTERVAL) {
         lastSend = new Date().getTime();
         subscriber.next({
           progress: progress.current / progress.total,

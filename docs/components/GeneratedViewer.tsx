@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import MonacoEditor from '@monaco-editor/react';
 import { getSchemaFormat, SchemaFormat } from '../util/util';
+import { useTheme } from 'nextra-theme-docs';
 
 interface Props {
   data: string;
@@ -9,6 +10,7 @@ interface Props {
 
 const GeneratedViewer: React.FC<Props> = ({ data, schema }) => {
   const [language, setLanguage] = useState(SchemaFormat.JSON);
+  const { theme } = useTheme();
 
   useEffect(() => {
     setLanguage(getSchemaFormat(schema));
@@ -19,7 +21,7 @@ const GeneratedViewer: React.FC<Props> = ({ data, schema }) => {
       height="70vh"
       language={language}
       value={data}
-      theme="vs-dark"
+      theme={theme === 'dark' ? 'vs-dark' : 'light'}
       options={{
         readOnly: true,
         scrollBeyondLastLine: false,

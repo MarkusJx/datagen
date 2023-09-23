@@ -1,3 +1,5 @@
+import { Schema } from '@datagen/schema';
+
 export const wasmSupported = () => {
   try {
     if (
@@ -39,7 +41,7 @@ export const enum SchemaFormat {
 
 export const getSchemaFormat = (schema: string): SchemaFormat => {
   try {
-    const parsed = JSON.parse(schema);
+    const parsed: Schema = JSON.parse(schema);
     switch (parsed?.options?.serializer?.type?.toLowerCase()) {
       case 'yaml':
         return SchemaFormat.YAML;

@@ -1,3 +1,4 @@
+#[cfg(feature = "schema")]
 use datagen_rs::util::helpers::get_schema_value;
 use progress_plugin::{PluginWithSchemaResult, ProgressPlugin};
 use wasm_bindgen::prelude::wasm_bindgen;
@@ -11,10 +12,11 @@ pub struct GenerateProgress {
     pub total: u32,
 }
 
+#[cfg(feature = "schema")]
 #[wasm_bindgen(js_name = "getSchema")]
-pub fn get_schema() -> Result<JsValue, JsError> {
+pub fn get_schema() -> Result<String, JsError> {
     match get_schema_value() {
-        Ok(v) => serde_wasm_bindgen::to_value(&v).map_err(Into::into),
+        Ok(v) => serde_json::to_string_pretty(&v).map_err(Into::into),
         Err(e) => Err(JsError::new(&e.to_string())),
     }
 }

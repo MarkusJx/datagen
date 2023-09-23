@@ -42,15 +42,17 @@ jobs:
           key: ${{ runner.os }}-nextjs-${{ hashFiles('**/docs/package-lock.json') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
           restore-keys: |
             ${{ runner.os }}-nextjs-${{ hashFiles('**/docs/package-lock.json') }}-
-      - name: Install wasm-pack
-        run: npm install -g wasm-pack
+
+      - name: Install schema dependencies
+        run: npm ci
+        working-directory: packages/schema
+      - name: Build schema
+        run: npm run build
+        working-directory: packages/schema
 
       - name: Install dependencies
         run: npm ci
         working-directory: docs
-      - name: Build datagen-wasm
-        run: wasm-pack build --target web --release
-        working-directory: datagen-wasm
       - name: Build website
         run: npm run build
         working-directory: docs

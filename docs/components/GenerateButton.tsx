@@ -1,7 +1,6 @@
 import React from 'react';
 import DemoGrid from './DemoGrid';
 import {
-  createTheme,
   FormControlLabel,
   FormGroup,
   Switch,
@@ -11,6 +10,7 @@ import {
 } from '@mui/material';
 import useDemoWorker from '../hooks/useDemoWorker';
 import { LoadingButton } from '@mui/lab';
+import { createThemeWithColor } from '../util/theme';
 
 interface Props {
   setGenerated(data: string): void;
@@ -22,21 +22,7 @@ interface Props {
   schema: string;
 }
 
-const theme = createTheme({
-  palette: {
-    action: {
-      disabledBackground: '#535353',
-      disabled: '#535353',
-    },
-    text: {
-      disabled: '#535353',
-      primary: '#0081ff',
-    },
-    primary: {
-      main: '#0081ff',
-    },
-  },
-});
+const theme = createThemeWithColor('#0081ff');
 
 const GenerateButton: React.FC<Props> = ({
   setGenerated,
