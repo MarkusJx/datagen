@@ -1,1 +1,1 @@
-../../docs/pages/docs/packages/node.md
+../../docs/pages/docs/packages/README.md
