@@ -1,4 +1,3 @@
-import { Schema } from './types';
 import {
     GenerateProgress,
     generateRandomDataInternalAsync,
@@ -6,10 +5,9 @@ import {
     getSchema,
     getSchemaAsync,
 } from '../native';
-import { findPlugins, Plugin } from './plugin';
+import { findPlugins } from './plugin';
+import { DatagenPlugin, Schema } from '@datagen/types';
 export { CurrentSchema, GenerateProgress } from '../native';
-export type { Plugin, InitFunction } from './plugin';
-export * from './types';
 
 /**
  * Generates random data from a schema
@@ -20,7 +18,7 @@ export * from './types';
  */
 export async function generateRandomData(
     schema: Schema,
-    extraPlugins: Record<string, Plugin> = {}
+    extraPlugins: Record<string, DatagenPlugin> = {}
 ): Promise<string> {
     return generateRandomDataInternalAsync(
         schema,
@@ -31,7 +29,7 @@ export async function generateRandomData(
 export async function generateRandomDataWithProgress(
     schema: Schema,
     callback: (progress: GenerateProgress) => void,
-    extraPlugins: Record<string, Plugin> = {}
+    extraPlugins: Record<string, DatagenPlugin> = {}
 ): Promise<string> {
     return generateRandomDataWithProgressInternal(
         schema,

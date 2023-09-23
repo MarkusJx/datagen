@@ -1,4 +1,6 @@
-const defaultSchema = {
+import { Schema } from '@datagen/types';
+
+const defaultSchema: Schema = {
   options: {
     serializer: {
       type: 'json',
@@ -86,4 +88,4 @@ const defaultSchema = {
   },
 };
 
-export default defaultSchema;
+export default JSON.stringify(defaultSchema, null, 2);

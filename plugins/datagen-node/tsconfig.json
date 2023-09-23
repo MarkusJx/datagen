@@ -20,7 +20,6 @@
         "resolveJsonModule": true,
         "noUnusedLocals": true,
         "noUnusedParameters": true,
-        "types": ["node"]
     },
-    "exclude": ["node_modules", "dist", "ts-src/scripts/postbuild.ts"]
+    "exclude": ["node_modules", "dist"]
 }

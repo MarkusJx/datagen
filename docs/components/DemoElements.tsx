@@ -13,21 +13,20 @@ import EditorActions from './EditorActions';
 
 const DemoElements: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
-  const [warning, setWarning] = useState<string | null>(null);
   const [schemaLoaded, schema, setSchema, resetSchema] = useLocalStorage(
     'schema',
-    JSON.stringify(defaultSchema, null, 2)
+    defaultSchema
   );
   const [generated, setGenerated] = useState<string>('Generating...');
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [generateProgress, setGenerateProgress] = useState(0);
-  const { workerInitialized, generateRandomData } = useDemoWorker(() => {
-    setWarning(
-      'Unable to load demo: Web Workers and/or WebAssembly are not supported ' +
-        'in this browser. Please try a different browser.'
-    );
-  });
+  const {
+    workerInitialized,
+    workerSupported,
+    workerError,
+    generateRandomData,
+  } = useDemoWorker();
 
   const handleGenerateProgress = (progress: number) => {
     setGenerateProgress(progress * 100);
@@ -65,17 +64,22 @@ const DemoElements: React.FC = () => {
     }
   };
 
-  if (warning) {
-    return <Callout type="warning">{warning}</Callout>;
-  } else if (error) {
+  if (!workerSupported) {
     return (
-      <Callout type="error">Failed to initialize datagen: {error}</Callout>
+      <Callout type="warning">
+        Unable to load demo: Web Workers and/or WebAssembly are not supported in
+        this browser. Please try a different browser.
+      </Callout>
     );
-  }
-
-  if (workerInitialized && schemaLoaded) {
+  } else if (error ?? workerError) {
     return (
-      <DemoGrid maxWidth="80vw">
+      <Callout type="error">
+        Failed to initialize datagen: {error ?? workerError}
+      </Callout>
+    );
+  } else if (workerInitialized && schemaLoaded) {
+    return (
+      <DemoGrid maxWidth="80vw" sx={{ paddingTop: '1.5rem' }}>
         <GenerateButton
           schema={schema}
           setGenerated={setGenerated}
@@ -88,7 +92,7 @@ const DemoElements: React.FC = () => {
         <LinearProgress
           variant="determinate"
           value={generateProgress}
-          sx={{ marginTop: '2rem' }}
+          sx={{ marginTop: '1.5rem' }}
         />
         <DemoGrid
           sx={{
@@ -111,7 +115,7 @@ const DemoElements: React.FC = () => {
     );
   } else {
     return (
-      <DemoGrid sx={{ rowGap: '2rem' }}>
+      <DemoGrid sx={{ rowGap: '1.5rem' }}>
         <Callout type="info">Loading demo</Callout>
         <Center>
           <CircularProgress />

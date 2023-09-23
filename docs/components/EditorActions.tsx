@@ -36,7 +36,12 @@ const EditorActions: React.FC<Props> = ({
 
   return (
     <ThemeProvider theme={theme === 'dark' ? darkTheme : lightTheme}>
-      <Grid container gap={2} justifyContent="right" sx={{ marginTop: '1rem' }}>
+      <Grid
+        container
+        gap={2}
+        justifyContent="right"
+        sx={{ marginTop: '0.5rem' }}
+      >
         <Button onClick={resetSchema} disabled={disabled}>
           Reset schema
         </Button>

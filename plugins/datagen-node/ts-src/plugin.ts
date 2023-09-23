@@ -1,30 +1,25 @@
-import { CurrentSchema, NodePlugin } from '../native';
-import { Transform, Array, Schema, Plugin as PluginSchema } from './types';
+import { NodePlugin } from '../native';
+import {
+    Transform,
+    Array,
+    Schema,
+    Plugin as PluginSchema,
+    DatagenPlugin,
+    PluginInitFunction,
+} from '@datagen/types';
 
-export interface Plugin {
-    generate?(schema: CurrentSchema, args: any): any | Promise<any>;
-    transform?(
-        schema: CurrentSchema,
-        args: any,
-        value: any
-    ): any | Promise<any>;
-    serialize?(args: any, value: any): string | Promise<string>;
-}
-
-export type InitFunction = (args: any) => Plugin | Promise<Plugin>;
-
-async function loadPlugin(name: string, args: any): Promise<Plugin> {
+async function loadPlugin(name: string, args: any): Promise<DatagenPlugin> {
     let plugin = await import(name);
     if (plugin.default) {
         plugin = plugin.default;
     }
 
-    return (plugin as InitFunction)(args);
+    return (plugin as PluginInitFunction)(args);
 }
 
 async function findPluginsInTransform(
     schema: Schema,
-    plugins: Record<string, Plugin>
+    plugins: Record<string, DatagenPlugin>
 ): Promise<void> {
     if (!schema.transform) {
         return;
@@ -47,7 +42,7 @@ async function findPluginsInTransform(
 
 async function findNestedPlugins(
     schema: Schema,
-    plugins: Record<string, Plugin>
+    plugins: Record<string, DatagenPlugin>
 ): Promise<void> {
     switch (schema.type) {
         case 'array':
@@ -90,14 +85,14 @@ function transformError(e: any): Error {
 }
 
 function callPluginFunction<
-    N extends keyof Plugin,
-    A extends Parameters<Required<Plugin>[N]>,
+    N extends keyof DatagenPlugin,
+    A extends Parameters<Required<DatagenPlugin>[N]>,
 >(
-    plugin: Plugin,
+    plugin: DatagenPlugin,
     pluginName: string,
     name: N,
     err: Error | null,
-    callback: (res: ReturnType<Required<Plugin>[N]> | Error) => void,
+    callback: (res: ReturnType<Required<DatagenPlugin>[N]> | Error) => void,
     ...args: A
 ): void {
     const fn = plugin[name];
@@ -125,7 +120,7 @@ function callPluginFunction<
     }
 }
 
-function createNodePlugin(name: string, plugin: Plugin): NodePlugin {
+function createNodePlugin(name: string, plugin: DatagenPlugin): NodePlugin {
     return new NodePlugin(
         name,
         (err, callback, schema, args) =>
@@ -164,9 +159,12 @@ function createNodePlugin(name: string, plugin: Plugin): NodePlugin {
 
 export async function findPlugins(
     schema: Schema,
-    extraPlugins: Record<string, Plugin>
+    extraPlugins: Record<string, DatagenPlugin>
 ): Promise<Record<string, NodePlugin>> {
-    const plugins: Record<string, Plugin> = Object.assign({}, extraPlugins);
+    const plugins: Record<string, DatagenPlugin> = Object.assign(
+        {},
+        extraPlugins
+    );
     const pluginsObj = schema.options?.plugins;
     if (pluginsObj) {
         for (const [key, value] of Object.entries(pluginsObj)) {

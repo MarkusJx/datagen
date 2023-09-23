@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import MonacoEditor, { useMonaco } from '@monaco-editor/react';
 import { useTheme } from 'nextra-theme-docs';
-import jsonSchema from '../../packages/schema/dist/schema.json';
+import { SchemaJson } from '@datagen/types';
 
 interface Props {
   schema: string;
@@ -22,7 +22,7 @@ const SchemaEditor: React.FC<Props> = ({ schema, setSchema }) => {
       schemas: [
         {
           uri: '',
-          schema: jsonSchema,
+          schema: SchemaJson,
           fileMatch: ['*'],
         },
       ],

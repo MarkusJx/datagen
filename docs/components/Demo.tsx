@@ -23,7 +23,7 @@ const Demo: React.FC = () => {
     );
   } else {
     return (
-      <Center sx={{ paddingTop: '40px' }}>
+      <Center>
         <DemoElements />
       </Center>
     );

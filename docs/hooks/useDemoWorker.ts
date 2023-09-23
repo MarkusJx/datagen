@@ -5,7 +5,7 @@ import type {
   GenerateDataWebWorker,
   GenerateWorkerProgress,
 } from '../worker/demo';
-import { Schema } from '@datagen/schema';
+import { Schema } from '@datagen/types';
 
 type GenerateWorker = {
   generateRandomDataWebWorker: GenerateDataWebWorker;
@@ -18,21 +18,23 @@ type DemoWorkerCallback = (
   isParsed: boolean,
   progressCallback?: (progress: number) => void
 ) => Promise<void>;
+
 type DemoWorker = {
   workerInitialized: boolean;
+  workerSupported: boolean;
+  workerError?: string;
   generateRandomData: DemoWorkerCallback;
 };
-type LoadCallback = () => void | Promise<void>;
 
-const useDemoWorker = (onUnsupported?: LoadCallback): DemoWorker => {
+const useDemoWorker = (): DemoWorker => {
   const worker = useRef<ModuleThread<GenerateWorker>>();
   const [initialized, setInitialized] = useState(false);
+  const [supported, setSupported] = useState(true);
+  const [error, setError] = useState<string>();
 
   useEffect(() => {
     if (!webWorkersSupported() || !wasmSupported()) {
-      if (onUnsupported) {
-        onUnsupported();
-      }
+      setSupported(false);
       return;
     }
 
@@ -47,7 +49,10 @@ const useDemoWorker = (onUnsupported?: LoadCallback): DemoWorker => {
         setInitialized(true);
       };
 
-      load().catch(console.error);
+      load().catch((e) => {
+        console.error(e);
+        setError(e);
+      });
     }
 
     return () => {
@@ -59,6 +64,8 @@ const useDemoWorker = (onUnsupported?: LoadCallback): DemoWorker => {
 
   return {
     workerInitialized: initialized,
+    workerSupported: supported,
+    workerError: error,
     generateRandomData: async (
       schema,
       setGenerating,

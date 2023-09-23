@@ -21,9 +21,9 @@
     },
     "license": "MIT",
     "devDependencies": {
+        "@datagen/types": "file:../../packages/types",
         "@napi-rs/cli": "^2.16.2",
         "ava": "^5.1.1",
-        "json-schema-to-typescript": "^13.1.1",
         "prettier": "^3.0.3",
         "tsx": "^3.12.9",
         "typescript": "^5.2.2"
@@ -50,9 +50,10 @@
     },
     "scripts": {
         "artifacts": "napi artifacts",
+        "prebuild": "cd ../../packages/types && npm run build",
         "build": "napi build --platform --release --js native.js --dts native.d.ts",
         "build:debug": "napi build --platform --js native.js --dts native.d.ts",
-        "postbuild": "tsx ts-src/scripts/postbuild.ts && tsc",
+        "postbuild": "tsc",
         "pretest": "npm run build",
         "prepublishOnly": "napi prepublish -t npm",
         "test": "ava",
