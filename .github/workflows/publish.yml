@@ -12,7 +12,24 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  check-versions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: npm
+          cache-dependency-path: ./packages/version-check/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+        working-directory: packages/version-check
+      - name: Lint versions
+        run: npm start
+        working-directory: packages/version-check
+
   build-cargo:
+    needs: [ check-versions ]
     strategy:
       matrix:
         include:
@@ -48,6 +65,7 @@ jobs:
             target/*/release/libopenaddresses_plugin.so
 
   publish-types:
+    needs: [ check-versions ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -131,7 +149,7 @@ jobs:
           package: packages/datagen/package.json
 
   publish-node-cli:
-    needs: [ publish-types, publish-node ]
+    needs: [ publish-node ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -165,8 +183,9 @@ jobs:
 
   publish:
     runs-on: ubuntu-latest
-    needs: [ build-cargo, publish-types, publish-node, publish-node-cli ]
+    needs: [ build-cargo, publish-node-cli ]
     steps:
+      - uses: actions/checkout@v4
       - name: Download all Artifacts
         uses: actions/download-artifact@v2.0.10
       - name: Move artifacts

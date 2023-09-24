@@ -9,7 +9,7 @@
     "build": "tsc",
     "format": "prettier --write .",
     "lint": "prettier --check .",
-    "prepublishOnly": "tsx scripts/prePublish.ts"
+    "prepublishOnly": "tsx scripts/prepublish.ts"
   },
   "bin": {
     "datagen": "./dist/index.mjs"

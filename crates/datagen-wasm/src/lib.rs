@@ -1,9 +1,13 @@
 #[cfg(feature = "schema")]
 use datagen_rs::util::helpers::get_schema_value;
+#[cfg(feature = "generate")]
 use progress_plugin::{PluginWithSchemaResult, ProgressPlugin};
 use wasm_bindgen::prelude::wasm_bindgen;
-use wasm_bindgen::{JsError, JsValue};
+use wasm_bindgen::JsError;
+#[cfg(feature = "generate")]
+use wasm_bindgen::JsValue;
 
+#[cfg(feature = "generate")]
 #[wasm_bindgen]
 pub struct GenerateProgress {
     #[wasm_bindgen(readonly)]
@@ -21,6 +25,7 @@ pub fn get_schema() -> Result<String, JsError> {
     }
 }
 
+#[cfg(feature = "generate")]
 #[wasm_bindgen(js_name = "generateRandomData")]
 pub fn generate_random_data(
     schema: JsValue,

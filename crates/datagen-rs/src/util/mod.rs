@@ -1,3 +1,4 @@
+#[cfg(feature = "map-schema")]
 pub mod generate_error;
 pub mod helpers;
 #[cfg(feature = "plugin")]

@@ -5,7 +5,9 @@ use crate::schema::schema_definition::SchemaOptions;
 #[cfg(feature = "serialize")]
 use serde::Serialize;
 use std::collections::{BTreeMap, VecDeque};
-use std::fmt::{Debug, Formatter};
+use std::fmt::Debug;
+#[cfg(feature = "serialize")]
+use std::fmt::Formatter;
 use std::sync::{Arc, Mutex};
 
 pub(crate) type SchemaProperties = BTreeMap<String, VecDeque<Arc<GeneratedSchema>>>;
