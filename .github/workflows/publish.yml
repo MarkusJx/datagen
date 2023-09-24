@@ -97,6 +97,8 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18.x
+      - name: Add rust target
+        run: rustup target add ${{ matrix.target }}
       - name: Install types dependencies
         run: npm ci
         working-directory: packages/types
