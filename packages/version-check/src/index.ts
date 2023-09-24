@@ -77,6 +77,8 @@ but ${sorted
       `
     );
   }
+
+  console.log(chalk.greenBright('[✔] All versions match'));
 }
 
 run().catch((e) => {
