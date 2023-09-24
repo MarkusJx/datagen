@@ -3,6 +3,7 @@ import { glob } from 'glob';
 import { readFile } from 'fs/promises';
 import * as toml from 'toml';
 import chalk from 'chalk';
+import semver = require('semver/preload');
 
 interface PackageVersion {
   path: string;
@@ -63,6 +64,16 @@ async function run() {
       rustVersions.length
     )} rust crates`
   );
+  for (const [version, packages] of sorted) {
+    if (!semver.valid(version)) {
+      throw new Error(
+        `${chalk.redBright('Invalid version')} ${chalk.cyanBright(
+          version
+        )} found in ${packages.map((p) => chalk.gray(p)).join(', ')}`
+      );
+    }
+  }
+
   if (sorted.length > 1) {
     const [mostMatch, mostPackages] = sorted.pop();
 
