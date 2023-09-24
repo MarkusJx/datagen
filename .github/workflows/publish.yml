@@ -29,27 +29,140 @@ jobs:
 
     runs-on: ${{matrix.os}}
     steps:
-    - uses: actions/checkout@v4
-    - name: Add target
-      run: rustup target add ${{matrix.target}}
-    - name: Build cli
-      run: cargo build --package cli --release --target ${{matrix.target}}
-    - name: Build openaddresses plugin
-      run: cargo build --package openaddresses-plugin --release --features sqlite --target ${{matrix.target}}
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v3.1.3
-      with:
-        name: datagen-${{runner.os}}-${{matrix.target}}
-        path: |
-          target/*/release/datagen.exe
-          target/*/release/datagen
-          target/*/release/openaddresses_plugin.dll
-          target/*/release/libopenaddresses_plugin.dylib
-          target/*/release/libopenaddresses_plugin.so
+      - uses: actions/checkout@v4
+      - name: Add target
+        run: rustup target add ${{matrix.target}}
+      - name: Build cli
+        run: cargo build --package cli --release --target ${{matrix.target}}
+      - name: Build openaddresses plugin
+        run: cargo build --package openaddresses-plugin --release --features sqlite --target ${{matrix.target}}
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3.1.3
+        with:
+          name: datagen-${{runner.os}}-${{matrix.target}}
+          path: |
+            target/*/release/datagen.exe
+            target/*/release/datagen
+            target/*/release/openaddresses_plugin.dll
+            target/*/release/libopenaddresses_plugin.dylib
+            target/*/release/libopenaddresses_plugin.so
+
+  publish-types:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+      - name: Install dependencies
+        run: npm ci
+        working-directory: packages/types
+      - name: Build
+        run: npm run build
+        working-directory: packages/types
+      - name: NPM Publish
+        uses: JS-DevTools/npm-publish@v1
+        with:
+          access: public
+          token: ${{ secrets.NPM_TOKEN }}
+          dry-run: ${{ github.event.inputs.dry-run == 'true' }}
+          ignore-scripts: false
+          package: packages/types
+
+  publish-node:
+    needs: [ publish-types ]
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-20.04
+            target: x86_64-unknown-linux-gnu
+            package: linux-x64-gnu
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            package: win32-x64-msvc
+          - os: windows-latest
+            target: i686-pc-windows-msvc
+            package: win32-ia32-msvc
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            package: darwin-x64
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            package: darwin-arm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+      - name: Install types dependencies
+        run: npm ci
+        working-directory: packages/types
+      - name: Install datagen-node dependencies
+        run: npm ci
+        working-directory: packages/datagen
+      - name: Build datagen-node
+        run: npm run build -- -- --target ${{ matrix.target }}
+        working-directory: packages/datagen
+      - name: Move binary
+        run: mv datagen-node.*.node npm/${{ matrix.package }}
+        shell: bash
+      - name: NPM Publish Binary
+        uses: JS-DevTools/npm-publish@v1
+        if: ${{ matrix.package != 'linux-x64-gnu' }}
+        with:
+          access: public
+          token: ${{ secrets.NPM_TOKEN }}
+          package: packages/datagen/npm/${{ matrix.package }}/package.json
+          dry-run: ${{ github.event.inputs.dry-run == 'true' }}
+      - name: NPM Publish
+        uses: JS-DevTools/npm-publish@v1
+        if: ${{ matrix.package == 'linux-x64-gnu' }}
+        with:
+          access: public
+          token: ${{ secrets.NPM_TOKEN }}
+          dry-run: ${{ github.event.inputs.dry-run == 'true' }}
+          ignore-scripts: ${{ github.event.inputs.dry-run == 'true' }}
+          package: packages/datagen
+
+  publish-node-cli:
+    needs: [ publish-types, publish-node ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+      - name: Install types dependencies
+        run: npm ci
+        working-directory: packages/types
+      - name: Install datagen-node dependencies
+        run: npm ci
+        working-directory: packages/datagen
+      - name: Install node-cli dependencies
+        run: npm ci
+        working-directory: packages/cli
+      - name: Build datagen-node
+        run: npm run build
+        working-directory: packages/datagen
+      - name: Build node-cli
+        run: npm run build
+        working-directory: packages/cli
+      - name: NPM Publish
+        uses: JS-DevTools/npm-publish@v1
+        with:
+          access: public
+          token: ${{ secrets.NPM_TOKEN }}
+          dry-run: ${{ github.event.inputs.dry-run == 'true' }}
+          ignore-scripts: false
+          package: packages/cli
 
   publish:
     runs-on: ubuntu-latest
-    needs: [ build-cargo ]
+    needs: [ build-cargo, publish-types, publish-node, publish-node-cli ]
     steps:
       - name: Download all Artifacts
         uses: actions/download-artifact@v2.0.10
@@ -58,12 +171,17 @@ jobs:
         run: |
           mv */* .
           find . -type d -empty -delete
+      - name: Get version
+        id: version
+        run: echo "version=$(node -p 'require(`./package.json`).version')" >> $GITHUB_ENV
+        shell: bash
+        working-directory: packages/datagen
       - name: Create Release
         uses: ncipollo/release-action@v1
         if: github.ref == 'refs/heads/main' && github.event.inputs.dry-run != 'true'
         with:
           generateReleaseNotes: true
           draft: true
-          tag: ${{github.event.inputs.version}}
+          tag: v${{ env.version }}
           artifacts: "datagen*,*openaddress*"
           token: ${{ secrets.GITHUB_TOKEN }}

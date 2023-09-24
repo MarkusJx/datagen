@@ -57,7 +57,7 @@
     "postbuild": "tsc",
     "pretest": "npm run build",
     "prepublishOnly": "napi prepublish -t npm && npm run updateVersions",
-    "updateVersions": "tsx scripts/updateVersions.ts",
+    "updateVersions": "tsx scripts/prePublish.ts",
     "test": "ava",
     "universal": "napi universal",
     "version": "napi version",

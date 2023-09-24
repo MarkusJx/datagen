@@ -8,7 +8,8 @@
     "prebuild": "cd ../../crates/datagen-wasm && wasm-pack build -t nodejs -d node-pkg --release --features schema",
     "build": "tsx src/build.ts && tsc",
     "format": "prettier --write .",
-    "lint": "prettier --check ."
+    "lint": "prettier --check .",
+    "prepublishOnly": "tsx scripts/prePublish.ts"
   },
   "files": [
     "dist/**"
