@@ -68,7 +68,7 @@ jobs:
           token: ${{ secrets.NPM_TOKEN }}
           dry-run: ${{ github.event.inputs.dry-run == 'true' }}
           ignore-scripts: false
-          package: packages/types
+          package: packages/types/package.json
 
   publish-node:
     needs: [ publish-types ]
@@ -125,7 +125,7 @@ jobs:
           token: ${{ secrets.NPM_TOKEN }}
           dry-run: ${{ github.event.inputs.dry-run == 'true' }}
           ignore-scripts: ${{ github.event.inputs.dry-run == 'true' }}
-          package: packages/datagen
+          package: packages/datagen/package.json
 
   publish-node-cli:
     needs: [ publish-types, publish-node ]
@@ -158,7 +158,7 @@ jobs:
           token: ${{ secrets.NPM_TOKEN }}
           dry-run: ${{ github.event.inputs.dry-run == 'true' }}
           ignore-scripts: false
-          package: packages/cli
+          package: packages/cli/package.json
 
   publish:
     runs-on: ubuntu-latest
