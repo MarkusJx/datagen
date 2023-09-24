@@ -104,7 +104,7 @@ jobs:
         run: npm ci
         working-directory: packages/datagen
       - name: Build datagen-node
-        run: npm run build -- -- --target ${{ matrix.target }}
+        run: npm run build -- --target ${{ matrix.target }}
         working-directory: packages/datagen
       - name: Move binary
         run: mv datagen-node.*.node npm/${{ matrix.package }}

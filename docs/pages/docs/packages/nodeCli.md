@@ -25,4 +25,6 @@ Options:
 
 The `schema` argument must be a path to a valid schema file. The `output` argument
 can be set to a file to write to. If no `output` is provided, the output will be
-written to `stdout`.
+written to `stdout`. Check the [generators documentation](https://markusjx.github.io/datagen/docs/generators/)
+or the [examples](https://markusjx.github.io/datagen/examples/) for more information
+on how to write a schema file.
