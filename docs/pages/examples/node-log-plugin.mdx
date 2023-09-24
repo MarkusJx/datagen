@@ -1,0 +1,51 @@
+# Log plugin (node.js)
+
+A plugin which logs all passed elements to the console.
+The plugin is written in TypeScript.
+
+```ts filename="index.ts"
+import {
+  DatagenPlugin,
+  PluginInitFunction,
+  CurrentSchema,
+} from '@datagen/types';
+
+class LogPlugin implements DatagenPlugin {
+  public generate(schema: CurrentSchema, args: any): any {
+    console.log(args);
+    return args;
+  }
+
+  public transform(schema: CurrentSchema, args: any, value: any): any {
+    console.log(args, value);
+    return value;
+  }
+
+  public serialize(args: any, value: any): any {
+    console.log(args, value);
+    return value;
+  }
+}
+
+const init: PluginInitFunction = (args: any) => {
+  return new LogPlugin();
+};
+
+export default init;
+```
+
+```json filename="package.json"
+{
+  "name": "log-plugin",
+  "version": "1.0.0",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "@datagen/types": "^0.1.0",
+    "typescript": "^5.0.0"
+  }
+}
+```

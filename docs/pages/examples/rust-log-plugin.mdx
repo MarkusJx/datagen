@@ -1,3 +1,9 @@
+# Log plugin (Rust)
+
+A plugin which logs all passed elements to the console.
+The plugin is written in Rust.
+
+```rust filename="src/lib.rs"
 use datagen_rs::declare_plugin;
 use datagen_rs::generate::current_schema::CurrentSchemaRef;
 use datagen_rs::generate::generated_schema::GeneratedSchema;
@@ -22,9 +28,9 @@ impl Plugin for LogPlugin {
     }
 
     fn generate(&self, schema: CurrentSchemaRef, args: Value) -> Result<Arc<GeneratedSchema>> {
-        println!("args: {:?}", args);
-        let args: Args = serde_json::from_value(args)?;
-        println!("generate called with {:?} and args {:?}", schema, args);
+        let parsed_args: Args = serde_json::from_value(args)?;
+        println!("generate called with {:?} and args {:?}", schema, parsed_args);
+
         Ok(Arc::new(GeneratedSchema::String("logged value".into())))
     }
 
@@ -34,14 +40,10 @@ impl Plugin for LogPlugin {
         value: Arc<GeneratedSchema>,
         args: Value,
     ) -> Result<Arc<GeneratedSchema>> {
-        println!("{:?}, args {:?}", value, args);
-        if let GeneratedSchema::String(value) = value.as_ref() {
-            Ok(Arc::new(GeneratedSchema::String(
-                value.to_ascii_uppercase(),
-            )))
-        } else {
-            Ok(value)
-        }
+        let parsed_args: Args = serde_json::from_value(args)?;
+        println!("{:?}, args {:?}", value, parsed_args);
+
+        Ok(value)
     }
 
     fn serialize(&self, value: &Arc<GeneratedSchema>, args: Value) -> Result<String> {
@@ -52,18 +54,20 @@ impl Plugin for LogPlugin {
     }
 }
 
-/*impl PluginConstructor for LogPlugin {
-    fn new(args: Value) -> Result<Self> {
-        println!("init");
-        println!("new called with {:?}", args);
-        Ok(Self::default())
-    }
-}*/
-
-impl Drop for LogPlugin {
-    fn drop(&mut self) {
-        println!("drop called");
-    }
-}
-
 declare_plugin!(LogPlugin, LogPlugin::default);
+```
+
+```toml filename="Cargo.toml"
+[package]
+name = "log-plugin"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["dylib"]
+
+[dependencies]
+datagen-rs = "0"
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+```

@@ -5,13 +5,14 @@
   "description": "Nextra docs template",
   "scripts": {
     "dev": "next dev",
-    "prebuild": "npm run build:wasm",
+    "prebuild": "npm run build:wasm && npm run copy:schema",
     "build": "next build",
     "start": "next start",
     "format": "prettier --write .",
     "lint": "prettier --check .",
     "check:markdown": "find . -type f -name '*.md*' ! -path './node_modules/*' -exec markdown-link-check {} \\;",
-    "build:wasm": "cd ../datagen-wasm && wasm-pack build -t web --release"
+    "build:wasm": "cd ../datagen-wasm && wasm-pack build -t web --release",
+    "copy:schema": "cpy --flat ../packages/types/dist/schema.json ./public"
   },
   "repository": {
     "type": "git",
@@ -42,6 +43,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.6.3",
+    "cpy-cli": "^5.0.0",
     "markdown-link-check": "^3.11.2",
     "prettier": "^3.0.3",
     "typescript": "^5.2.2",
