@@ -1,5 +1,5 @@
 {
-  "name": "@datagen/node",
+  "name": "@datagen-rs/node",
   "version": "0.1.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -21,7 +21,7 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@datagen/types": "file:../../packages/types",
+    "@datagen-rs/types": "file:../../packages/types",
     "@napi-rs/cli": "^2.16.2",
     "ava": "^5.1.1",
     "prettier": "^3.0.3",

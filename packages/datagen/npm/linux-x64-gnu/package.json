@@ -1,5 +1,5 @@
 {
-  "name": "@datagen/node-linux-x64-gnu",
+  "name": "@datagen-rs/node-linux-x64-gnu",
   "version": "0.1.0",
   "os": [
     "linux"

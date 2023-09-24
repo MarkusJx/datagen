@@ -25,7 +25,7 @@
   },
   "homepage": "https://github.com/MarkusJx/datagen#readme",
   "dependencies": {
-    "@datagen/types": "file:../packages/types",
+    "@datagen-rs/types": "file:../packages/types",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
     "@monaco-editor/react": "^4.5.2",

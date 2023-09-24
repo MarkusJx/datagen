@@ -1,4 +1,4 @@
-import { Schema } from '@datagen/types';
+import { Schema } from '@datagen-rs/types';
 
 const defaultSchema: Schema = {
   options: {

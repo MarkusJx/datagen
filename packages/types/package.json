@@ -1,5 +1,5 @@
 {
-  "name": "@datagen/types",
+  "name": "@datagen-rs/types",
   "version": "0.1.0",
   "description": "Types for datagen",
   "main": "dist/index.js",

@@ -5,7 +5,7 @@ import {
   getSchemaAsync,
 } from '../native';
 import { findPlugins } from './plugin';
-import { DatagenPlugin, Schema } from '@datagen/types';
+import { DatagenPlugin, Schema } from '@datagen-rs/types';
 export { CurrentSchema, GenerateProgress } from '../native';
 
 /**
