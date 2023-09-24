@@ -9,8 +9,8 @@ Check out the [demo](https://markusjx.github.io/datagen/demo/) to see `datagen` 
 
 ## Similar projects
 
-* [synth](https://github.com/shuttle-hq/synth)
-* [generatedata](https://github.com/benkeen/generatedata)
+- [synth](https://github.com/shuttle-hq/synth)
+- [generatedata](https://github.com/benkeen/generatedata)
 
 This project is heavily inspired by [synth](https://github.com/shuttle-hq/synth)
 but features more complex references and a plugin system.
@@ -61,13 +61,13 @@ Then run `datagen generate schema.json` to generate data.
 Generators are used to generate random data. The generators are defined in the
 schema file as JSON objects. The following generators are available:
 
-* [`integer`](https://markusjx.github.io/datagen/docs/content/integer/): Generates random integers.
-* [`number`](https://markusjx.github.io/datagen/docs/content/number/): Generates random floating point numbers.
-* [`string`](https://markusjx.github.io/datagen/docs/content/string/): Generates random strings.
-* [`bool`](https://markusjx.github.io/datagen/docs/content/bool/): Generates random booleans.
-* [`array`](https://markusjx.github.io/datagen/docs/content/array/): Generates random arrays.
-* [`object`](https://markusjx.github.io/datagen/docs/content/object/): Generates random objects.
-* [`reference`](https://markusjx.github.io/datagen/docs/content/reference/): Used to reference (or copy) other data.
-* [`anyOf`](https://markusjx.github.io/datagen/docs/content/anyof/): Chooses random data from a list of data.
-* [`flatten`](https://markusjx.github.io/datagen/docs/content/flatten/): Flattens an array or object.
-* [`plugin`](https://markusjx.github.io/datagen/docs/content/plugin/): Generates data using [plugins](https://markusjx.github.io/datagen/docs/plugins/).
+- [`integer`](https://markusjx.github.io/datagen/docs/content/integer/): Generates random integers.
+- [`number`](https://markusjx.github.io/datagen/docs/content/number/): Generates random floating point numbers.
+- [`string`](https://markusjx.github.io/datagen/docs/content/string/): Generates random strings.
+- [`bool`](https://markusjx.github.io/datagen/docs/content/bool/): Generates random booleans.
+- [`array`](https://markusjx.github.io/datagen/docs/content/array/): Generates random arrays.
+- [`object`](https://markusjx.github.io/datagen/docs/content/object/): Generates random objects.
+- [`reference`](https://markusjx.github.io/datagen/docs/content/reference/): Used to reference (or copy) other data.
+- [`anyOf`](https://markusjx.github.io/datagen/docs/content/anyof/): Chooses random data from a list of data.
+- [`flatten`](https://markusjx.github.io/datagen/docs/content/flatten/): Flattens an array or object.
+- [`plugin`](https://markusjx.github.io/datagen/docs/content/plugin/): Generates data using [plugins](https://markusjx.github.io/datagen/docs/plugins/).
