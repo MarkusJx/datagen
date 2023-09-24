@@ -70,4 +70,4 @@ schema file as JSON objects. The following generators are available:
 - [`reference`](https://markusjx.github.io/datagen/docs/generators/reference/): Used to reference (or copy) other data.
 - [`anyOf`](https://markusjx.github.io/datagen/docs/generators/anyof/): Chooses random data from a list of data.
 - [`flatten`](https://markusjx.github.io/datagen/docs/generators/flatten/): Flattens an array or object.
-- [`plugin`](https://markusjx.github.io/datagen/docs/content/plugin/): Generates data using [plugins](https://markusjx.github.io/datagen/docs/plugins/).
+- [`plugin`](https://markusjx.github.io/datagen/docs/generators/plugin/): Generates data using [plugins](https://markusjx.github.io/datagen/docs/plugins/).
