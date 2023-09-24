@@ -1,13 +1,18 @@
 {
   "name": "@datagen-rs/cli",
   "version": "0.1.0",
-  "description": "",
-  "main": "index.js",
+  "description": "The CLI for datagen-rs",
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
   "type": "module",
   "scripts": {
     "build": "tsc",
     "format": "prettier --write .",
-    "lint": "prettier --check ."
+    "lint": "prettier --check .",
+    "prepublishOnly": "tsx scripts/updateVersions.ts"
+  },
+  "bin": {
+    "datagen": "./dist/index.mjs"
   },
   "author": "MarkusJx",
   "repository": {
@@ -20,7 +25,9 @@
     "@types/cli-progress": "^3.11.2",
     "@types/node": "^20.6.0",
     "@types/yargs": "^17.0.24",
+    "cpy-cli": "^5.0.0",
     "prettier": "^3.0.3",
+    "tsx": "^3.13.0",
     "typescript": "^5.2.2"
   },
   "dependencies": {

@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import yargs, { BuilderCallback, ArgumentsCamelCase } from 'yargs';
 import { Presets, SingleBar } from 'cli-progress';
 import { generateRandomData } from '@datagen-rs/node';

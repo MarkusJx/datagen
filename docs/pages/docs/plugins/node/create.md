@@ -7,12 +7,12 @@ create a new npm package. This can be done with the `npm init` command.
 npm init
 ```
 
-This will create a new npm package. You can then add the `@datagen/types` package as a
+This will create a new npm package. You can then add the `@datagen-rs/types` package as a
 dependency, if desired, as this package provides typescript types for the plugin
 API.
 
 ```bash
-npm install --save-dev @datagen/types
+npm install --save-dev @datagen-rs/types
 ```
 
 You can then create a new file, for example `index.ts`, and start writing your
@@ -25,7 +25,7 @@ export type PluginInitFunction = (
 ```
 
 The `args` parameter is an object containing the arguments passed to the plugin
-in the configuration file. The `DatagenPlugin` type is defined in the `@datagen/types`
+in the configuration file. The `DatagenPlugin` type is defined in the `@datagen-rs/types`
 package and looks like this:
 
 ```ts
@@ -45,7 +45,7 @@ generated. The `transform` method is called when a value is transformed. The
 You may want to implement your plugin as follows:
 
 ```ts
-import { DatagenPlugin, CurrentSchema } from '@datagen/types';
+import { DatagenPlugin, CurrentSchema } from '@datagen-rs/types';
 
 class MyPlugin implements DatagenPlugin {
   constructor(args: any) {

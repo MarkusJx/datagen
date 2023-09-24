@@ -23,6 +23,7 @@
   "devDependencies": {
     "@datagen-rs/types": "file:../../packages/types",
     "@napi-rs/cli": "^2.16.2",
+    "@types/node": "^20.6.4",
     "ava": "^5.1.1",
     "prettier": "^3.0.3",
     "tsx": "^3.12.9",
@@ -55,7 +56,8 @@
     "build:debug": "napi build --platform --js native.js --dts native.d.ts",
     "postbuild": "tsc",
     "pretest": "npm run build",
-    "prepublishOnly": "napi prepublish -t npm",
+    "prepublishOnly": "napi prepublish -t npm && npm run updateVersions",
+    "updateVersions": "tsx scripts/updateVersions.ts",
     "test": "ava",
     "universal": "napi universal",
     "version": "napi version",

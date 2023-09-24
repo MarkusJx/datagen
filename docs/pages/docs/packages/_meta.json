@@ -1,4 +1,5 @@
 {
-  "node": "@datagen/node",
-  "nodeTypes": "@datagen/types"
+  "nodeCli": "@datagen-rs/cli",
+  "node": "@datagen-rs/node",
+  "nodeTypes": "@datagen-rs/types"
 }

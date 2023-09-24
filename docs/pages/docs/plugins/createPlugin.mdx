@@ -24,7 +24,7 @@ which returns the name of the function. The `transform`, `generate` and
 provides transformers, generators or serializers. The `Plugin{:rust}` trait also
 requires the `Debug{:rust}` trait to be implemented.
 
-```rust
+```rust filename="src/lib.rs"
 use datagen_rs::plugins::plugin::Plugin;
 use datagen_rs::generate::current_schema::CurrentSchemaRef;
 use datagen_rs::generate::generated_schema::GeneratedSchema;
@@ -105,7 +105,7 @@ declare_plugin!(MyPlugin, MyPlugin::default);
 In order to compile the plugin, you need to add the following to your
 `Cargo.toml`:
 
-```toml
+```toml filename="Cargo.toml"
 [package]
 name = "my-plugin"
 version = "0.1.0"

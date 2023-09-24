@@ -8,7 +8,7 @@ import {
   DatagenPlugin,
   PluginInitFunction,
   CurrentSchema,
-} from '@datagen/types';
+} from '@datagen-rs/types';
 
 class LogPlugin implements DatagenPlugin {
   public generate(schema: CurrentSchema, args: any): any {
@@ -44,7 +44,7 @@ export default init;
     "build": "tsc"
   },
   "devDependencies": {
-    "@datagen/types": "^0.1.0",
+    "@datagen-rs/types": "^0.1.0",
     "typescript": "^5.0.0"
   }
 }
