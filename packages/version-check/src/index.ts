@@ -58,6 +58,11 @@ async function run() {
     )
   ).sort(([_1, a], [_2, b]) => a.length - b.length);
 
+  console.log(
+    `Found ${chalk.gray(nodeVersions.length)} node.js packages and ${chalk.gray(
+      rustVersions.length
+    )} rust crates`
+  );
   if (sorted.length > 1) {
     const [mostMatch, mostPackages] = sorted.pop();
 
