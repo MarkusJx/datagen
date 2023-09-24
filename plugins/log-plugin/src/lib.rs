@@ -43,6 +43,13 @@ impl Plugin for LogPlugin {
             Ok(value)
         }
     }
+
+    fn serialize(&self, value: &Arc<GeneratedSchema>, args: Value) -> Result<String> {
+        let parsed_args: Args = serde_json::from_value(args)?;
+        println!("{:?}, args {:?}", value, parsed_args);
+
+        serde_json::to_string_pretty(value).map_err(Into::into)
+    }
 }
 
 /*impl PluginConstructor for LogPlugin {

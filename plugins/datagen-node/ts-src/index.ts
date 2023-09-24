@@ -1,49 +1,41 @@
-import { Schema } from './types';
 import {
     GenerateProgress,
-    generateRandomDataInternalAsync,
-    generateRandomDataWithProgressInternal,
+    generateRandomDataInternal,
     getSchema,
     getSchemaAsync,
 } from '../native';
-import { findPlugins, Plugin } from './plugin';
+import { findPlugins } from './plugin';
+import { DatagenPlugin, Schema } from '@datagen/types';
 export { CurrentSchema, GenerateProgress } from '../native';
-export type { Plugin, InitFunction } from './plugin';
-export * from './types';
 
 /**
  * Generates random data from a schema
  * and returns the serialized result.
  *
  * @param schema the schema to generate data from
+ * @param callback a callback to receive progress updates
  * @param extraPlugins additional plugins to use
  */
 export async function generateRandomData(
     schema: Schema,
-    extraPlugins: Record<string, Plugin> = {}
+    callback?: ((progress: GenerateProgress) => void) | null,
+    extraPlugins: Record<string, DatagenPlugin> = {}
 ): Promise<string> {
-    return generateRandomDataInternalAsync(
-        schema,
-        await findPlugins(schema, extraPlugins)
-    );
-}
+    if (callback && typeof callback !== 'function') {
+        throw new Error('callback must be a function');
+    }
 
-export async function generateRandomDataWithProgress(
-    schema: Schema,
-    callback: (progress: GenerateProgress) => void,
-    extraPlugins: Record<string, Plugin> = {}
-): Promise<string> {
-    return generateRandomDataWithProgressInternal(
+    return generateRandomDataInternal(
         schema,
         callback,
         await findPlugins(schema, extraPlugins)
     );
 }
 
-export function getJSONSchema(): Schema {
+export function getJsonSchema(): Schema {
     return getSchema();
 }
 
-export function getJSONSchemaAsync(): Promise<Schema> {
+export function getJsonSchemaAsync(): Promise<Schema> {
     return getSchemaAsync();
 }

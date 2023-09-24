@@ -32,7 +32,7 @@ jobs:
     runs-on: ${{matrix.os}}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Add target
       run: rustup target add ${{matrix.target}}
     - name: Rust Cache
@@ -57,12 +57,33 @@ jobs:
   build-docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v3
         with:
           node-version: 18
           cache: npm
           cache-dependency-path: ./docs/package-lock.json
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2.2.1
+        with:
+          key: docs
+      - name: Cache nextjs
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.npm
+            ${{ github.workspace }}/docs/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/docs/package-lock.json') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('**/docs/package-lock.json') }}-
+
+      - name: Install types dependencies
+        run: npm ci
+        working-directory: packages/types
+      - name: Build types
+        run: npm run build
+        working-directory: packages/types
+
       - name: Install dependencies
         run: npm ci
         working-directory: docs

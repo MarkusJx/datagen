@@ -1,7 +1,7 @@
 use crate::generate::current_schema::CurrentSchemaRef;
 use crate::generate::generated_schema::GeneratedSchema;
 use crate::plugins::plugin::{Plugin, PluginInitResult};
-use crate::util::plugin_error::MapPluginError;
+use crate::util::plugin_error::native::MapPluginError;
 use crate::util::types::Result;
 use libloading::{Library, Symbol};
 use serde_json::Value;

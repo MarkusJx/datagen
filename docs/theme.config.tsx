@@ -7,6 +7,10 @@ const config: DocsThemeConfig = {
     link: 'https://github.com/MarkusJx/datagen',
   },
   docsRepositoryBase: 'https://github.com/MarkusJx/datagen/docs',
+  sidebar: {
+    defaultMenuCollapseLevel: 1,
+    autoCollapse: false,
+  },
   footer: {
     text: (
       <span>

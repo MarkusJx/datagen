@@ -1,4 +1,6 @@
 {
   "index": "Introduction",
-  "complex-reference": "Complex reference"
+  "complex-reference": "Complex reference",
+  "node-log-plugin": "Log plugin (node.js)",
+  "rust-log-plugin": "Log plugin (Rust)"
 }

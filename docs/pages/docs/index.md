@@ -11,4 +11,8 @@ It uses a JSON schema to define the data to generate. The schema is a JSON objec
 that defines the structure of the data to generate. It can be as simple as a single
 string or as complex as a nested object with multiple properties.
 
-Check out the [generators](generators.md) section to see all the available generators.
+<!-- markdown-link-check-disable -->
+
+Check out the [generators](docs/generators.md) section to see all the available generators.
+
+<!-- markdown-link-check-enable -->

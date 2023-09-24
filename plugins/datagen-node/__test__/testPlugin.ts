@@ -1,6 +1,10 @@
-import { CurrentSchema, InitFunction, Plugin } from '../.';
+import {
+    DatagenPlugin,
+    PluginInitFunction,
+    CurrentSchema,
+} from '@datagen/types';
 
-class TestPlugin implements Plugin {
+class TestPlugin implements DatagenPlugin {
     generate(_schema: CurrentSchema, _args: any): any {
         return {
             test: true,
@@ -8,7 +12,7 @@ class TestPlugin implements Plugin {
     }
 }
 
-const Init: InitFunction = async () => {
+const Init: PluginInitFunction = async () => {
     return new TestPlugin();
 };
 

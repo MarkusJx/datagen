@@ -935,6 +935,12 @@
             "type"
           ],
           "properties": {
+            "pretty": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
             "rootElement": {
               "type": "string"
             },

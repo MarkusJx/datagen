@@ -7,7 +7,7 @@ the [OpenAddresses project](https://openaddresses.io/). The plugin uses
 ## Usage
 
 Before using the plugin, you need to initialize the plugin in the
-`plugin` options. The plugin takes the following options:
+[`plugin`](../../options.md#plugin) options. The plugin takes the following options:
 
 - `files`: A single string or an array of strings containing the
   paths to the files to use. The files should be in the `geojson` format.

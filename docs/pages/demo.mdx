@@ -1,0 +1,26 @@
+# Demo
+
+This demo shows how to use `datagen` to generate data. The left editor can
+be used to edit the schema, the right editor will show the generated data.
+
+Use the `Generate` button to generate data. The generated date will be
+refreshed every time the `Generate`button is pressed. Check the `Refresh automatically`
+checkbox to automatically generate data when the schema changes and is a valid
+JSON object.
+
+This demo is built using [React](https://reactjs.org/), the
+[Monaco Editor](https://microsoft.github.io/monaco-editor/) and `datagen` compiled into a
+[WebAssembly](https://webassembly.org/) module using [rustwasm](https://rustwasm.github.io/).
+Plugins are not supported in this demo, as shared libraries cannot be loaded in the browser.
+The demo runs inside a web worker, so the main thread is not blocked while generating data.
+The generation progress is shown by the progress bar when generating large amounts of data.
+Please note as the data will be generated locally, the browser may freeze when generating
+large amounts of data.
+
+import { Callout } from 'nextra/components';
+import Demo from '../components/Demo';
+
+<Callout type="info">
+  The JSON schema is currently broken, `type` arguments will be shown as errors
+</Callout>
+<Demo />

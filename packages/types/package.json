@@ -1,0 +1,31 @@
+{
+  "name": "@datagen/types",
+  "version": "0.1.0",
+  "description": "Types for datagen",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "prebuild": "cd ../../datagen-wasm && wasm-pack build -t nodejs -d node-pkg --release --features schema",
+    "build": "tsx src/build.ts && tsc"
+  },
+  "files": [
+    "dist/**"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MarkusJx/datagen.git"
+  },
+  "author": "MarkusJx",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/MarkusJx/datagen/issues"
+  },
+  "homepage": "https://github.com/MarkusJx/datagen#readme",
+  "devDependencies": {
+    "datagen-wasm": "file:../../datagen-wasm/node-pkg",
+    "json-schema-to-typescript": "^13.1.1",
+    "tsx": "^3.12.10",
+    "typescript": "^5.2.2",
+    "wasm-pack": "^0.12.1"
+  }
+}

@@ -3,5 +3,6 @@
   "generators": "Generators",
   "plugins": "Plugins",
   "transformers": "Transformers",
+  "packages": "Packages",
   "options": "Options"
 }

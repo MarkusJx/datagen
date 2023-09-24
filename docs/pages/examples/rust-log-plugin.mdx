@@ -1,0 +1,73 @@
+# Log plugin (Rust)
+
+A plugin which logs all passed elements to the console.
+The plugin is written in Rust.
+
+```rust filename="src/lib.rs"
+use datagen_rs::declare_plugin;
+use datagen_rs::generate::current_schema::CurrentSchemaRef;
+use datagen_rs::generate::generated_schema::GeneratedSchema;
+use datagen_rs::plugins::plugin::{Plugin, PluginConstructor};
+use datagen_rs::util::types::Result;
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
+use std::sync::Arc;
+
+#[derive(Debug, Default)]
+pub struct LogPlugin;
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Args {
+    pub test: String,
+}
+
+impl Plugin for LogPlugin {
+    fn name(&self) -> String {
+        println!("LogPlugin");
+        "log".into()
+    }
+
+    fn generate(&self, schema: CurrentSchemaRef, args: Value) -> Result<Arc<GeneratedSchema>> {
+        let parsed_args: Args = serde_json::from_value(args)?;
+        println!("generate called with {:?} and args {:?}", schema, parsed_args);
+
+        Ok(Arc::new(GeneratedSchema::String("logged value".into())))
+    }
+
+    fn transform(
+        &self,
+        _: CurrentSchemaRef,
+        value: Arc<GeneratedSchema>,
+        args: Value,
+    ) -> Result<Arc<GeneratedSchema>> {
+        let parsed_args: Args = serde_json::from_value(args)?;
+        println!("{:?}, args {:?}", value, parsed_args);
+
+        Ok(value)
+    }
+
+    fn serialize(&self, value: &Arc<GeneratedSchema>, args: Value) -> Result<String> {
+        let parsed_args: Args = serde_json::from_value(args)?;
+        println!("{:?}, args {:?}", value, parsed_args);
+
+        serde_json::to_string_pretty(value).map_err(Into::into)
+    }
+}
+
+declare_plugin!(LogPlugin, LogPlugin::default);
+```
+
+```toml filename="Cargo.toml"
+[package]
+name = "log-plugin"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["dylib"]
+
+[dependencies]
+datagen-rs = "0"
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+```
