@@ -62,7 +62,7 @@ jobs:
         run: npm run build
         working-directory: packages/types
       - name: NPM Publish
-        uses: JS-DevTools/npm-publish@v1
+        uses: JS-DevTools/npm-publish@v2
         with:
           access: public
           token: ${{ secrets.NPM_TOKEN }}
@@ -110,7 +110,7 @@ jobs:
         run: mv datagen-node.*.node npm/${{ matrix.package }}
         shell: bash
       - name: NPM Publish Binary
-        uses: JS-DevTools/npm-publish@v1
+        uses: JS-DevTools/npm-publish@v2
         if: ${{ matrix.package != 'linux-x64-gnu' }}
         with:
           access: public
@@ -118,7 +118,7 @@ jobs:
           package: packages/datagen/npm/${{ matrix.package }}/package.json
           dry-run: ${{ github.event.inputs.dry-run == 'true' }}
       - name: NPM Publish
-        uses: JS-DevTools/npm-publish@v1
+        uses: JS-DevTools/npm-publish@v2
         if: ${{ matrix.package == 'linux-x64-gnu' }}
         with:
           access: public
@@ -152,7 +152,7 @@ jobs:
         run: npm run build
         working-directory: packages/cli
       - name: NPM Publish
-        uses: JS-DevTools/npm-publish@v1
+        uses: JS-DevTools/npm-publish@v2
         with:
           access: public
           token: ${{ secrets.NPM_TOKEN }}
