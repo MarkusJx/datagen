@@ -71,3 +71,8 @@ schema file as JSON objects. The following generators are available:
 - [`anyOf`](https://markusjx.github.io/datagen/docs/generators/anyof/): Chooses random data from a list of data.
 - [`flatten`](https://markusjx.github.io/datagen/docs/generators/flatten/): Flattens an array or object.
 - [`plugin`](https://markusjx.github.io/datagen/docs/generators/plugin/): Generates data using [plugins](https://markusjx.github.io/datagen/docs/plugins/).
+
+### JSON schema
+
+A JSON schema file is provided for type checking. You can find it
+[here](https://markusjx.github.io/datagen/schema.json).
