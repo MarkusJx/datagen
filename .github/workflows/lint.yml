@@ -98,5 +98,5 @@ jobs:
         run: npm ci
         working-directory: packages/version-check
       - name: Lint versions
-        run: npm run lint
+        run: npm start
         working-directory: packages/version-check
