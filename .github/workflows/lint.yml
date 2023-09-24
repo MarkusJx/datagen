@@ -36,17 +36,31 @@ jobs:
 
       - name: Install datagen-node dependencies
         run: npm ci
-        working-directory: plugins/datagen-node
+        working-directory: packages/datagen
       - name: Lint datagen-node
         run: npm run lint
-        working-directory: plugins/datagen-node
+        working-directory: packages/datagen
 
       - name: Install node-cli dependencies
         run: npm ci
-        working-directory: node-cli
+        working-directory: packages/cli
       - name: Lint node-cli
         run: npm run lint
-        working-directory: node-cli
+        working-directory: packages/cli
+
+      - name: Install types dependencies
+        run: npm ci
+        working-directory: packages/types
+      - name: Lint types
+        run: npm run lint
+        working-directory: packages/types
+
+      - name: Install version-check dependencies
+        run: npm ci
+        working-directory: packages/version-check
+      - name: Lint version-check
+        run: npm run lint
+        working-directory: packages/version-check
 
   lint-docs:
     runs-on: ubuntu-latest
@@ -64,6 +78,7 @@ jobs:
         run: npm run lint
         working-directory: docs
       - name: Check links
+        if: github.ref != 'refs/heads/main'
         uses: gaurav-nelson/github-action-markdown-link-check@v1
         with:
           folder-path: docs/pages

@@ -1,13 +1,13 @@
 [workspace]
 resolver = "2"
 members = [
-    "./cli",
-    "./datagen-rs",
-    "./datagen-wasm",
+    "./crates/cli",
+    "./crates/datagen-rs",
+    "./crates/datagen-wasm",
     "./plugins/log-plugin",
     "./plugins/openaddresses-plugin",
     "./plugins/progress-plugin",
-    "./plugins/datagen-node"
+    "./packages/datagen"
 ]
 
 [profile.release]

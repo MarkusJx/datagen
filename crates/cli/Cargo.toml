@@ -1,0 +1,17 @@
+[package]
+name = "cli"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "datagen"
+path = "src/main.rs"
+
+[dependencies]
+datagen-rs = { path = "../datagen-rs", features = ["all"] }
+progress-plugin = { path = "../../plugins/progress-plugin", features = [], default-features = false }
+clap = { version = "4.4", features = ["derive"] }
+serde_json = { version = "1.0", features = ["preserve_order"] }
+indicatif = "0.17"
+colored = "2.0"
+num-format = "0.4"

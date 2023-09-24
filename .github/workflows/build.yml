@@ -90,3 +90,32 @@ jobs:
       - name: Build website
         run: npm run build
         working-directory: docs
+
+  build-node-cli:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: npm
+          cache-dependency-path: ./packages/cli/package-lock.json
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2.2.1
+
+      - name: Install types dependencies
+        run: npm ci
+        working-directory: packages/types
+      - name: Install datagen-node dependencies
+        run: npm ci
+        working-directory: packages/datagen
+      - name: Install node-cli dependencies
+        run: npm ci
+        working-directory: packages/cli
+
+      - name: Build datagen-node
+        run: npm run build
+        working-directory: packages/datagen
+      - name: Build node-cli
+        run: npm run build
+        working-directory: packages/cli

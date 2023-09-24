@@ -7,7 +7,7 @@ edition = "2021"
 crate-type = ["dylib", "rlib"]
 
 [dependencies]
-datagen-rs = { path = "../../datagen-rs", features = ["generate"] }
+datagen-rs = { path = "../../crates/datagen-rs", features = ["generate"] }
 serde_json = { version = "1.0", features = ["preserve_order"] }
 rand = "0.8"
 

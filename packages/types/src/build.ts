@@ -9,16 +9,16 @@ const typesFile = path.join(outDir, 'types.ts');
 const schemaFile = path.join(outDir, 'schema.json');
 
 (async () => {
-    if (existsSync(typesFile)) {
-        await rm(typesFile);
-    }
-    if (existsSync(schemaFile)) {
-        await rm(schemaFile);
-    }
+  if (existsSync(typesFile)) {
+    await rm(typesFile);
+  }
+  if (existsSync(schemaFile)) {
+    await rm(schemaFile);
+  }
 
-    const schema = getSchema();
-    await writeFile(schemaFile, schema);
+  const schema = getSchema();
+  await writeFile(schemaFile, schema);
 
-    const compiled = await compile(JSON.parse(schema) as JSONSchema, 'Schema');
-    await writeFile(typesFile, compiled);
+  const compiled = await compile(JSON.parse(schema) as JSONSchema, 'Schema');
+  await writeFile(typesFile, compiled);
 })();
