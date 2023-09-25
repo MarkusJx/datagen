@@ -55,7 +55,7 @@ fn main() {
 ## Features
 
 | Feature         | Description                                                          | Depends on                            |
-|-----------------|----------------------------------------------------------------------|---------------------------------------|
+| --------------- | -------------------------------------------------------------------- | ------------------------------------- |
 | `plugin`        | Enables loading plugins                                              |                                       |
 | `native-plugin` | Enables loading plugins written in Rust                              | `plugin`                              |
 | `serialize`     | Enables serialization/deserialization for all structs using `serde`. |                                       |

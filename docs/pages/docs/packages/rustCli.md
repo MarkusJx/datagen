@@ -3,6 +3,7 @@
 The command line interface for the `datagen-rs` crate.
 
 ## Installation
+
 ```bash
 cargo install datagen-rs-cli
 ```

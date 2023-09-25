@@ -1,12 +1,12 @@
 use crate::generate::generated_schema::GeneratedSchema;
 use crate::generate::generated_schema::IntoRandom;
 use crate::generate_schema;
-use crate::plugins::transform::filter::{FilterTransform, FilterTransformOp};
 use crate::schema::any_value::AnyValue;
 use crate::schema::object::Object;
 use crate::schema::string::StringSchema;
 use crate::schema::transform::{ReferenceOrString, Transform};
 use crate::tests::util::root_schema;
+use crate::transform::filter::{FilterTransform, FilterTransformOp};
 use serde_json::json;
 
 fn create_filter(

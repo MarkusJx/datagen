@@ -1,10 +1,10 @@
 use crate::generate::generated_schema::IntoRandom;
 use crate::generate_schema;
-use crate::plugins::transform::regex_filter::RegexFilter;
 use crate::schema::any::Any;
 use crate::schema::any_value::AnyValue;
 use crate::schema::transform::Transform;
 use crate::tests::util::root_schema;
+use crate::transform::regex_filter::RegexFilter;
 use serde_json::json;
 
 #[test]
