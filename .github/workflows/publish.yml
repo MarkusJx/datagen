@@ -86,16 +86,16 @@ jobs:
       - name: Publish progress-plugin
         if: ${{ github.event.inputs.dry-run != 'true' }}
         run: cargo publish -p datagen-rs-progress-plugin
-      - name: Publish progress-plugin (dry-run)
-        if: ${{ github.event.inputs.dry-run == 'true' }}
-        run: cargo publish -p datagen-rs-progress-plugin --dry-run
+      #- name: Publish progress-plugin (dry-run)
+      #  if: ${{ github.event.inputs.dry-run == 'true' }}
+      #  run: cargo publish -p datagen-rs-progress-plugin --dry-run
       # openaddresses-plugin
       - name: Publish openaddresses-plugin
         if: ${{ github.event.inputs.dry-run != 'true' }}
         run: cargo publish -p datagen-rs-openaddresses-plugin --features sqlite,log
-      - name: Publish openaddresses-plugin (dry-run)
-        if: ${{ github.event.inputs.dry-run == 'true' }}
-        run: cargo publish -p datagen-rs-openaddresses-plugin --features sqlite,log --dry-run
+      #- name: Publish openaddresses-plugin (dry-run)
+      #  if: ${{ github.event.inputs.dry-run == 'true' }}
+      #  run: cargo publish -p datagen-rs-openaddresses-plugin --features sqlite,log --dry-run
       # cli
       - name: Publish cli
         if: ${{ github.event.inputs.dry-run != 'true' }}
@@ -234,7 +234,7 @@ jobs:
       - name: Move artifacts
         shell: bash
         run: |
-          mv */* .
+          find -type f | xargs -I files mv files .
           find . -type d -empty -delete
       - name: List files
         run: ls
