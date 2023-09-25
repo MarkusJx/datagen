@@ -3,7 +3,7 @@ name = "datagen-rs-progress-plugin"
 version = "0.1.0"
 edition = "2021"
 
-[target.'cfg(not(target = "wasm32-unknown-unknown"))'.lib]
+[lib]
 crate-type = ["dylib", "rlib"]
 
 [dependencies]

@@ -2,6 +2,9 @@
 name = "datagen-rs-cli"
 version = "0.1.0"
 edition = "2021"
+description = "The CLI for datagen-rs"
+repository = "https://github.com/MarkusJx/datagen"
+license = "MIT"
 
 [[bin]]
 name = "datagen"

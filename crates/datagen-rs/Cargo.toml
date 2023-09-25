@@ -2,6 +2,9 @@
 name = "datagen-rs"
 version = "0.1.0"
 edition = "2021"
+description = "A random data generator written in rust"
+repository = "https://github.com/MarkusJx/datagen"
+license = "MIT"
 
 [dependencies]
 serde_json = { version = "1.0", features = ["preserve_order"] }
