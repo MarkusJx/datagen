@@ -1,6 +1,17 @@
 export type * from './types';
 import SchemaJson from './schema.json';
 export { SchemaJson };
+import { SchemaOptions } from './types';
+
+type AnyFunction = (...args: any) => any;
+type PromisifyFunction<T> = T extends AnyFunction
+  ? (...args: Parameters<T>) => Promise<Awaited<ReturnType<T>>>
+  : T;
+type PromisifyObject<T> = {
+  [K in keyof T]: PromisifyFunction<T[K]>;
+};
+
+export type ImportedPlugin = PromisifyObject<Required<DatagenPlugin>>;
 
 /**
  * The current schema path.
@@ -35,6 +46,66 @@ export interface CurrentSchema {
    * @param path the path of the reference
    */
   resolveRef(path: string): any[];
+
+  /**
+   * Resolve a reference inside the schema asynchronously
+   *
+   * @param path the path of the reference
+   */
+  resolveRefAsync(path: string): Promise<any[]>;
+
+  /**
+   * Finalize a value.
+   * This is required so this value can be found by references.
+   */
+  finalize<T>(value: T): T;
+
+  /**
+   * Finalize a value asynchronously
+   */
+  finalizeAsync<T>(value: T): Promise<T>;
+
+  /**
+   * Get the current path
+   */
+  path(): SchemaPath;
+
+  /**
+   * Get a plugin by name
+   */
+  getPlugin(name: string): ImportedPlugin;
+
+  /**
+   * Get the schema options
+   */
+  get options(): SchemaOptions;
+}
+
+export interface SchemaPath {
+  /**
+   * Append a path to the current path
+   */
+  append(path: string): SchemaPath;
+
+  /**
+   * Get the length of the path
+   */
+  len(): bigint;
+
+  /**
+   * Check if the path is empty
+   */
+  isEmpty(): boolean;
+
+  /**
+   * Get the normalized path
+   */
+  toNormalizedPath(): string;
+
+  /**
+   * Get the string representation of the path
+   */
+  toString(): string;
 }
 
 export interface DatagenPlugin {

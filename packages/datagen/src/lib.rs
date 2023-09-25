@@ -1,6 +1,7 @@
 #![deny(clippy::all)]
 
 pub mod classes;
+mod util;
 
 #[macro_use]
 extern crate napi_derive;

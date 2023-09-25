@@ -171,6 +171,11 @@ impl CurrentSchema {
         self.plugins.get(key)
     }
 
+    #[allow(dead_code)]
+    pub fn plugin_exists(&self, key: &String) -> bool {
+        self.plugins.exists(key)
+    }
+
     pub fn options(&self) -> &Arc<SchemaOptions> {
         &self.options
     }

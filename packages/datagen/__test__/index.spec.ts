@@ -1,11 +1,11 @@
 import test from 'ava';
 import {
-  CurrentSchema,
   GenerateProgress,
   generateRandomData,
   getJsonSchema,
   getJsonSchemaAsync,
 } from '../.';
+import { DatagenPlugin, CurrentSchema } from '@datagen-rs/types';
 
 test('generate data', async (t) => {
   const generated = await generateRandomData({
@@ -514,4 +514,69 @@ test('get json schema async', async (t) => {
   t.is(typeof schema, 'object');
   t.not(schema, null);
   t.not(schema, undefined);
+});
+
+const generateWithPlugin = (
+  plugin: DatagenPlugin,
+  other: DatagenPlugin
+): Promise<string> => {
+  return generateRandomData(
+    {
+      type: 'plugin',
+      pluginName: 'testPlugin',
+    },
+    null,
+    {
+      testPlugin: plugin,
+      otherPlugin: other,
+    }
+  );
+};
+
+test('child schema', async (t) => {
+  const generated = await generateWithPlugin(
+    {
+      async generate(schema: CurrentSchema, _: any): Promise<any> {
+        const child = schema.child('test');
+        const path = child.path();
+
+        t.is(path.toString(), 'test');
+        t.is(path.toNormalizedPath(), 'test');
+        t.is(path.len(), 1n);
+        t.is(path.isEmpty(), false);
+        t.deepEqual(child.options, {
+          ignoreNotFoundLocalRefs: null,
+          maxRefCacheSize: null,
+          plugins: null,
+          serializeNonStrings: null,
+          serializer: null,
+        });
+
+        const childChild = path.append('child');
+        t.is(childChild.toString(), 'test.child');
+        t.is(childChild.toNormalizedPath(), 'test.child');
+        t.is(childChild.len(), 2n);
+        t.is(childChild.isEmpty(), false);
+
+        const plugin = child.getPlugin('otherPlugin');
+        t.is(await plugin.generate(child, 'test'), 'test');
+
+        const finalized = child.finalize(null);
+        t.is(finalized, null);
+        t.deepEqual(child.resolveRef('ref:test'), [null]);
+
+        return finalized;
+      },
+    },
+    {
+      generate(schema: CurrentSchema, args: any): any {
+        t.is(schema.path().toString(), 'test');
+        t.is(args, 'test');
+
+        return 'test';
+      },
+    }
+  );
+
+  t.is(generated, 'null');
 });

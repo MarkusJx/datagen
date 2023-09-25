@@ -257,4 +257,8 @@ impl PluginList {
             .ok_or(format!("Plugin with name '{key}' is not loaded"))?
             .as_ref())
     }
+
+    pub fn exists(&self, key: &String) -> bool {
+        self.plugins.contains_key(key)
+    }
 }
