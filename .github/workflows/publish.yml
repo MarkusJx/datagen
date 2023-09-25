@@ -63,6 +63,47 @@ jobs:
             target/*/release/openaddresses_plugin.dll
             target/*/release/libopenaddresses_plugin.dylib
             target/*/release/libopenaddresses_plugin.so
+      - name: Run tests
+        run: cargo test -p datagen-rs --features all --target ${{matrix.target}}
+
+  publish-cargo:
+    needs: [ build-cargo ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to crates.io
+        run: cargo login ${{ secrets.CARGO_REGISTRY_TOKEN }}
+      # datagen-ts
+      - name: Publish datagen-rs
+        if: ${{ github.event.inputs.dry-run != 'true' }}
+        run: cargo publish -p datagen-rs --features all
+      - name: Publish datagen-rs (dry-run)
+        if: ${{ github.event.inputs.dry-run == 'true' }}
+        run: cargo publish -p datagen-rs --features all
+      # progress-plugin
+      - name: Publish progress-plugin
+        if: ${{ github.event.inputs.dry-run != 'true' }}
+        run: cargo publish -p datagen-rs-progress-plugin --features all
+      - name: Publish progress-plugin (dry-run)
+        if: ${{ github.event.inputs.dry-run == 'true' }}
+        run: cargo publish -p datagen-rs-progress-plugin --features all
+      # openaddresses-plugin
+      - name: Publish openaddresses-plugin
+        if: ${{ github.event.inputs.dry-run != 'true' }}
+        run: cargo publish -p datagen-rs-openaddresses-plugin --features all
+      - name: Publish openaddresses-plugin (dry-run)
+        if: ${{ github.event.inputs.dry-run == 'true' }}
+        run: cargo publish -p datagen-rs-openaddresses-plugin --features all
+      # cli
+      - name: Publish cli
+        if: ${{ github.event.inputs.dry-run != 'true' }}
+        run: cargo publish -p datagen-rs-cli --features all
+      - name: Publish cli (dry-run)
+        if: ${{ github.event.inputs.dry-run == 'true' }}
+        run: cargo publish -p datagen-rs-cli --features all
+      - name: Log out of crates.io
+        run: cargo logout
+        if: always()
 
   publish-types:
     needs: [ check-versions ]
@@ -182,6 +223,7 @@ jobs:
           package: packages/cli/package.json
 
   publish:
+    permissions: write-all
     runs-on: ubuntu-latest
     needs: [ build-cargo, publish-node-cli ]
     steps:
