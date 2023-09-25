@@ -73,35 +73,36 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Log in to crates.io
-        run: cargo login ${{ secrets.CARGO_REGISTRY_TOKEN }}
-      # datagen-ts
-      - name: Publish datagen-rs
         if: ${{ github.event.inputs.dry-run != 'true' }}
-        run: cargo publish -p datagen-rs --features all
-      - name: Publish datagen-rs (dry-run)
-        if: ${{ github.event.inputs.dry-run == 'true' }}
-        run: cargo publish -p datagen-rs --features all
+        run: cargo login ${{ secrets.CARGO_REGISTRY_TOKEN }}
+      # datagen-rs
+      #- name: Publish datagen-rs
+      #  if: ${{ github.event.inputs.dry-run != 'true' }}
+      #  run: cargo publish -p datagen-rs --features all
+      #- name: Publish datagen-rs (dry-run)
+      #  if: ${{ github.event.inputs.dry-run == 'true' }}
+      #  run: cargo publish -p datagen-rs --features all --dry-run
       # progress-plugin
       - name: Publish progress-plugin
         if: ${{ github.event.inputs.dry-run != 'true' }}
         run: cargo publish -p datagen-rs-progress-plugin
       - name: Publish progress-plugin (dry-run)
         if: ${{ github.event.inputs.dry-run == 'true' }}
-        run: cargo publish -p datagen-rs-progress-plugin
+        run: cargo publish -p datagen-rs-progress-plugin --dry-run
       # openaddresses-plugin
       - name: Publish openaddresses-plugin
         if: ${{ github.event.inputs.dry-run != 'true' }}
         run: cargo publish -p datagen-rs-openaddresses-plugin --features sqlite,log
       - name: Publish openaddresses-plugin (dry-run)
         if: ${{ github.event.inputs.dry-run == 'true' }}
-        run: cargo publish -p datagen-rs-openaddresses-plugin --features sqlite,log
+        run: cargo publish -p datagen-rs-openaddresses-plugin --features sqlite,log --dry-run
       # cli
       - name: Publish cli
         if: ${{ github.event.inputs.dry-run != 'true' }}
         run: cargo publish -p datagen-rs-cli
       - name: Publish cli (dry-run)
         if: ${{ github.event.inputs.dry-run == 'true' }}
-        run: cargo publish -p datagen-rs-cli
+        run: cargo publish -p datagen-rs-cli --dry-run
       - name: Log out of crates.io
         run: cargo logout
         if: always()
