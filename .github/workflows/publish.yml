@@ -65,7 +65,7 @@ jobs:
             target/*/release/libopenaddresses_plugin.so
       - name: Run tests
         if: ${{matrix.target != 'aarch64-apple-darwin'}}
-        run: cargo test -p datagen-rs --features all --target ${{matrix.target}}
+        run: cargo test -p datagen-rs --release --features all --target ${{matrix.target}}
 
   publish-cargo:
     needs: [ build-cargo ]
@@ -84,24 +84,24 @@ jobs:
       # progress-plugin
       - name: Publish progress-plugin
         if: ${{ github.event.inputs.dry-run != 'true' }}
-        run: cargo publish -p datagen-rs-progress-plugin --features all
+        run: cargo publish -p datagen-rs-progress-plugin
       - name: Publish progress-plugin (dry-run)
         if: ${{ github.event.inputs.dry-run == 'true' }}
-        run: cargo publish -p datagen-rs-progress-plugin --features all
+        run: cargo publish -p datagen-rs-progress-plugin
       # openaddresses-plugin
       - name: Publish openaddresses-plugin
         if: ${{ github.event.inputs.dry-run != 'true' }}
-        run: cargo publish -p datagen-rs-openaddresses-plugin --features all
+        run: cargo publish -p datagen-rs-openaddresses-plugin --features sqlite,log
       - name: Publish openaddresses-plugin (dry-run)
         if: ${{ github.event.inputs.dry-run == 'true' }}
-        run: cargo publish -p datagen-rs-openaddresses-plugin --features all
+        run: cargo publish -p datagen-rs-openaddresses-plugin --features sqlite,log
       # cli
       - name: Publish cli
         if: ${{ github.event.inputs.dry-run != 'true' }}
-        run: cargo publish -p datagen-rs-cli --features all
+        run: cargo publish -p datagen-rs-cli
       - name: Publish cli (dry-run)
         if: ${{ github.event.inputs.dry-run == 'true' }}
-        run: cargo publish -p datagen-rs-cli --features all
+        run: cargo publish -p datagen-rs-cli
       - name: Log out of crates.io
         run: cargo logout
         if: always()
