@@ -2,6 +2,9 @@
 name = "datagen-rs-openaddresses-plugin"
 version = "0.1.0"
 edition = "2021"
+description = "A plugin for datagen-rs providing support for the openaddresses.io data format"
+repository = "https://github.com/MarkusJx/datagen"
+license = "MIT"
 
 [lib]
 name = "openaddresses_plugin"

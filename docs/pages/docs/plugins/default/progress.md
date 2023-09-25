@@ -4,7 +4,7 @@ The progress plugin is a native plugin providing progress for the generation pro
 
 ## Usage
 
-The easiest way to use the progress plugin is to call `ProgressPlugin::with_schema(){:rust}`
+The easiest way to use the progress plugin is to call `ProgressPlugin::with_schema()`
 while providing a schema and a callback function:
 
 ```rust
@@ -44,5 +44,5 @@ by generating a random value between the minimum and maximum value
 and storing this value in a list containing all array lengths.
 Then this value is multiplied with the number of elements in the array.
 
-The number of elements in [`objects`](../../generators/object.md) and
-[`anyOf`](../../generators/anyof.md) is also taken into account.
+The number of elements in [`objects`](https://markusjx.github.io/datagen/docs/generators/object/) and
+[`anyOf`](https://markusjx.github.io/datagen/docs/generators/anyof/) is also taken into account.

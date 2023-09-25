@@ -100,9 +100,9 @@ jobs:
       - name: Publish cli
         if: ${{ github.event.inputs.dry-run != 'true' }}
         run: cargo publish -p datagen-rs-cli
-      - name: Publish cli (dry-run)
-        if: ${{ github.event.inputs.dry-run == 'true' }}
-        run: cargo publish -p datagen-rs-cli --dry-run
+      #- name: Publish cli (dry-run)
+      #  if: ${{ github.event.inputs.dry-run == 'true' }}
+      #  run: cargo publish -p datagen-rs-cli --dry-run
       - name: Log out of crates.io
         run: cargo logout
         if: always()

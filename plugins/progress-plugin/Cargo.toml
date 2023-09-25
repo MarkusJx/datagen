@@ -2,6 +2,9 @@
 name = "datagen-rs-progress-plugin"
 version = "0.1.0"
 edition = "2021"
+description = "A progress plugin for datagen-rs"
+repository = "https://github.com/MarkusJx/datagen"
+license = "MIT"
 
 [lib]
 crate-type = ["dylib", "rlib"]
