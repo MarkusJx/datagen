@@ -4,7 +4,7 @@ use crate::util::cli_progress::{CliProgressRef, CliProgressTrait};
 use clap::{Parser, Subcommand};
 use datagen_rs::util::helpers::{generate_random_data, read_schema, write_json_schema};
 use datagen_rs::util::types::Result;
-use progress_plugin::{PluginWithSchemaResult, ProgressPlugin};
+use datagen_rs_progress_plugin::{PluginWithSchemaResult, ProgressPlugin};
 use std::process::exit;
 
 #[derive(Parser)]

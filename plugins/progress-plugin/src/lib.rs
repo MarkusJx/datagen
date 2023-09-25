@@ -281,6 +281,7 @@ impl PluginConstructor for ProgressPlugin<fn(usize, usize)> {
         Ok(Self {
             total_elements: AtomicUsize::new(0),
             progress: AtomicUsize::new(0),
+            arrays: Mutex::new(BTreeMap::new()),
             callback: |current, total| {
                 println!("{current} / {total}");
             },

@@ -9,9 +9,9 @@ extern crate napi_derive;
 use crate::classes::node_plugin::NodePlugin;
 use datagen_rs::schema::schema_definition::Schema;
 use datagen_rs::util::helpers::{generate_random_data, get_schema_value};
+use datagen_rs_progress_plugin::{PluginWithSchemaResult, ProgressPlugin};
 use napi::threadsafe_function::ThreadsafeFunction;
 use napi::threadsafe_function::{ErrorStrategy, ThreadsafeFunctionCallMode};
-use progress_plugin::{PluginWithSchemaResult, ProgressPlugin};
 use serde_json::Value;
 use std::collections::HashMap;
 

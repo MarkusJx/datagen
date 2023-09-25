@@ -1,9 +1,10 @@
 [package]
-name = "openaddresses-plugin"
+name = "datagen-rs-openaddresses-plugin"
 version = "0.1.0"
 edition = "2021"
 
 [lib]
+name = "openaddresses_plugin"
 crate-type = ["dylib"]
 
 [dependencies]

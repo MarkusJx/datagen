@@ -1,7 +1,7 @@
 #[cfg(feature = "schema")]
 use datagen_rs::util::helpers::get_schema_value;
 #[cfg(feature = "generate")]
-use progress_plugin::{PluginWithSchemaResult, ProgressPlugin};
+use datagen_rs_progress_plugin::{PluginWithSchemaResult, ProgressPlugin};
 #[cfg(any(feature = "schema", feature = "generate"))]
 use wasm_bindgen::prelude::wasm_bindgen;
 #[cfg(any(feature = "schema", feature = "generate"))]

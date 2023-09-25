@@ -40,9 +40,9 @@ jobs:
       with:
         key: ${{matrix.target}}
     - name: Build cli
-      run: cargo build --package cli --release --target ${{matrix.target}}
+      run: cargo build --package datagen-rs-cli --release --target ${{matrix.target}}
     - name: Build openaddresses plugin
-      run: cargo build --package openaddresses-plugin --release --features sqlite --target ${{matrix.target}}
+      run: cargo build --package datagen-rs-openaddresses-plugin --release --features sqlite --target ${{matrix.target}}
     - name: Upload artifacts
       uses: actions/upload-artifact@v3.1.3
       with:

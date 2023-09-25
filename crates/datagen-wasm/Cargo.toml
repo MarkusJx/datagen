@@ -1,5 +1,5 @@
 [package]
-name = "datagen-wasm"
+name = "datagen-rs-wasm"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,7 +8,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 datagen-rs = { path = "../datagen-rs", features = [] }
-progress-plugin = { path = "../../plugins/progress-plugin", optional = true }
+datagen-rs-progress-plugin = { path = "../../plugins/progress-plugin", optional = true }
 getrandom = { version = "0", features = ["js"], optional = true }
 js-sys = { version = "0.3", optional = true }
 serde-wasm-bindgen = { version = "0.6", optional = true }
@@ -21,7 +21,7 @@ generate = [
     "datagen-rs/plugin",
     "datagen-rs/generate",
     "datagen-rs/serialize",
-    "dep:progress-plugin",
+    "dep:datagen-rs-progress-plugin",
     "dep:getrandom",
     "dep:js-sys",
     "dep:serde-wasm-bindgen"
