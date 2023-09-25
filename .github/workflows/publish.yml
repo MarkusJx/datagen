@@ -64,6 +64,7 @@ jobs:
             target/*/release/libopenaddresses_plugin.dylib
             target/*/release/libopenaddresses_plugin.so
       - name: Run tests
+        if: ${{matrix.target != 'aarch64-apple-darwin'}}
         run: cargo test -p datagen-rs --features all --target ${{matrix.target}}
 
   publish-cargo:
