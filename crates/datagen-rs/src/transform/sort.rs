@@ -16,7 +16,7 @@ pub struct SortTransform {
 pub mod generate {
     use crate::generate::current_schema::CurrentSchemaRef;
     use crate::generate::generated_schema::GeneratedSchema;
-    use crate::plugins::transform::sort::SortTransform;
+    use crate::transform::sort::SortTransform;
     use crate::util::traits::generate::TransformTrait;
     use crate::util::types::Result;
     use std::error::Error;

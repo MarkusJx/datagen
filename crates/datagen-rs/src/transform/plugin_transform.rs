@@ -19,7 +19,7 @@ pub struct PluginTransform {
 pub mod generate {
     use crate::generate::current_schema::CurrentSchemaRef;
     use crate::generate::generated_schema::GeneratedSchema;
-    use crate::plugins::transform::plugin_transform::PluginTransform;
+    use crate::transform::plugin_transform::PluginTransform;
     use crate::util::traits::generate::TransformTrait;
     use crate::util::types::Result;
     use std::sync::Arc;

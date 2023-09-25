@@ -1,5 +1,7 @@
 {
   "nodeCli": "@datagen-rs/cli",
   "node": "@datagen-rs/node",
-  "nodeTypes": "@datagen-rs/types"
+  "nodeTypes": "@datagen-rs/types",
+  "rustCli": "datagen-rs-cli",
+  "datagen": "datagen-rs"
 }

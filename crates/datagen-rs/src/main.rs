@@ -3,6 +3,7 @@ use crate::util::helpers::{generate_random_data, read_schema, write_json_schema}
 mod generate;
 mod plugins;
 mod schema;
+pub mod transform;
 mod util;
 
 fn main() {

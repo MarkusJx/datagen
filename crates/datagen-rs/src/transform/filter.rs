@@ -35,7 +35,7 @@ pub enum FilterTransformOp {
 pub mod generate {
     use crate::generate::current_schema::CurrentSchemaRef;
     use crate::generate::generated_schema::GeneratedSchema;
-    use crate::plugins::transform::filter::{FilterTransform, FilterTransformOp};
+    use crate::transform::filter::{FilterTransform, FilterTransformOp};
     use crate::util::traits::generate::{ResolveRef, TransformTrait};
     use crate::util::types::Result;
     use std::sync::Arc;
