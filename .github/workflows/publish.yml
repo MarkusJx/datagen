@@ -248,7 +248,7 @@ jobs:
         working-directory: packages/datagen
       - name: Create Release
         uses: ncipollo/release-action@v1
-        if: github.ref == 'refs/heads/main' && github.event.inputs.dry-run != 'true'
+        if: github.event.inputs.dry-run != 'true'
         with:
           generateReleaseNotes: true
           draft: true
