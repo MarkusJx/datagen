@@ -6,8 +6,6 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "outDir": "./dist",
-    "lib": ["ESNext", "es2020"],
-    "declaration": true
-  },
-  "exclude": ["node_modules", "src/build.ts"]
+    "lib": ["ESNext", "es2020"]
+  }
 }

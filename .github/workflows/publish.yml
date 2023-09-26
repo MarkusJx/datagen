@@ -76,12 +76,12 @@ jobs:
         if: ${{ github.event.inputs.dry-run != 'true' }}
         run: cargo login ${{ secrets.CARGO_REGISTRY_TOKEN }}
       # datagen-rs
-      #- name: Publish datagen-rs
-      #  if: ${{ github.event.inputs.dry-run != 'true' }}
-      #  run: cargo publish -p datagen-rs --features all
-      #- name: Publish datagen-rs (dry-run)
-      #  if: ${{ github.event.inputs.dry-run == 'true' }}
-      #  run: cargo publish -p datagen-rs --features all --dry-run
+      - name: Publish datagen-rs
+        if: ${{ github.event.inputs.dry-run != 'true' }}
+        run: cargo publish -p datagen-rs --features all
+      - name: Publish datagen-rs (dry-run)
+        if: ${{ github.event.inputs.dry-run == 'true' }}
+        run: cargo publish -p datagen-rs --features all --dry-run
       # progress-plugin
       - name: Publish progress-plugin
         if: ${{ github.event.inputs.dry-run != 'true' }}
@@ -224,10 +224,22 @@ jobs:
           ignore-scripts: false
           package: packages/cli/package.json
 
+  get-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get version
+        id: version
+        run: echo "version=$(node -p 'require(`./package.json`).version')" >> $GITHUB_OUTPUT
+        shell: bash
+        working-directory: packages/datagen
+
   publish:
     permissions: write-all
     runs-on: ubuntu-latest
-    needs: [ publish-cargo, publish-node-cli ]
+    needs: [ publish-cargo, publish-node-cli, get-version ]
     steps:
       - name: Download all Artifacts
         uses: actions/download-artifact@v2.0.10
@@ -240,18 +252,12 @@ jobs:
           find . -type d -empty -delete
       - name: List files
         run: ls
-      - uses: actions/checkout@v4
-      - name: Get version
-        id: version
-        run: echo "version=$(node -p 'require(`./package.json`).version')" >> $GITHUB_ENV
-        shell: bash
-        working-directory: packages/datagen
       - name: Create Release
         uses: ncipollo/release-action@v1
         if: github.event.inputs.dry-run != 'true'
         with:
           generateReleaseNotes: true
           draft: true
-          tag: v${{ env.version }}
+          tag: v${{ needs.get-version.outputs.version }}
           artifacts: "datagen*,*openaddress*"
           token: ${{ secrets.GITHUB_TOKEN }}
