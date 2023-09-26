@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 import yargs, { BuilderCallback, ArgumentsCamelCase } from 'yargs';
 import { Presets, SingleBar } from 'cli-progress';
-import { generateRandomData } from '@datagen-rs/node';
+import { generateRandomData } from 'datagen-rs-node';
 import fs from 'node:fs/promises';
 import chalk from 'chalk';
-import { Schema } from '@datagen-rs/types';
+import { Schema } from 'datagen-rs-types';
 
 type YargsHandler<T> = (args: ArgumentsCamelCase<T>) => Promise<void>;
 interface Args {

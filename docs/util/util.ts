@@ -1,4 +1,4 @@
-import { Schema } from '@datagen-rs/types';
+import { Schema } from 'datagen-rs-types';
 
 export const wasmSupported = () => {
   try {

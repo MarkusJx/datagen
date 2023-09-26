@@ -7,7 +7,7 @@ const packageJson = JSON.parse(
 
 const version = packageJson.version;
 console.log(`Updating dependency versions to ${version}`);
-packageJson.devDependencies['@datagen-rs/types'] = version;
+packageJson.devDependencies['datagen-rs-types'] = version;
 
 writeFileSync(
   path.join(__dirname, '..', 'package.json'),

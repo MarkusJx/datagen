@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import MonacoEditor, { useMonaco } from '@monaco-editor/react';
 import { useTheme } from 'nextra-theme-docs';
-import { SchemaJson } from '@datagen-rs/types';
+import { SchemaJson } from 'datagen-rs-types';
 
 interface Props {
   schema: string;

@@ -1,5 +1,5 @@
 {
-  "name": "@datagen-rs/node",
+  "name": "datagen-rs-node",
   "version": "0.1.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -26,10 +26,10 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@datagen-rs/types": "0.1.0",
     "@napi-rs/cli": "^2.16.2",
     "@types/node": "^20.6.4",
     "ava": "^5.1.1",
+    "datagen-rs-types": "file:../types",
     "prettier": "^3.0.3",
     "tsx": "^3.12.9",
     "typescript": "^5.2.2"
@@ -68,12 +68,5 @@
     "version": "napi version",
     "format": "prettier --write .",
     "lint": "prettier --check ."
-  },
-  "optionalDependencies": {
-    "@datagen-rs/node-win32-x64-msvc": "0.1.0",
-    "@datagen-rs/node-darwin-x64": "0.1.0",
-    "@datagen-rs/node-linux-x64-gnu": "0.1.0",
-    "@datagen-rs/node-darwin-arm64": "0.1.0",
-    "@datagen-rs/node-win32-ia32-msvc": "0.1.0"
   }
 }

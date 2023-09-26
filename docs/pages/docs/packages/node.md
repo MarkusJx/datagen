@@ -6,11 +6,11 @@ The bindings are built using [napi-rs](https://napi.rs).
 ## Installation
 
 ```bash
-npm install @datagen-rs/node
+npm install datagen-rs-node
 ```
 
 If you want to use the bindings in a TypeScript project, you may also need to install the
-[`@datagen-rs/types`](https://markusjx.github.io/datagen/docs/packages/nodeTypes/) package:
+[`datagen-rs-types`](https://markusjx.github.io/datagen/docs/packages/nodeTypes/) package:
 
 ```bash
 npm install --save-dev @datagen-rs/types
@@ -24,7 +24,7 @@ In order to generate random data, you must pass a JSON schema to the `generateRa
 function:
 
 ```ts
-import { generateRandomData } from '@datagen-rs/node';
+import { generateRandomData } from 'datagen-rs-node';
 
 const generated = await generateRandomData({
   type: 'string',
@@ -44,7 +44,7 @@ If you want to get progress updates while generating data, you can
 pass a progress callback to the `generateRandomData` function:
 
 ```ts
-import { generateRandomData } from '@datagen-rs/node';
+import { generateRandomData } from 'datagen-rs-node';
 
 const generated = await generateRandomData(
   {
@@ -80,7 +80,7 @@ of `datagen`. Check out the
 for more information on creating node.js plugins.
 
 ```ts
-import { generateRandomData, CurrentSchema } from '@datagen-rs/node';
+import { generateRandomData, CurrentSchema } from 'datagen-rs-node';
 
 const generated = await generateRandomData(
   {
@@ -111,7 +111,7 @@ In order to retrieve the JSON schema, you can use the `getJsonSchema` or
 `getJsonSchemaAsync` functions:
 
 ```ts
-import { getJsonSchema, getJsonSchemaAsync } from '@datagen-rs/node';
+import { getJsonSchema, getJsonSchemaAsync } from 'datagen-rs-node';
 
 const schema = getJsonSchema();
 const schemaAsync = await getJsonSchemaAsync();

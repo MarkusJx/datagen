@@ -1,12 +1,12 @@
 # @datagen-rs/cli
 
-The `@datagen-rs/cli` package provides a command line interface for generating data
+The `datagen-rs-cli` npm package provides a command line interface for generating data
 using `datagen`.
 
 ## Installation
 
 ```bash
-npm install -g @datagen-rs/cli
+npm install -g datagen-rs-cli
 ```
 
 ## Usage

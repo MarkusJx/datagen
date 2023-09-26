@@ -6,7 +6,7 @@ import {
   Plugin as PluginSchema,
   DatagenPlugin,
   PluginInitFunction,
-} from '@datagen-rs/types';
+} from 'datagen-rs-types';
 
 async function loadPlugin(name: string, args: any): Promise<DatagenPlugin> {
   let plugin = await import(name);
