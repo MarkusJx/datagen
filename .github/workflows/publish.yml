@@ -53,6 +53,8 @@ jobs:
         run: cargo build -p datagen-rs-cli -r --target ${{matrix.target}}
       - name: Build openaddresses plugin
         run: cargo build -p datagen-rs-openaddresses-plugin -r -F sqlite --target ${{matrix.target}}
+        env:
+          LIBSQLITE3_FLAGS: SQLITE_MAX_VARIABLE_NUMBER=1000000
       - name: Upload artifacts
         uses: actions/upload-artifact@v3.1.3
         with:

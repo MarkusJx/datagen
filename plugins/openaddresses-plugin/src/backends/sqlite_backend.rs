@@ -1,6 +1,7 @@
 use crate::backends::backend::{Backend, BackendConstructor};
 use crate::objects::args::{BackendType, PluginArgs};
 use crate::objects::geo_data::GeoFeature;
+use crate::SQLITE_MAX_VARIABLE_NUMBER;
 use datagen_rs::util::types::Result;
 use rand::seq::IteratorRandom;
 use rand::thread_rng;
@@ -131,7 +132,18 @@ impl BackendConstructor for SQLiteBackend {
         log::debug!("Initializing SQLite backend");
 
         let db = Connection::open(database_name)?;
-        let num_rows = batch_size.unwrap_or(100_000);
+        let num_rows = batch_size.unwrap_or(SQLITE_MAX_VARIABLE_NUMBER);
+        if num_rows > SQLITE_MAX_VARIABLE_NUMBER {
+            return Err(format!(
+                "batchSize cannot be greater than {}",
+                SQLITE_MAX_VARIABLE_NUMBER
+            )
+            .into());
+        }
+
+        #[cfg(feature = "log")]
+        log::debug!("Using batch size of {}", num_rows);
+
         let mut buf = Vec::with_capacity(num_rows);
         let mut data_cache = HashMap::new();
 

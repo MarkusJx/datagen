@@ -24,6 +24,8 @@ use serde_json::Value;
 use std::fmt::Debug;
 use std::sync::{Arc, Mutex};
 
+include!(concat!(env!("OUT_DIR"), "/build_vars.rs"));
+
 #[derive(Debug)]
 struct OpenAddressesPlugin {
     backend: Mutex<Box<dyn Backend>>,
