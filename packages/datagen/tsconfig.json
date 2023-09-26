@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig-base.json",
+  "include": ["ts-src/**/*"],
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "lib": ["ESNext", "es2020"],
+    "outDir": "./dist",
+    "declaration": true,
+    "allowJs": true
+  },
+  "exclude": ["node_modules", "dist"]
+}

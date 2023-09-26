@@ -1,0 +1,72 @@
+{
+  "name": "datagen-rs-node",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "napi": {
+    "name": "datagen-node",
+    "triples": {
+      "additional": [
+        "aarch64-apple-darwin",
+        "i686-pc-windows-msvc"
+      ]
+    }
+  },
+  "files": [
+    "dist/**/*",
+    "native.d.ts",
+    "native.js"
+  ],
+  "author": {
+    "name": "MarkusJx"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MarkusJx/datagen"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@napi-rs/cli": "^2.16.2",
+    "@types/node": "^20.6.4",
+    "ava": "^5.1.1",
+    "datagen-rs-types": "file:../types",
+    "prettier": "^3.0.3",
+    "tsx": "^3.12.9",
+    "typescript": "^5.2.2"
+  },
+  "ava": {
+    "timeout": "3m",
+    "extensions": {
+      "ts": "module"
+    },
+    "nodeArguments": [
+      "--no-warnings",
+      "--loader=tsx"
+    ]
+  },
+  "engines": {
+    "node": ">= 10"
+  },
+  "prettier": {
+    "printWidth": 80,
+    "semi": true,
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "es5"
+  },
+  "scripts": {
+    "artifacts": "napi artifacts",
+    "prebuild": "cd ../../packages/types && npm run build",
+    "build": "napi build --platform --release --js native.js --dts native.d.ts",
+    "build:debug": "napi build --platform --js native.js --dts native.d.ts",
+    "postbuild": "tsc",
+    "pretest": "npm run build",
+    "prepublishOnly": "napi prepublish -t npm && npm run updateVersions",
+    "updateVersions": "tsx scripts/prepublish.ts",
+    "test": "ava",
+    "universal": "napi universal",
+    "version": "napi version",
+    "format": "prettier --write .",
+    "lint": "prettier --check ."
+  }
+}

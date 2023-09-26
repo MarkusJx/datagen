@@ -53,7 +53,7 @@ jobs:
         working-directory: packages/types
       - name: Install dependencies
         run: npm ci
-        working-directory: plugins/datagen-node
+        working-directory: packages/datagen
       - name: Run tests
         run: npm test
-        working-directory: plugins/datagen-node
+        working-directory: packages/datagen

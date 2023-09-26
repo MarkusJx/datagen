@@ -12,7 +12,24 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  check-versions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: npm
+          cache-dependency-path: ./packages/version-check/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+        working-directory: packages/version-check
+      - name: Lint versions
+        run: npm start
+        working-directory: packages/version-check
+
   build-cargo:
+    needs: [ check-versions ]
     strategy:
       matrix:
         include:
@@ -29,41 +46,218 @@ jobs:
 
     runs-on: ${{matrix.os}}
     steps:
-    - uses: actions/checkout@v4
-    - name: Add target
-      run: rustup target add ${{matrix.target}}
-    - name: Build cli
-      run: cargo build --package cli --release --target ${{matrix.target}}
-    - name: Build openaddresses plugin
-      run: cargo build --package openaddresses-plugin --release --features sqlite --target ${{matrix.target}}
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v3.1.3
-      with:
-        name: datagen-${{runner.os}}-${{matrix.target}}
-        path: |
-          target/*/release/datagen.exe
-          target/*/release/datagen
-          target/*/release/openaddresses_plugin.dll
-          target/*/release/libopenaddresses_plugin.dylib
-          target/*/release/libopenaddresses_plugin.so
+      - uses: actions/checkout@v4
+      - name: Add target
+        run: rustup target add ${{matrix.target}}
+      - name: Build cli
+        run: cargo build -p datagen-rs-cli -r --target ${{matrix.target}}
+      - name: Build openaddresses plugin
+        run: cargo build -p datagen-rs-openaddresses-plugin -r -F sqlite --target ${{matrix.target}}
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3.1.3
+        with:
+          name: datagen-${{runner.os}}-${{matrix.target}}
+          path: |
+            target/*/release/datagen.exe
+            target/*/release/datagen
+            target/*/release/openaddresses_plugin.dll
+            target/*/release/libopenaddresses_plugin.dylib
+            target/*/release/libopenaddresses_plugin.so
+      - name: Run tests
+        if: ${{matrix.target != 'aarch64-apple-darwin'}}
+        run: cargo test -p datagen-rs --release --features all --target ${{matrix.target}}
+
+  publish-cargo:
+    needs: [ build-cargo ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to crates.io
+        if: ${{ github.event.inputs.dry-run != 'true' }}
+        run: cargo login ${{ secrets.CARGO_REGISTRY_TOKEN }}
+      # datagen-rs
+      - name: Publish datagen-rs
+        if: ${{ github.event.inputs.dry-run != 'true' }}
+        run: cargo publish -p datagen-rs --features all
+      - name: Publish datagen-rs (dry-run)
+        if: ${{ github.event.inputs.dry-run == 'true' }}
+        run: cargo publish -p datagen-rs --features all --dry-run
+      # progress-plugin
+      - name: Publish progress-plugin
+        if: ${{ github.event.inputs.dry-run != 'true' }}
+        run: cargo publish -p datagen-rs-progress-plugin
+      #- name: Publish progress-plugin (dry-run)
+      #  if: ${{ github.event.inputs.dry-run == 'true' }}
+      #  run: cargo publish -p datagen-rs-progress-plugin --dry-run
+      # openaddresses-plugin
+      - name: Publish openaddresses-plugin
+        if: ${{ github.event.inputs.dry-run != 'true' }}
+        run: cargo publish -p datagen-rs-openaddresses-plugin --features sqlite,log
+      #- name: Publish openaddresses-plugin (dry-run)
+      #  if: ${{ github.event.inputs.dry-run == 'true' }}
+      #  run: cargo publish -p datagen-rs-openaddresses-plugin --features sqlite,log --dry-run
+      # cli
+      - name: Publish cli
+        if: ${{ github.event.inputs.dry-run != 'true' }}
+        run: cargo publish -p datagen-rs-cli
+      #- name: Publish cli (dry-run)
+      #  if: ${{ github.event.inputs.dry-run == 'true' }}
+      #  run: cargo publish -p datagen-rs-cli --dry-run
+      - name: Log out of crates.io
+        run: cargo logout
+        if: always()
+
+  publish-types:
+    needs: [ check-versions ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+      - name: Install dependencies
+        run: npm ci
+        working-directory: packages/types
+      - name: Build
+        run: npm run build
+        working-directory: packages/types
+      - name: NPM Publish
+        uses: JS-DevTools/npm-publish@v2
+        with:
+          access: public
+          token: ${{ secrets.NPM_TOKEN }}
+          dry-run: ${{ github.event.inputs.dry-run == 'true' }}
+          ignore-scripts: false
+          package: packages/types/package.json
+
+  publish-node:
+    needs: [ publish-types ]
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-20.04
+            target: x86_64-unknown-linux-gnu
+            package: linux-x64-gnu
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            package: win32-x64-msvc
+          - os: windows-latest
+            target: i686-pc-windows-msvc
+            package: win32-ia32-msvc
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            package: darwin-x64
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            package: darwin-arm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+      - name: Add rust target
+        run: rustup target add ${{ matrix.target }}
+      - name: Install types dependencies
+        run: npm ci
+        working-directory: packages/types
+      - name: Install datagen-node dependencies
+        run: npm ci
+        working-directory: packages/datagen
+      - name: Build datagen-node
+        run: npm run build -- --target ${{ matrix.target }}
+        working-directory: packages/datagen
+      - name: Move binary
+        run: mv datagen-node.*.node npm/${{ matrix.package }}
+        shell: bash
+        working-directory: packages/datagen
+      - name: NPM Publish Binary
+        uses: JS-DevTools/npm-publish@v2
+        if: ${{ matrix.package != 'linux-x64-gnu' }}
+        with:
+          access: public
+          token: ${{ secrets.NPM_TOKEN }}
+          package: packages/datagen/npm/${{ matrix.package }}/package.json
+          dry-run: ${{ github.event.inputs.dry-run == 'true' }}
+      - name: NPM Publish
+        uses: JS-DevTools/npm-publish@v2
+        if: ${{ matrix.package == 'linux-x64-gnu' }}
+        with:
+          access: public
+          token: ${{ secrets.NPM_TOKEN }}
+          dry-run: ${{ github.event.inputs.dry-run == 'true' }}
+          ignore-scripts: ${{ github.event.inputs.dry-run == 'true' }}
+          package: packages/datagen/package.json
+
+  publish-node-cli:
+    needs: [ publish-node ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+      - name: Install types dependencies
+        run: npm ci
+        working-directory: packages/types
+      - name: Install datagen-node dependencies
+        run: npm ci
+        working-directory: packages/datagen
+      - name: Install node-cli dependencies
+        run: npm ci
+        working-directory: packages/cli
+      - name: Build datagen-node
+        run: npm run build
+        working-directory: packages/datagen
+      - name: Build node-cli
+        run: npm run build
+        working-directory: packages/cli
+      - name: NPM Publish
+        uses: JS-DevTools/npm-publish@v2
+        with:
+          access: public
+          token: ${{ secrets.NPM_TOKEN }}
+          dry-run: ${{ github.event.inputs.dry-run == 'true' }}
+          ignore-scripts: false
+          package: packages/cli/package.json
+
+  get-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get version
+        id: version
+        run: echo "version=$(node -p 'require(`./package.json`).version')" >> $GITHUB_OUTPUT
+        shell: bash
+        working-directory: packages/datagen
 
   publish:
+    permissions: write-all
     runs-on: ubuntu-latest
-    needs: [ build-cargo ]
+    needs: [ publish-cargo, publish-node-cli, get-version ]
     steps:
       - name: Download all Artifacts
         uses: actions/download-artifact@v2.0.10
       - name: Move artifacts
         shell: bash
         run: |
-          mv */* .
+          sudo apt-get update
+          sudo apt-get install -y rename
+          rename 's/[^\/]+\/([^\/]+)\/release\/([^.]+)(\.?.*)/$2-$1$3/s' */*/release/*
           find . -type d -empty -delete
+      - name: List files
+        run: ls
       - name: Create Release
         uses: ncipollo/release-action@v1
-        if: github.ref == 'refs/heads/main' && github.event.inputs.dry-run != 'true'
+        if: github.event.inputs.dry-run != 'true'
         with:
           generateReleaseNotes: true
           draft: true
-          tag: ${{github.event.inputs.version}}
+          tag: v${{ needs.get-version.outputs.version }}
           artifacts: "datagen*,*openaddress*"
           token: ${{ secrets.GITHUB_TOKEN }}

@@ -5,7 +5,7 @@ import type {
   GenerateDataWebWorker,
   GenerateWorkerProgress,
 } from '../worker/demo';
-import { Schema } from '@datagen/types';
+import { Schema } from 'datagen-rs-types';
 
 type GenerateWorker = {
   generateRandomDataWebWorker: GenerateDataWebWorker;

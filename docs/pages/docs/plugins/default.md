@@ -4,4 +4,4 @@
 These plugins are:
 
 - [`openaddresses-plugin`](default/openaddresses.md)
-- [`progress-plugin`](default/progress.mdx)
+- [`progress-plugin`](default/progress.md)

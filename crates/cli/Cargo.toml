@@ -1,0 +1,20 @@
+[package]
+name = "datagen-rs-cli"
+version = "0.1.0"
+edition = "2021"
+description = "The CLI for datagen-rs"
+repository = "https://github.com/MarkusJx/datagen"
+license = "MIT"
+
+[[bin]]
+name = "datagen"
+path = "src/main.rs"
+
+[dependencies]
+datagen-rs = { path = "../datagen-rs", features = ["all"], version = "0.1.0" }
+datagen-rs-progress-plugin = { path = "../../plugins/progress-plugin", features = [], default-features = false, version = "0.1.0" }
+clap = { version = "4.4", features = ["derive"] }
+serde_json = { version = "1.0", features = ["preserve_order"] }
+indicatif = "0.17"
+colored = "2.0"
+num-format = "0.4"

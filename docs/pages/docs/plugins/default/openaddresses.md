@@ -7,7 +7,8 @@ the [OpenAddresses project](https://openaddresses.io/). The plugin uses
 ## Usage
 
 Before using the plugin, you need to initialize the plugin in the
-[`plugin`](../../options.md#plugin) options. The plugin takes the following options:
+[`plugin`](https://markusjx.github.io/datagen/docs/options/#plugin) options.
+The plugin takes the following options:
 
 - `files`: A single string or an array of strings containing the
   paths to the files to use. The files should be in the `geojson` format.
@@ -68,7 +69,7 @@ database already exists, it will be used instead of creating a new one.
 ### Generate addresses
 
 In order to use the plugin, provide the `openaddresses-plugin` plugin
-name in the [`plugin`](../../generators/plugin.md) generator.
+name in the [`plugin`](https://markusjx.github.io/datagen/docs/generators/plugin/) generator.
 
 The plugin accepts an object containing the names of the properties to
 generate as keys and the fields to use as values. The following field

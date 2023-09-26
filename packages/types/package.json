@@ -1,12 +1,15 @@
 {
-  "name": "@datagen/types",
+  "name": "datagen-rs-types",
   "version": "0.1.0",
   "description": "Types for datagen",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "prebuild": "cd ../../datagen-wasm && wasm-pack build -t nodejs -d node-pkg --release --features schema",
-    "build": "tsx src/build.ts && tsc"
+    "prebuild": "cd ../../crates/datagen-wasm && wasm-pack build -t nodejs -d node-pkg --release --features schema",
+    "build": "tsx src/build.ts && tsc",
+    "format": "prettier --write .",
+    "lint": "prettier --check .",
+    "prepublishOnly": "tsx scripts/prepublish.ts"
   },
   "files": [
     "dist/**"
@@ -22,10 +25,18 @@
   },
   "homepage": "https://github.com/MarkusJx/datagen#readme",
   "devDependencies": {
-    "datagen-wasm": "file:../../datagen-wasm/node-pkg",
+    "datagen-wasm": "file:../../crates/datagen-wasm/node-pkg",
     "json-schema-to-typescript": "^13.1.1",
+    "prettier": "^3.0.3",
     "tsx": "^3.12.10",
     "typescript": "^5.2.2",
     "wasm-pack": "^0.12.1"
+  },
+  "prettier": {
+    "printWidth": 80,
+    "semi": true,
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "es5"
   }
 }

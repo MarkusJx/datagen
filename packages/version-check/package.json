@@ -1,0 +1,41 @@
+{
+  "name": "version-check",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "format": "prettier --write .",
+    "lint": "prettier --check ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MarkusJx/datagen.git"
+  },
+  "author": "MarkusJx",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/MarkusJx/datagen/issues"
+  },
+  "homepage": "https://github.com/MarkusJx/datagen#readme",
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "glob": "^10.3.6",
+    "semver": "^7.5.4",
+    "toml": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.6.4",
+    "@types/semver": "^7.5.2",
+    "prettier": "^3.0.3",
+    "tsx": "^3.12.10"
+  },
+  "prettier": {
+    "printWidth": 80,
+    "semi": true,
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "es5"
+  }
+}

@@ -1,13 +1,17 @@
 [package]
-name = "openaddresses-plugin"
+name = "datagen-rs-openaddresses-plugin"
 version = "0.1.0"
 edition = "2021"
+description = "A plugin for datagen-rs providing support for the openaddresses.io data format"
+repository = "https://github.com/MarkusJx/datagen"
+license = "MIT"
 
 [lib]
+name = "openaddresses_plugin"
 crate-type = ["dylib"]
 
 [dependencies]
-datagen-rs = { path = "../../datagen-rs", features = ["map-schema"] }
+datagen-rs = { path = "../../crates/datagen-rs", features = ["map-schema"], version = "0.1.0" }
 serde_json = { version = "1.0", features = ["preserve_order"] }
 serde = { version = "1.0", features = ["derive"] }
 rand = "0.8"

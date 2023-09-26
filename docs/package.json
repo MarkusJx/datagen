@@ -1,8 +1,8 @@
 {
   "name": "@datagen/docs",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "private": true,
-  "description": "Nextra docs template",
+  "description": "Docs for datagen",
   "scripts": {
     "dev": "next dev",
     "prebuild": "npm run build:wasm && npm run copy:schema",
@@ -11,7 +11,7 @@
     "format": "prettier --write .",
     "lint": "prettier --check .",
     "check:markdown": "find . -type f -name '*.md*' ! -path './node_modules/*' -exec markdown-link-check {} \\;",
-    "build:wasm": "cd ../datagen-wasm && wasm-pack build -t web --release",
+    "build:wasm": "cd ../crates/datagen-wasm && wasm-pack build -t web -d web-pkg --release --features generate",
     "copy:schema": "cpy --flat ../packages/types/dist/schema.json ./public"
   },
   "repository": {
@@ -25,14 +25,14 @@
   },
   "homepage": "https://github.com/MarkusJx/datagen#readme",
   "dependencies": {
-    "@datagen/types": "file:../packages/types",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
     "@monaco-editor/react": "^4.5.2",
     "@mui/icons-material": "^5.14.9",
     "@mui/lab": "^5.0.0-alpha.145",
     "@mui/material": "^5.14.10",
-    "datagen-wasm": "file:../datagen-wasm/pkg",
+    "datagen-rs-types": "file:../packages/types",
+    "datagen-wasm": "file:../crates/datagen-wasm/web-pkg",
     "next": "13.4",
     "nextra": "latest",
     "nextra-theme-docs": "latest",
