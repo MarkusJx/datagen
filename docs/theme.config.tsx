@@ -6,7 +6,7 @@ const config: DocsThemeConfig = {
   project: {
     link: 'https://github.com/MarkusJx/datagen',
   },
-  docsRepositoryBase: 'https://github.com/MarkusJx/datagen/docs',
+  docsRepositoryBase: 'https://github.com/MarkusJx/datagen/tree/main/docs',
   sidebar: {
     defaultMenuCollapseLevel: 1,
     autoCollapse: false,

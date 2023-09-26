@@ -1,3 +1,6 @@
+/// A plugin that can be used to track the progress of the data generation of [`datagen_rs`].
+/// The plugin will call the given callback with the current progress and
+/// the total number of elements.
 #[cfg(feature = "plugin")]
 use datagen_rs::declare_plugin;
 use datagen_rs::generate::current_schema::CurrentSchemaRef;
@@ -24,7 +27,7 @@ use std::fmt::Debug;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 
-#[derive(PartialEq, Eq, PartialOrd, Ord)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Debug)]
 struct RandomArrayLength {
     min: u32,
     max: u32,
@@ -36,6 +39,9 @@ impl RandomArrayLength {
     }
 }
 
+/// A plugin that can be used to track the progress of the data generation.
+/// The plugin will call the given callback with the current progress and
+/// the total number of elements.
 pub struct ProgressPlugin<F: Fn(usize, usize)> {
     total_elements: AtomicUsize,
     progress: AtomicUsize,
@@ -48,18 +54,51 @@ impl<F: Fn(usize, usize)> Debug for ProgressPlugin<F> {
         f.debug_struct("ProgressPlugin")
             .field("total_elements", &self.total_elements)
             .field("progress", &self.progress)
+            .field("arrays", &self.arrays)
             .finish()
     }
 }
 
 #[cfg(not(feature = "plugin"))]
+/// The result of the [`with_schema`](ProgressPlugin::with_schema) method.
+/// Contains the schema with the progress plugin and the plugin itself.
+/// The name of the plugin will be `progress`, so make sure no other plugin with that name is used.
 pub struct PluginWithSchemaResult {
+    /// The schema with the progress plugin.
     pub schema: Schema,
+    /// The plugin map with the progress plugin.
     pub plugins: HashMap<String, Box<dyn Plugin>>,
 }
 
 impl<F: Fn(usize, usize)> ProgressPlugin<F> {
     #[cfg(not(feature = "plugin"))]
+    /// Create a new progress plugin instance with the given schema and callback.
+    /// The callback will be called with the current progress and the total number of elements.
+    /// The schema will be modified to include the progress plugin.
+    /// The name of the plugin will be `progress`, so make sure no other plugin with that name is used.
+    ///
+    /// # Example
+    /// ```
+    /// use datagen_rs::schema::any_value::AnyValue;
+    /// use datagen_rs::schema::schema_definition::Schema;
+    /// use datagen_rs::util::helpers::generate_random_data;
+    /// use datagen_rs_progress_plugin::{PluginWithSchemaResult, ProgressPlugin};
+    ///
+    /// let schema = Schema {
+    ///     options: None,
+    ///     value: AnyValue::String("Hello World".into())
+    /// };
+    ///
+    /// let PluginWithSchemaResult {
+    ///     schema,
+    ///     plugins
+    /// } = ProgressPlugin::with_schema(schema, |current, total| {
+    ///     println!("{current} / {total}");
+    /// }).unwrap();
+    ///
+    /// let generated = generate_random_data(schema, Some(plugins)).unwrap();
+    /// println!("{}", generated);
+    /// ```
     pub fn with_schema(mut schema: Schema, callback: F) -> Result<PluginWithSchemaResult>
     where
         F: Fn(usize, usize) + 'static,
@@ -79,6 +118,40 @@ impl<F: Fn(usize, usize)> ProgressPlugin<F> {
     }
 
     #[cfg(not(feature = "plugin"))]
+    /// Create a new progress plugin instance with the given callback.
+    /// The callback will be called with the current progress and the total number of elements.
+    ///
+    /// A more convenient way to use this plugin is to use the
+    /// [`with_schema`](ProgressPlugin::with_schema) method.
+    ///
+    /// # Example
+    /// ```
+    /// use datagen_rs::plugins::plugin::Plugin;
+    /// use datagen_rs::schema::any::Any;
+    /// use datagen_rs::schema::any_value::AnyValue;
+    /// use datagen_rs::schema::schema_definition::Schema;
+    /// use datagen_rs::util::helpers::generate_random_data;
+    /// use datagen_rs_progress_plugin::ProgressPlugin;
+    ///
+    /// let progress: Box<dyn Plugin> = Box::new(ProgressPlugin::new(|current, total| {
+    ///     println!("{current} / {total}");
+    /// }));
+    ///
+    /// let schema = Schema {
+    ///     options: None,
+    ///     value: AnyValue::Any(Any::Plugin(datagen_rs::schema::plugin::Plugin {
+    ///         plugin_name: "progress".into(),
+    ///         args: Some(serde_json::to_value(AnyValue::String("test".into())).unwrap()),
+    ///         transform: None
+    ///     }))
+    /// };
+    ///
+    /// let generated = generate_random_data(
+    ///     schema,
+    ///     Some(vec![("progress".into(), progress)].into_iter().collect())
+    /// ).unwrap();
+    /// println!("{}", generated);
+    /// ```
     pub fn new(callback: F) -> Self {
         Self {
             total_elements: AtomicUsize::new(0),
@@ -191,7 +264,7 @@ impl<F: Fn(usize, usize)> ProgressPlugin<F> {
         Ok(schema.finalize(res))
     }
 
-    pub fn map_any(&self, val: &mut AnyValue) -> usize {
+    fn map_any(&self, val: &mut AnyValue) -> usize {
         if let AnyValue::Any(any) = val {
             match any {
                 Any::Array(array) => self.map_array(array.as_mut()),
@@ -271,7 +344,12 @@ impl<F: Fn(usize, usize)> Plugin for ProgressPlugin<F> {
 
         self.total_elements
             .store(self.map_any(&mut val), Ordering::SeqCst);
-        self.convert_any_value(schema, val)
+
+        let res = self.convert_any_value(schema, val)?;
+        // Increase the progress by one to account for the root element
+        self.increase_count();
+
+        Ok(res)
     }
 }
 
