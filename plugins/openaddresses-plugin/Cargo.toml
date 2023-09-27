@@ -22,8 +22,14 @@ log4rs = { version = "1.2", optional = true }
 
 [build-dependencies]
 regex = { version = "1.9", optional = true }
-build-vars = { path = "../../crates/build-vars" }
+build-vars = { path = "../../crates/build-vars", optional = true }
+
+[dev-dependencies]
+datagen-rs = { path = "../../crates/datagen-rs", features = ["generate", "test"], version = "0.1.0" }
+rand = "0.8"
+serial_test = "2"
+ordered-float = "4"
 
 [features]
-sqlite = ["dep:rusqlite", "dep:regex"]
+sqlite = ["dep:rusqlite", "dep:regex", "dep:build-vars"]
 log = ["dep:log", "dep:log4rs"]

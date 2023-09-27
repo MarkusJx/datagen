@@ -18,6 +18,7 @@ pub(crate) enum AddressType {
     Postcode,
     Latitude,
     Longitude,
+    Hash,
 }
 
 impl IntoGenerated for AddressType {
@@ -40,6 +41,7 @@ impl IntoGenerated for AddressType {
             AddressType::Longitude => GeneratedSchema::Number(match feature.geometry {
                 Geometry::Point { coordinates } => coordinates[0].into(),
             }),
+            AddressType::Hash => GeneratedSchema::String(feature.properties.hash.clone()),
         }
         .into())
     }

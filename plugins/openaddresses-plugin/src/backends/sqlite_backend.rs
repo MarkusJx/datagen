@@ -8,19 +8,23 @@ use rand::thread_rng;
 use rusqlite::types::Type;
 use rusqlite::{params_from_iter, Connection};
 use serde_json::Value;
+#[cfg(test)]
+use std::any::Any;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
 #[derive(Debug)]
 pub(crate) struct SQLiteBackend {
-    db: Connection,
+    #[doc(hidden)]
+    pub(crate) db: Connection,
     data_cache: HashMap<String, Vec<GeoFeature>>,
     num_cached: u32,
 }
 
 impl SQLiteBackend {
-    fn table_exists(db: &Connection, table_name: &String) -> bool {
+    #[doc(hidden)]
+    pub(crate) fn table_exists(db: &Connection, table_name: &String) -> bool {
         db.query_row(
             "SELECT name FROM sqlite_master WHERE type='table' AND name=?1",
             [&table_name],
@@ -112,6 +116,16 @@ impl Backend for SQLiteBackend {
 
         let data = self.fill_cache(&table_name)?;
         data.pop().ok_or("Failed to find data".into())
+    }
+
+    #[cfg(test)]
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    #[cfg(test)]
+    fn as_mut_any(&mut self) -> &mut dyn Any {
+        self
     }
 }
 
