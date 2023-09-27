@@ -491,14 +491,14 @@ test('generate data with progress', async (t) => {
   );
 
   const expectedProgresses: GenerateProgress[] = [];
-  for (let i = 1; i <= 10; i++) {
+  for (let i = 1; i <= 11; i++) {
     expectedProgresses.push({
       current: i,
       total: 11,
     });
   }
 
-  t.is(progresses.length, 10);
+  t.is(progresses.length, 11);
   t.deepEqual(progresses, expectedProgresses);
 });
 

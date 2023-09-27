@@ -32,7 +32,7 @@ fn generate_data(
     schema_file: String,
     out_file: Option<String>,
     progress_bar: &CliProgressRef,
-) -> Result<()> {
+) -> Result<Option<String>> {
     let progress_bar_copy = progress_bar.clone();
     let PluginWithSchemaResult { schema, plugins } =
         ProgressPlugin::with_schema(read_schema(schema_file)?, move |current, total| {
@@ -44,11 +44,11 @@ fn generate_data(
     if let Some(out_file) = out_file {
         progress_bar.set_message("Writing results to file");
         std::fs::write(out_file, generated)?;
-    } else {
-        println!("{generated}");
-    }
 
-    Ok(())
+        Ok(None)
+    } else {
+        Ok(Some(generated))
+    }
 }
 
 fn main() {
@@ -64,9 +64,15 @@ fn main() {
             let res = generate_data(schema_file, out_file, &progress_bar);
             progress_bar.finish(res.is_ok());
 
-            if let Err(err) = res {
-                eprintln!("Failed to generate data: {}", err);
-                exit(1);
+            match res {
+                Err(err) => {
+                    eprintln!("Failed to generate data: {}", err);
+                    exit(1);
+                }
+                Ok(Some(generated)) => {
+                    println!("{generated}");
+                }
+                Ok(None) => {}
             }
         }
         Commands::WriteJsonSchema { path } => {

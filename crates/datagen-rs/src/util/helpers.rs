@@ -30,6 +30,7 @@ use std::sync::Arc;
 use xml::{EmitterConfig, ParserConfig};
 
 #[cfg(feature = "schema")]
+/// Get the JSON schema as a [`Value`].
 #[allow(unused)]
 pub fn get_schema_value() -> Result<Value> {
     let schema = schema_for!(Schema);
@@ -37,6 +38,19 @@ pub fn get_schema_value() -> Result<Value> {
 }
 
 #[cfg(feature = "schema")]
+/// Write the JSON schema to a file.
+/// The schema is generated using the [`schemars`] crate.
+/// The schema is used to validate the schema definition.
+///
+/// # Arguments
+/// * `path` - The path to the JSON file.
+///
+/// # Example
+/// ```no_run
+/// use datagen_rs::util::helpers::write_json_schema;
+///
+/// write_json_schema("schema.json").unwrap();
+/// ```
 pub fn write_json_schema<P: AsRef<Path>>(path: P) -> Result<()> {
     let file = File::create(path)?;
     let schema = schema_for!(Schema);
@@ -45,6 +59,17 @@ pub fn write_json_schema<P: AsRef<Path>>(path: P) -> Result<()> {
 }
 
 #[cfg(feature = "serialize")]
+/// Read a [`Schema`] from a JSON file.
+///
+/// # Arguments
+/// * `path` - The path to the JSON file.
+///
+/// # Example
+/// ```no_run
+/// use datagen_rs::util::helpers::read_schema;
+///
+/// let schema = read_schema("schema.json").unwrap();
+/// ```
 pub fn read_schema<P: AsRef<Path>>(path: P) -> Result<Schema> {
     let file = File::open(path)?;
     let schema: Schema = serde_json::from_reader(file)?;
@@ -75,6 +100,33 @@ fn format_xml<R: Read>(src: R) -> Result<String> {
 }
 
 #[cfg(feature = "generate")]
+/// Generate random data from a [`Schema`].
+///
+/// # Arguments
+/// * `schema` - The schema to generate data from.
+/// * `additional_plugins` - Additional plugins to use when generating data.
+///
+/// # Example
+/// ```
+/// use datagen_rs::util::helpers::{generate_random_data, read_schema};
+/// use serde_json::{json, from_value};
+///
+/// let schema_json = json!({
+///    "type": "object",
+///     "properties": {
+///         "name": {
+///             "type": "string",
+///             "generator": {
+///                 "type": "firstName",
+///             },
+///         },
+///     },
+/// });
+///
+/// let schema = from_value(schema_json).unwrap();
+/// let data = generate_random_data(schema, None).unwrap();
+/// println!("{}", data);
+/// ```
 pub fn generate_random_data(
     schema: Schema,
     additional_plugins: Option<HashMap<String, Box<dyn Plugin>>>,
