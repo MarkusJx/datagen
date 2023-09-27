@@ -4,6 +4,7 @@ members = [
     "./crates/cli",
     "./crates/datagen-rs",
     "./crates/datagen-wasm",
+    "./crates/build-vars",
     "./plugins/log-plugin",
     "./plugins/openaddresses-plugin",
     "./plugins/progress-plugin",

@@ -36,7 +36,7 @@ pub struct PluginList {
 }
 
 impl PluginList {
-    #[cfg(test)]
+    #[cfg(any(test, feature = "test"))]
     #[allow(dead_code)]
     pub fn empty() -> Self {
         Self {

@@ -48,6 +48,17 @@ impl<T: Plugin + 'static> From<Result<T>> for PluginInitResult {
 ///         "my-plugin".into()
 ///     }
 ///  
+///     // Optional: Implement the `generate` function
+///     // if the plugin provides a generator.
+///     fn generate(
+///         &self,
+///         schema: CurrentSchemaRef,
+///         args: Value
+///     ) -> Result<Arc<GeneratedSchema>> {
+///         // ...
+///         Ok(Arc::new(GeneratedSchema::None))
+///     }
+///
 ///     // Optional: Implement the `transform` function
 ///     // if the plugin provides a transformer.
 ///     fn transform(
@@ -58,17 +69,6 @@ impl<T: Plugin + 'static> From<Result<T>> for PluginInitResult {
 ///     ) -> Result<Arc<GeneratedSchema>> {
 ///         // ...
 ///         Ok(value)
-///     }
-///  
-///     // Optional: Implement the `generate` function
-///     // if the plugin provides a generator.
-///     fn generate(
-///         &self,
-///         schema: CurrentSchemaRef,
-///         args: Value
-///     ) -> Result<Arc<GeneratedSchema>> {
-///         // ...
-///         Ok(Arc::new(GeneratedSchema::None))
 ///     }
 ///  
 ///     // Optional: Implement the `serialize` function
@@ -197,7 +197,7 @@ pub trait PluginConstructor: Plugin + Sized {
 /// }
 ///
 /// impl PluginConstructor for MyPlugin {
-///     fn new(args: serde_json::Value) -> Result<Self> {
+///     fn new(args: Value) -> Result<Self> {
 ///         Ok(Self)
 ///     }
 /// }

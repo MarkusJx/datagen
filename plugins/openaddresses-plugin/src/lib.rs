@@ -1,5 +1,7 @@
 mod backends;
 mod objects;
+#[cfg(test)]
+mod tests;
 
 use crate::backends::backend::{Backend, BackendConstructor};
 use crate::backends::memory_backend::MemoryBackend;
@@ -24,8 +26,33 @@ use serde_json::Value;
 use std::fmt::Debug;
 use std::sync::{Arc, Mutex};
 
+#[cfg(feature = "sqlite")]
+include!(concat!(env!("OUT_DIR"), "/build_vars.rs"));
+
+/// A plugin for generating random addresses from the OpenAddresses dataset.
+///
+/// # Example
+/// ```no_run
+/// use datagen_rs::generate::generated_schema::GeneratedSchema;
+/// use datagen_rs::generate::current_schema::CurrentSchemaRef;
+/// use datagen_rs::plugins::plugin::Plugin;
+/// use datagen_rs::plugins::openaddresses_plugin::OpenAddressesPlugin;
+/// use datagen_rs::util::types::Result;
+/// use serde_json::json;
+/// use std::sync::Arc;
+///
+/// OpenAddressesPlugin::new(json!({
+///     "files": "tests/data/openaddresses/us/ny/albany.geojson",
+///      "backend": {
+///         "type": "sqlite",
+///         "databaseName": "albany.db",
+///         "batchSize": 1000,
+///         "cacheSize": 1000
+///      }
+/// })).unwrap();
+/// ```
 #[derive(Debug)]
-struct OpenAddressesPlugin {
+pub struct OpenAddressesPlugin {
     backend: Mutex<Box<dyn Backend>>,
 }
 
@@ -43,6 +70,25 @@ impl Plugin for OpenAddressesPlugin {
 }
 
 impl PluginConstructor for OpenAddressesPlugin {
+    /// Create a new [`OpenAddressesPlugin`] from the given arguments.
+    ///
+    /// # Arguments
+    /// * `args` - A JSON object which will be converted into a [`PluginArgs`] struct.
+    ///
+    /// # Example
+    /// ```no_run
+    /// use datagen_rs::plugins::plugin::PluginConstructor;
+    /// use datagen_rs::plugins::openaddresses_plugin::OpenAddressesPlugin;
+    /// use serde_json::json;
+    /// use std::sync::Arc;
+    ///
+    /// let plugin = OpenAddressesPlugin::new(json!({
+    ///     "files": "albany.geojson",
+    ///     "backend": {
+    ///         "type": "memory",
+    ///     }
+    /// })).unwrap();
+    /// ```
     fn new(args: Value) -> Result<Self> {
         let args: PluginArgs = serde_json::from_value(args)?;
         let paths = match args.files.clone() {

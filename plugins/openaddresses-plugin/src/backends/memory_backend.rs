@@ -4,6 +4,8 @@ use crate::objects::geo_data::GeoFeature;
 use datagen_rs::util::types::Result;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
+#[cfg(test)]
+use std::any::Any;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Seek};
 
@@ -56,6 +58,16 @@ impl Backend for MemoryBackend {
             .choose_mut(&mut thread_rng())
             .ok_or("Failed to choose random address file".to_string())?
             .get_random_line()
+    }
+
+    #[cfg(test)]
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    #[cfg(test)]
+    fn as_mut_any(&mut self) -> &mut dyn Any {
+        self
     }
 }
 

@@ -1,25 +1,30 @@
 use crate::backends::backend::{Backend, BackendConstructor};
 use crate::objects::args::{BackendType, PluginArgs};
 use crate::objects::geo_data::GeoFeature;
+use crate::SQLITE_MAX_VARIABLE_NUMBER;
 use datagen_rs::util::types::Result;
 use rand::seq::IteratorRandom;
 use rand::thread_rng;
 use rusqlite::types::Type;
 use rusqlite::{params_from_iter, Connection};
 use serde_json::Value;
+#[cfg(test)]
+use std::any::Any;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
 #[derive(Debug)]
 pub(crate) struct SQLiteBackend {
-    db: Connection,
+    #[doc(hidden)]
+    pub(crate) db: Connection,
     data_cache: HashMap<String, Vec<GeoFeature>>,
     num_cached: u32,
 }
 
 impl SQLiteBackend {
-    fn table_exists(db: &Connection, table_name: &String) -> bool {
+    #[doc(hidden)]
+    pub(crate) fn table_exists(db: &Connection, table_name: &String) -> bool {
         db.query_row(
             "SELECT name FROM sqlite_master WHERE type='table' AND name=?1",
             [&table_name],
@@ -112,6 +117,16 @@ impl Backend for SQLiteBackend {
         let data = self.fill_cache(&table_name)?;
         data.pop().ok_or("Failed to find data".into())
     }
+
+    #[cfg(test)]
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    #[cfg(test)]
+    fn as_mut_any(&mut self) -> &mut dyn Any {
+        self
+    }
 }
 
 impl BackendConstructor for SQLiteBackend {
@@ -131,7 +146,18 @@ impl BackendConstructor for SQLiteBackend {
         log::debug!("Initializing SQLite backend");
 
         let db = Connection::open(database_name)?;
-        let num_rows = batch_size.unwrap_or(100_000);
+        let num_rows = batch_size.unwrap_or(SQLITE_MAX_VARIABLE_NUMBER);
+        if num_rows > SQLITE_MAX_VARIABLE_NUMBER {
+            return Err(format!(
+                "batchSize cannot be greater than {}",
+                SQLITE_MAX_VARIABLE_NUMBER
+            )
+            .into());
+        }
+
+        #[cfg(feature = "log")]
+        log::debug!("Using batch size of {}", num_rows);
+
         let mut buf = Vec::with_capacity(num_rows);
         let mut data_cache = HashMap::new();
 
