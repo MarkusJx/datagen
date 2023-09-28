@@ -3,13 +3,16 @@ use crate::plugins::imported_plugin::PluginData;
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 #[cfg(feature = "native-plugin")]
-use std::rc::Rc;
+use std::sync::Arc;
 
 pub(crate) struct PluginError {
     inner: Box<dyn Error>,
     #[cfg(feature = "native-plugin")]
-    _plugin: Rc<PluginData>,
+    _plugin: Arc<PluginData>,
 }
+
+unsafe impl Send for PluginError {}
+unsafe impl Sync for PluginError {}
 
 #[cfg(feature = "native-plugin")]
 pub mod native {

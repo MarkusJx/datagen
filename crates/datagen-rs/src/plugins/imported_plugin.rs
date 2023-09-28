@@ -9,7 +9,6 @@ use std::env;
 use std::ffi::{c_char, CString, OsStr};
 use std::fmt::Display;
 use std::path::Path;
-use std::rc::Rc;
 use std::sync::Arc;
 
 #[allow(improper_ctypes_definitions)]
@@ -30,7 +29,7 @@ const LIB_EXTENSION: &str = ".so";
 const LIB_EXTENSION: &str = ".dylib";
 
 #[derive(Debug)]
-pub struct ImportedPlugin(Rc<PluginData>);
+pub struct ImportedPlugin(Arc<PluginData>);
 
 impl ImportedPlugin {
     pub fn load<T: AsRef<OsStr> + Display + Clone>(path: T, args: Value) -> Result<Self> {
@@ -48,7 +47,7 @@ impl ImportedPlugin {
             match unsafe { constructor(args_raw) } {
                 PluginInitResult::Ok(new_res) => {
                     let plugin = unsafe { Box::from_raw(new_res) };
-                    Ok(Self(Rc::new(PluginData { plugin, _lib: lib })))
+                    Ok(Self(Arc::new(PluginData { plugin, _lib: lib })))
                 }
                 PluginInitResult::Err(err) => {
                     let err = unsafe { CString::from_raw(err) };
@@ -58,7 +57,7 @@ impl ImportedPlugin {
         }
     }
 
-    pub(crate) fn get_data(&self) -> Rc<PluginData> {
+    pub(crate) fn get_data(&self) -> Arc<PluginData> {
         self.0.clone()
     }
 
