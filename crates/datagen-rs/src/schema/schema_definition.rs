@@ -1,4 +1,5 @@
 use crate::schema::any_value::AnyValue;
+use crate::schema::serializer::Serializer;
 use indexmap::IndexMap;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
@@ -52,54 +53,6 @@ pub enum PluginInitArgs {
     },
     /// Arguments for a plugin.
     Value(Value),
-}
-
-/// The serializer to use when serializing the generated data.
-/// If not specified, the default is JSON.
-/// The serializer is specified in the schema options.
-#[derive(Debug, Clone)]
-#[cfg_attr(feature = "schema", derive(JsonSchema))]
-#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serialize", serde(rename_all = "camelCase", tag = "type"))]
-pub enum Serializer {
-    /// The JSON serializer.
-    Json {
-        /// Whether to pretty print the JSON.
-        /// If not specified, the default is false.
-        pretty: Option<bool>,
-    },
-    /// The YAML serializer.
-    Yaml,
-    /// The XML serializer.
-    /// The root element must be specified.
-    #[cfg_attr(feature = "serialize", serde(rename_all = "camelCase"))]
-    Xml {
-        /// The name of the root element.
-        root_element: String,
-        /// Whether to pretty print the XML.
-        /// If not specified, the default is false.
-        pretty: Option<bool>,
-    },
-    /// A plugin serializer.
-    #[cfg_attr(feature = "serialize", serde(rename_all = "camelCase"))]
-    Plugin {
-        /// The name of the plugin.
-        plugin_name: String,
-        /// The arguments to pass to the plugin.
-        args: Option<Value>,
-    },
-}
-
-impl Default for Serializer {
-    fn default() -> Self {
-        Serializer::Json { pretty: None }
-    }
-}
-
-impl Default for &Serializer {
-    fn default() -> Self {
-        &Serializer::Json { pretty: None }
-    }
 }
 
 /// A schema definition.

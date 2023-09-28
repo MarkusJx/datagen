@@ -1,0 +1,20 @@
+[package]
+name = "datagen-rs-upload-plugin"
+version = "0.1.0"
+edition = "2021"
+description = "A plugin for datagen-rs allowing to upload files to a server."
+repository = "https://github.com/MarkusJx/datagen"
+license = "MIT"
+
+[lib]
+name = "upload_plugin"
+crate-type = ["dylib"]
+
+[dependencies]
+datagen-rs = { path = "../../crates/datagen-rs", version = "0.1.0", features = ["generate"] }
+reqwest = { version = "0.11", features = ["blocking", "json"] }
+serde_json = "1.0"
+serde = { version = "1.0.188", features = ["derive"] }
+futures = "0.3"
+serde_urlencoded = "0.7"
+chrono = "0.4"

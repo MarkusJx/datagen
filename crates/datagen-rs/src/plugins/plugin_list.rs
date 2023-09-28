@@ -18,7 +18,7 @@ use crate::schema::schema_definition::PluginInitArgs;
 #[cfg(feature = "plugin")]
 use crate::schema::schema_definition::Schema;
 #[cfg(feature = "plugin")]
-use crate::schema::schema_definition::Serializer;
+use crate::schema::serializer::Serializer;
 #[cfg(feature = "plugin")]
 use crate::schema::transform::Transform;
 use crate::util::types::Result;

@@ -12,5 +12,6 @@ pub mod object;
 pub mod plugin;
 pub mod reference;
 pub mod schema_definition;
+pub mod serializer;
 pub mod string;
 pub mod transform;

@@ -8,8 +8,6 @@ use crate::plugins::plugin::Plugin;
 use crate::plugins::plugin_list::PluginList;
 #[cfg(any(feature = "schema", any(feature = "serialize", feature = "generate")))]
 use crate::schema::schema_definition::Schema;
-#[cfg(feature = "generate")]
-use crate::schema::schema_definition::Serializer;
 #[cfg(any(feature = "schema", feature = "serialize"))]
 use crate::util::types::Result;
 #[cfg(feature = "schema")]
@@ -20,14 +18,10 @@ use serde_json::Value;
 use std::collections::HashMap;
 #[cfg(any(feature = "schema", feature = "serialize"))]
 use std::fs::File;
-#[cfg(feature = "generate")]
-use std::io::Read;
 #[cfg(any(feature = "schema", feature = "serialize"))]
 use std::path::Path;
 #[cfg(feature = "generate")]
 use std::sync::Arc;
-#[cfg(feature = "generate")]
-use xml::{EmitterConfig, ParserConfig};
 
 #[cfg(feature = "schema")]
 /// Get the JSON schema as a [`Value`].
@@ -78,28 +72,6 @@ pub fn read_schema<P: AsRef<Path>>(path: P) -> Result<Schema> {
 }
 
 #[cfg(feature = "generate")]
-fn format_xml<R: Read>(src: R) -> Result<String> {
-    let mut dest = Vec::new();
-    let reader = ParserConfig::new()
-        .trim_whitespace(true)
-        .ignore_comments(false)
-        .create_reader(src);
-    let mut writer = EmitterConfig::new()
-        .perform_indent(true)
-        .normalize_empty_elements(false)
-        .autopad_comments(false)
-        .create_writer(&mut dest);
-
-    for event in reader {
-        if let Some(event) = event?.as_writer_event() {
-            writer.write(event)?;
-        }
-    }
-
-    String::from_utf8(dest).map_err(Into::into)
-}
-
-#[cfg(feature = "generate")]
 /// Generate random data from a [`Schema`].
 ///
 /// # Arguments
@@ -136,28 +108,9 @@ pub fn generate_random_data(
     let root = CurrentSchema::root(options.clone(), plugins.clone());
     let generated = schema.value.into_random(root)?;
 
-    match options.serializer.as_ref().unwrap_or_default() {
-        Serializer::Json { pretty } => pretty
-            .unwrap_or(false)
-            .then(|| serde_json::to_string_pretty(&generated))
-            .unwrap_or_else(|| serde_json::to_string(&generated))
-            .map_err(Into::into),
-        Serializer::Yaml => serde_yaml::to_string(&generated).map_err(Into::into),
-        Serializer::Xml {
-            root_element,
-            pretty,
-        } => {
-            let res = quick_xml::se::to_string_with_root(root_element, &generated)
-                .map_err(|e| e.to_string())?;
-
-            if pretty.unwrap_or(false) {
-                format_xml(res.as_bytes())
-            } else {
-                Ok(res)
-            }
-        }
-        Serializer::Plugin { plugin_name, args } => plugins
-            .get(plugin_name)?
-            .serialize(&generated, args.clone().unwrap_or_default()),
-    }
+    options
+        .serializer
+        .as_ref()
+        .unwrap_or_default()
+        .serialize_generated(generated, Some(plugins))
 }
