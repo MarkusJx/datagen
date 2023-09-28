@@ -1,14 +1,15 @@
 use crate::auth::authentication::Authentication;
+use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use datagen_rs::util::types::Result;
-use reqwest::blocking::Client;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
+use reqwest::Client;
 use reqwest::RequestBuilder;
 use serde::{Deserialize, Serialize};
-use std::ops::Add;
+use std::ops::{Add, Sub};
 use std::str::FromStr;
-use std::sync::Mutex;
 use std::time::Duration;
+use tokio::sync::Mutex;
 
 #[derive(Clone)]
 pub(crate) struct KeycloakAuthArgs {
@@ -38,31 +39,37 @@ impl From<KeycloakAuthArgs> for KeycloakAuthRequest {
     }
 }
 
-#[derive(Deserialize)]
-struct KeycloakAuthResponse {
-    access_token: String,
-    refresh_token: String,
-    expires_in: u64,
-    refresh_expires_in: u64,
+#[doc(hidden)]
+#[derive(Deserialize, Serialize)]
+pub(crate) struct KeycloakAuthResponse {
+    #[doc(hidden)]
+    pub(crate) access_token: String,
+    #[doc(hidden)]
+    pub(crate) refresh_token: String,
+    #[doc(hidden)]
+    pub(crate) expires_in: u64,
+    #[doc(hidden)]
+    pub(crate) refresh_expires_in: u64,
 }
 
 #[derive(Serialize)]
 struct KeycloakRefreshRequest {
-    client_id: String,
     grant_type: String,
+    client_id: String,
     refresh_token: String,
 }
 
 impl KeycloakRefreshRequest {
     fn new(args: &KeycloakAuthArgs, refresh_token: &str) -> Self {
         Self {
+            grant_type: "refresh_token".into(),
             client_id: args.client_id.clone(),
             refresh_token: refresh_token.to_owned(),
-            grant_type: "refresh_token".into(),
         }
     }
 }
 
+#[derive(Clone)]
 struct KeycloakToken {
     access_token: String,
     refresh_token: String,
@@ -101,7 +108,7 @@ impl KeycloakToken {
         .collect())
     }
 
-    fn fetch(args: &KeycloakAuthArgs, client: Option<Client>) -> Result<Self> {
+    async fn fetch(args: &KeycloakAuthArgs, client: Option<Client>) -> Result<Self> {
         let client = client.unwrap_or_else(Client::new);
 
         let res: KeycloakAuthResponse = client
@@ -114,13 +121,15 @@ impl KeycloakToken {
             .body(serde_urlencoded::to_string(KeycloakAuthRequest::from(
                 args.clone(),
             ))?)
-            .send()?
-            .json()?;
+            .send()
+            .await?
+            .json()
+            .await?;
 
         Ok(Self::new(res, client))
     }
 
-    fn refresh_token(&mut self, args: &KeycloakAuthArgs) -> Result<()> {
+    async fn refresh_token(&mut self, args: &KeycloakAuthArgs) -> Result<()> {
         let res: KeycloakAuthResponse = self
             .client
             .post(format!(
@@ -133,8 +142,10 @@ impl KeycloakToken {
                 args,
                 &self.refresh_token,
             ))?)
-            .send()?
-            .json()?;
+            .send()
+            .await?
+            .json()
+            .await?;
 
         self.access_token = res.access_token;
         self.expires_at = Self::expires_at(res.expires_in);
@@ -144,16 +155,16 @@ impl KeycloakToken {
         Ok(())
     }
 
-    fn get_token(&mut self, args: &KeycloakAuthArgs) -> Result<String> {
-        if self.refresh_expires_at.add(Duration::from_secs(10)) >= Utc::now() {
-            let new = Self::fetch(args, Some(self.client.clone()))?;
+    async fn get_token(&mut self, args: &KeycloakAuthArgs) -> Result<String> {
+        if self.refresh_expires_at.sub(Duration::from_secs(10)) <= Utc::now() {
+            let new = Self::fetch(args, Some(self.client.clone())).await?;
 
             self.access_token = new.access_token;
             self.expires_at = new.expires_at;
             self.refresh_token = new.refresh_token;
             self.refresh_expires_at = new.refresh_expires_at;
-        } else if self.expires_at.add(Duration::from_secs(10)) >= Utc::now() {
-            self.refresh_token(args)?;
+        } else if self.expires_at.sub(Duration::from_secs(10)) <= Utc::now() {
+            self.refresh_token(args).await?;
         }
 
         Ok(self.access_token.clone())
@@ -173,18 +184,19 @@ impl KeycloakAuth {
         }
     }
 
-    fn fetch_token(&self) -> Result<String> {
-        let mut token_lock = self.token.lock().unwrap();
+    async fn fetch_token(&self) -> Result<String> {
+        let mut token_lock = self.token.lock().await;
         if token_lock.is_none() {
-            token_lock.replace(KeycloakToken::fetch(&self.args, None)?);
+            token_lock.replace(KeycloakToken::fetch(&self.args, None).await?);
         }
 
-        token_lock.as_mut().unwrap().get_token(&self.args)
+        token_lock.as_mut().unwrap().get_token(&self.args).await
     }
 }
 
+#[async_trait]
 impl Authentication for KeycloakAuth {
-    fn add_auth(&self, builder: RequestBuilder) -> Result<RequestBuilder> {
-        Ok(builder.bearer_auth(self.fetch_token()?))
+    async fn add_auth(&self, builder: RequestBuilder) -> Result<RequestBuilder> {
+        Ok(builder.bearer_auth(self.fetch_token().await?))
     }
 }

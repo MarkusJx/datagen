@@ -3,15 +3,15 @@ use crate::objects::auth_args::AuthArgs;
 use crate::objects::http_method::HttpMethod;
 use datagen_rs::generate::generated_schema::GeneratedSchema;
 use datagen_rs::schema::serializer::Serializer;
-use datagen_rs::util::types::Result;
+use datagen_rs::util::types::{AnyError, Result};
 use futures::{stream, StreamExt};
 use reqwest::header::HeaderMap;
 use reqwest::{Client, RequestBuilder};
 use serde::{Deserialize, Serialize};
-use std::error::Error;
 use std::sync::Arc;
 use std::time;
 use time::Duration;
+use tokio::runtime::Builder;
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -28,7 +28,7 @@ pub(crate) struct UploadArgs {
     /// This is required.
     pub url: String,
     /// The HTTP method to use when uploading the data.
-    /// Defaults to `POST`.
+    /// Defaults to `post`.
     pub method: Option<HttpMethod>,
     /// Whether to split the top level array into multiple requests.
     /// If set to `true`, each item in the top level array will be uploaded
@@ -51,22 +51,45 @@ pub(crate) struct UploadArgs {
     pub timeout: Option<u64>,
 }
 
-impl UploadArgs {
-    fn get_builder(&self, client: &Client, auth: &dyn Authentication) -> Result<RequestBuilder> {
+struct RequestCreator {
+    method: HttpMethod,
+    url: String,
+    timeout: Option<Duration>,
+    client: Client,
+    auth: Box<dyn Authentication>,
+    num_parallel_requests: usize,
+}
+
+impl From<&UploadArgs> for RequestCreator {
+    fn from(args: &UploadArgs) -> Self {
+        Self {
+            method: args.method.clone().unwrap_or_default(),
+            url: args.url.clone(),
+            timeout: args.timeout.map(Duration::from_millis),
+            client: Client::new(),
+            auth: NoAuth::from_args(args.auth.clone()),
+            num_parallel_requests: args.num_parallel_requests.unwrap_or(1),
+        }
+    }
+}
+
+impl RequestCreator {
+    async fn get_builder(&self) -> Result<RequestBuilder> {
         let mut builder = self
             .method
-            .as_ref()
-            .unwrap_or_default()
-            .get_builder(client, self.url.clone())
-            .add_auth(auth)?;
+            .get_builder(&self.client, self.url.clone())
+            .add_auth(self.auth.as_ref())
+            .await?;
 
         if let Some(timeout) = self.timeout {
-            builder = builder.timeout(Duration::from_millis(timeout));
+            builder = builder.timeout(timeout);
         }
 
         Ok(builder)
     }
+}
 
+impl UploadArgs {
     fn get_headers(&self) -> Result<HeaderMap> {
         let content_type = match self.serializer.as_ref().unwrap_or_default() {
             Serializer::Json { .. } => "application/json",
@@ -104,47 +127,53 @@ impl UploadArgs {
     }
 
     pub(crate) fn upload_data(&self, value: &Arc<GeneratedSchema>) -> Result<()> {
-        let client = Client::new();
         let headers = self.get_headers()?;
-        let auth = NoAuth::from_args(self.auth.clone());
+        let split = self.split_and_serialize(value)?;
+        let creator = RequestCreator::from(self);
 
-        futures::executor::block_on(
-            stream::iter(self.split_and_serialize(value)?)
-                .map(|d| {
-                    let client = &client;
-                    let auth = auth.as_ref();
-                    let headers = headers.clone();
+        Builder::new_multi_thread()
+            .enable_all()
+            .build()
+            .unwrap()
+            .block_on(async move {
+                stream::iter(split)
+                    .map(|d| {
+                        let headers = headers.clone();
+                        let creator = &creator;
 
-                    async move {
-                        self.get_builder(client, auth)?
-                            .headers(headers)
-                            .body(d)
-                            .send()
-                            .await
-                            .map_err(Into::<Box<dyn Error>>::into)?
-                            .error_for_status()
-                            .map_err(Into::<Box<dyn Error>>::into)
-                    }
-                })
-                .buffered(self.num_parallel_requests.unwrap_or(1))
-                .collect::<Vec<_>>(),
-        )
-        .into_iter()
-        .try_for_each(|res| {
-            res.and_then(|ok| {
-                if let Some(expected) = self.expected_status_code {
-                    if ok.status() != expected {
-                        return Err(format!(
-                            "Expected status code {}, got {}",
-                            expected,
-                            ok.status()
-                        )
-                        .into());
-                    }
-                }
-
-                Ok(())
+                        async move {
+                            creator
+                                .get_builder()
+                                .await?
+                                .headers(headers)
+                                .body(d)
+                                .send()
+                                .await
+                                .map_err(|e| AnyError::from(e.to_string()))?
+                                .error_for_status()
+                                .map_err(|e| AnyError::from(e.to_string()))
+                        }
+                    })
+                    .buffered(creator.num_parallel_requests)
+                    .collect::<Vec<_>>()
+                    .await
             })
-        })
+            .into_iter()
+            .try_for_each(|res| {
+                res.and_then(|ok| {
+                    if let Some(expected) = self.expected_status_code {
+                        if ok.status() != expected {
+                            return Err(format!(
+                                "Expected status code {}, got {}",
+                                expected,
+                                ok.status()
+                            )
+                            .into());
+                        }
+                    }
+
+                    Ok(())
+                })
+            })
     }
 }

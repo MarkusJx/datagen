@@ -1,22 +1,26 @@
 use crate::auth::keycloak_auth::{KeycloakAuth, KeycloakAuthArgs};
 use crate::objects::auth_args::AuthArgs;
+use async_trait::async_trait;
 use datagen_rs::util::types::Result;
 use reqwest::RequestBuilder;
 
+#[async_trait]
 pub(crate) trait AnyAuth {
-    fn add_auth(self, auth: &dyn Authentication) -> Result<Self>
+    async fn add_auth(self, auth: &dyn Authentication) -> Result<Self>
     where
         Self: Sized;
 }
 
+#[async_trait]
 impl AnyAuth for RequestBuilder {
-    fn add_auth(self, auth: &dyn Authentication) -> Result<Self> {
-        auth.add_auth(self)
+    async fn add_auth(self, auth: &dyn Authentication) -> Result<Self> {
+        auth.add_auth(self).await
     }
 }
 
+#[async_trait]
 pub(crate) trait Authentication: Send + Sync {
-    fn add_auth(&self, builder: RequestBuilder) -> Result<RequestBuilder>;
+    async fn add_auth(&self, builder: RequestBuilder) -> Result<RequestBuilder>;
 
     fn from_args(args: Option<AuthArgs>) -> Box<dyn Authentication>
     where
@@ -50,8 +54,9 @@ pub(crate) struct BasicAuth {
     password: Option<String>,
 }
 
+#[async_trait]
 impl Authentication for BasicAuth {
-    fn add_auth(&self, builder: RequestBuilder) -> Result<RequestBuilder> {
+    async fn add_auth(&self, builder: RequestBuilder) -> Result<RequestBuilder> {
         Ok(builder.basic_auth(&self.username, self.password.as_ref()))
     }
 }
@@ -60,16 +65,18 @@ pub(crate) struct BearerAuth {
     token: String,
 }
 
+#[async_trait]
 impl Authentication for BearerAuth {
-    fn add_auth(&self, builder: RequestBuilder) -> Result<RequestBuilder> {
+    async fn add_auth(&self, builder: RequestBuilder) -> Result<RequestBuilder> {
         Ok(builder.bearer_auth(&self.token))
     }
 }
 
 pub(crate) struct NoAuth;
 
+#[async_trait]
 impl Authentication for NoAuth {
-    fn add_auth(&self, builder: RequestBuilder) -> Result<RequestBuilder> {
+    async fn add_auth(&self, builder: RequestBuilder) -> Result<RequestBuilder> {
         Ok(builder)
     }
 }

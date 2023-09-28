@@ -1,5 +1,7 @@
 mod auth;
 mod objects;
+#[cfg(test)]
+mod tests;
 
 use crate::objects::upload_args::UploadArgs;
 use datagen_rs::declare_plugin;

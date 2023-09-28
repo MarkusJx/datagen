@@ -1,4 +1,6 @@
+#[cfg(feature = "schema")]
 use schemars::JsonSchema;
+#[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 

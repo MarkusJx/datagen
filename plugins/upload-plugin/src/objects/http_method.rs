@@ -1,7 +1,7 @@
 use reqwest::{Client, RequestBuilder};
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Serialize, Deserialize, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub(crate) enum HttpMethod {
     #[default]
