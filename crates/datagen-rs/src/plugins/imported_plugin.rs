@@ -21,6 +21,9 @@ pub(crate) struct PluginData {
     _lib: Library,
 }
 
+unsafe impl Send for PluginData {}
+unsafe impl Sync for PluginData {}
+
 #[cfg(target_os = "windows")]
 const LIB_EXTENSION: &str = ".dll";
 #[cfg(target_os = "linux")]

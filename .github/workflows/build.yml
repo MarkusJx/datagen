@@ -46,7 +46,7 @@ jobs:
       env:
         LIBSQLITE3_FLAGS: SQLITE_MAX_VARIABLE_NUMBER=1000000
     - name: Build upload-plugin
-      run: cargo build -p datagen-rs-upload-plugin
+      run: cargo build -p -r datagen-rs-upload-plugin
     - name: Upload artifacts
       uses: actions/upload-artifact@v3.1.3
       with:
