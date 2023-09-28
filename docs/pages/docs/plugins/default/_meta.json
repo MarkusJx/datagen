@@ -1,4 +1,5 @@
 {
   "openaddresses": "openaddresses-plugin",
-  "progress": "progress-plugin"
+  "progress": "progress-plugin",
+  "upload": "upload-plugin"
 }

@@ -5,3 +5,4 @@ These plugins are:
 
 - [`openaddresses-plugin`](default/openaddresses.md)
 - [`progress-plugin`](default/progress.md)
+- [`upload-plugin`](default/upload.md)
