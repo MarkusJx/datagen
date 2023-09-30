@@ -1,2 +1,8 @@
 target/
-node_modules/
+**/node_modules/
+docs/out/
+docs/public/
+docs/.next/
+packages/*/dist/
+packages/datagen/*.node
+crates/datagen-wasm/*-pkg/
