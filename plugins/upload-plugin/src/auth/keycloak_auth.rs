@@ -94,16 +94,10 @@ impl KeycloakToken {
     }
 
     fn token_headers() -> Result<HeaderMap> {
-        Ok(vec![
-            (
-                HeaderName::from_str("Content-Type")?,
-                HeaderValue::from_str("application/x-www-form-urlencoded")?,
-            ),
-            (
-                HeaderName::from_str("Accept")?,
-                HeaderValue::from_str("application/json")?,
-            ),
-        ]
+        Ok(vec![(
+            HeaderName::from_str("Accept")?,
+            HeaderValue::from_str("application/json")?,
+        )]
         .into_iter()
         .collect())
     }
@@ -118,9 +112,7 @@ impl KeycloakToken {
             ))
             .timeout(Duration::from_secs(10))
             .headers(Self::token_headers()?)
-            .body(serde_urlencoded::to_string(KeycloakAuthRequest::from(
-                args.clone(),
-            ))?)
+            .form(&KeycloakAuthRequest::from(args.clone()))
             .send()
             .await?
             .json()
@@ -138,10 +130,7 @@ impl KeycloakToken {
             ))
             .timeout(Duration::from_secs(10))
             .headers(Self::token_headers()?)
-            .body(serde_urlencoded::to_string(KeycloakRefreshRequest::new(
-                args,
-                &self.refresh_token,
-            ))?)
+            .form(&KeycloakRefreshRequest::new(args, &self.refresh_token))
             .send()
             .await?
             .json()

@@ -20,6 +20,7 @@ The plugin has the following parameters:
 | `expectedStatus`      | `u16`                                                                       | The expected status code. If the status code of the response is not equal to this value, an error will be returned.                                        | `200`      |
 | `timeout`             | `u64`                                                                       | The timeout in milliseconds.                                                                                                                               | `infinite` |
 | `auth`                | [`AuthArgs`](#AuthArgs)                                                     | The authentication method to use.                                                                                                                          | `none`     |
+| `uploadIn`            | [`UploadIn`](#UploadIn)                                                     | The data to upload.                                                                                                                                        | `body`     |
 
 ### `HttpMethod`
 
@@ -69,6 +70,15 @@ using a [Keycloak](https://www.keycloak.org/) instance for authentication.
 | `username` | `String`     | The username to use.                           | unset   |
 | `password` | `String`     | The password to use.                           | unset   |
 | `clientId` | `String`     | The client ID to use.                          | unset   |
+
+### `UploadIn`
+
+The `UploadIn` enum is used to specify the data to upload.
+The following values are available:
+
+- `body`
+- `query`
+- `form`
 
 ## Examples
 

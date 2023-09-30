@@ -1,11 +1,13 @@
 use crate::auth::authentication::{AnyAuth, Authentication, NoAuth};
 use crate::objects::auth_args::AuthArgs;
 use crate::objects::http_method::HttpMethod;
+use crate::objects::upload_in::{AddData, UploadIn};
 use datagen_rs::generate::generated_schema::GeneratedSchema;
 use datagen_rs::schema::serializer::Serializer;
 use datagen_rs::util::types::{AnyError, Result};
 use futures::{stream, StreamExt};
-use reqwest::header::HeaderMap;
+use indexmap::IndexMap;
+use reqwest::header::{HeaderMap, HeaderName};
 use reqwest::{Client, RequestBuilder};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -49,6 +51,12 @@ pub(crate) struct UploadArgs {
     /// The timeout in milliseconds.
     /// If not specified, the default is no timeout.
     pub timeout: Option<u64>,
+    /// Whether to upload the data in the body or as a query parameter.
+    /// If not specified, the default is the body.
+    pub upload_in: Option<UploadIn>,
+    /// The headers to send with the request.
+    /// If not specified, no additional headers will be sent.
+    pub headers: Option<IndexMap<String, String>>,
 }
 
 struct RequestCreator {
@@ -91,32 +99,38 @@ impl RequestCreator {
 
 impl UploadArgs {
     fn get_headers(&self) -> Result<HeaderMap> {
-        let content_type = match self.serializer.as_ref().unwrap_or_default() {
-            Serializer::Json { .. } => "application/json",
-            Serializer::Yaml { .. } => "application/yaml",
-            Serializer::Xml { .. } => "application/xml",
-            _ => return Err("Unsupported serializer".into()),
-        };
-
         let mut map = HeaderMap::new();
-        map.insert("Content-Type", content_type.parse()?);
+
+        if self.upload_in.is_none() || self.upload_in.unwrap_or_default() == UploadIn::Body {
+            map.insert(
+                "Content-Type",
+                match self.serializer.as_ref().unwrap_or_default() {
+                    Serializer::Json { .. } => "application/json",
+                    Serializer::Yaml { .. } => "application/yaml",
+                    Serializer::Xml { .. } => "application/xml",
+                    _ => return Err("Unsupported serializer".into()),
+                }
+                .parse()?,
+            );
+        }
+
+        if let Some(additional) = self.headers.as_ref() {
+            for (key, value) in additional {
+                map.insert(HeaderName::try_from(key.clone())?, value.parse()?);
+            }
+        }
 
         Ok(map)
     }
 
-    fn split_and_serialize(&self, value: &Arc<GeneratedSchema>) -> Result<Vec<String>> {
-        let serializer = self.serializer.as_ref().unwrap_or_default();
+    fn split(&self, value: &Arc<GeneratedSchema>) -> Vec<Arc<GeneratedSchema>> {
         if self.split_top_level_array.unwrap_or_default() {
             if let GeneratedSchema::Array(arr) = value.as_ref() {
-                return arr
-                    .iter()
-                    .cloned()
-                    .map(|v| serializer.serialize_generated(v, None))
-                    .collect();
+                return arr.to_vec();
             }
         }
 
-        Ok(vec![serializer.serialize_generated(value.clone(), None)?])
+        vec![value.clone()]
     }
 
     pub(crate) fn serialize_generated(&self, value: &Arc<GeneratedSchema>) -> Result<String> {
@@ -128,8 +142,10 @@ impl UploadArgs {
 
     pub(crate) fn upload_data(&self, value: &Arc<GeneratedSchema>) -> Result<()> {
         let headers = self.get_headers()?;
-        let split = self.split_and_serialize(value)?;
+        let split = self.split(value);
         let creator = RequestCreator::from(self);
+        let serializer = self.serializer.clone().unwrap_or_default();
+        let upload_in = self.upload_in.unwrap_or_default();
 
         Builder::new_multi_thread()
             .enable_all()
@@ -140,13 +156,15 @@ impl UploadArgs {
                     .map(|d| {
                         let headers = headers.clone();
                         let creator = &creator;
+                        let serializer = &serializer;
+                        let upload_in = &upload_in;
 
                         async move {
                             creator
                                 .get_builder()
                                 .await?
                                 .headers(headers)
-                                .body(d)
+                                .add_data(upload_in, serializer, d)?
                                 .send()
                                 .await
                                 .map_err(|e| AnyError::from(e.to_string()))?
