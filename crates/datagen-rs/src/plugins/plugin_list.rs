@@ -18,15 +18,15 @@ use crate::schema::schema_definition::PluginInitArgs;
 #[cfg(feature = "plugin")]
 use crate::schema::schema_definition::Schema;
 #[cfg(feature = "plugin")]
-use crate::schema::schema_definition::Serializer;
+use crate::schema::serializer::Serializer;
 #[cfg(feature = "plugin")]
 use crate::schema::transform::Transform;
+#[cfg(feature = "native-plugin")]
+use crate::util::types::AnyError;
 use crate::util::types::Result;
 #[cfg(feature = "plugin")]
 use serde_json::Value;
 use std::collections::HashMap;
-#[cfg(feature = "native-plugin")]
-use std::error::Error;
 #[cfg(feature = "plugin")]
 use std::sync::Arc;
 
@@ -130,7 +130,7 @@ impl PluginList {
             name.clone(),
             Box::new(
                 ImportedPlugin::load(path.unwrap_or(name.clone()), args).map_err(
-                    |e| -> Box<dyn Error> { format!("Failed to load plugin '{name}': {e}").into() },
+                    |e| -> AnyError { format!("Failed to load plugin '{name}': {e}").into() },
                 )?,
             ),
         ))

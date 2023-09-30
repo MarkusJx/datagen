@@ -24,12 +24,11 @@ jobs:
         run: cargo binstall --no-confirm cargo-nextest --secure
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2.2.1
-      - name: Test datagen-rs
-        run: cargo nextest run -p datagen-rs --features all -P ci
-      - name: Test openaddresses-plugin
-        run: cargo nextest run -p datagen-rs-openaddresses-plugin -F sqlite -P ci
-      - name: Test progress-plugin
-        run: cargo nextest run -p datagen-rs-progress-plugin -P ci
+      - name: Run tests
+        run: |
+          cargo nextest run -p datagen-rs-progress-plugin -p datagen-rs-upload-plugin \
+          -p datagen-rs-openaddresses-plugin --features sqlite -p datagen-rs --features all \
+          -P ci
       - name: Run doc tests
         run: cargo test --doc
       - name: Create test summary

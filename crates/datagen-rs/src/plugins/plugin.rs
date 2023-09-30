@@ -226,8 +226,8 @@ pub trait PluginConstructor: Plugin + Sized {
 #[macro_export]
 macro_rules! declare_plugin {
     ($plugin_type:ty, $constructor: path) => {
-        impl PluginConstructor for $plugin_type {
-            fn new(args: Value) -> Result<Self> {
+        impl datagen_rs::plugins::plugin::PluginConstructor for $plugin_type {
+            fn new(args: serde_json::Value) -> datagen_rs::util::types::Result<Self> {
                 Ok($constructor())
             }
         }
@@ -237,10 +237,14 @@ macro_rules! declare_plugin {
     ($plugin_type:ty) => {
         #[no_mangle]
         pub unsafe extern "C" fn _plugin_create(
-            args: *mut Value,
+            args: *mut serde_json::Value,
         ) -> datagen_rs::plugins::plugin::PluginInitResult {
+            use datagen_rs::plugins::plugin::PluginConstructor;
+
             // make sure the constructor is the correct type.
-            let constructor: fn(args: Value) -> Result<$plugin_type> = <$plugin_type>::new;
+            let constructor: fn(
+                args: serde_json::Value,
+            ) -> datagen_rs::util::types::Result<$plugin_type> = <$plugin_type>::new;
 
             let args = Box::from_raw(args);
             constructor(*args).into()

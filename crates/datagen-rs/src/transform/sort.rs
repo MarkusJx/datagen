@@ -32,7 +32,7 @@ pub mod generate {
     }
 
     impl TryFrom<&GeneratedSchema> for ComparableSchema {
-        type Error = Box<dyn Error>;
+        type Error = Box<dyn Error + Send + Sync>;
 
         fn try_from(value: &GeneratedSchema) -> std::result::Result<Self, Self::Error> {
             match value {

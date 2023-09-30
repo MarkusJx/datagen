@@ -40,10 +40,10 @@ This serializer has no options.
 
 #### Plugin
 
-| Option | Description                        | Default                        |
-| ------ | ---------------------------------- | ------------------------------ |
-| `name` | The name of the plugin to use.     | unset, must be set by the user |
-| `args` | The options to pass to the plugin. | `null`                         |
+| Option       | Description                        | Default                        |
+| ------------ | ---------------------------------- | ------------------------------ |
+| `pluginName` | The name of the plugin to use.     | unset, must be set by the user |
+| `args`       | The options to pass to the plugin. | `null`                         |
 
 ## Example
 
