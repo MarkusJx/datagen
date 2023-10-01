@@ -31,6 +31,8 @@
     "@mui/icons-material": "^5.14.9",
     "@mui/lab": "^5.0.0-alpha.145",
     "@mui/material": "^5.14.10",
+    "@octokit/rest": "^20.0.2",
+    "arch": "^2.2.0",
     "datagen-rs-types": "file:../packages/types",
     "datagen-wasm": "file:../crates/datagen-wasm/web-pkg",
     "next": "13.4",
@@ -39,10 +41,14 @@
     "react": "^18.2.0",
     "react-device-detect": "^2.2.3",
     "react-dom": "^18.2.0",
-    "threads": "^1.7.0"
+    "react-icons": "^4.11.0",
+    "semver": "^7.5.4",
+    "threads": "^1.7.0",
+    "ua-parser-js": "^1.0.36"
   },
   "devDependencies": {
     "@types/node": "^20.6.3",
+    "@types/ua-parser-js": "^0.7.37",
     "cpy-cli": "^5.0.0",
     "markdown-link-check": "^3.11.2",
     "prettier": "^3.0.3",

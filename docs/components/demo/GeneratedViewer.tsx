@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import MonacoEditor from '@monaco-editor/react';
-import { getSchemaFormat, SchemaFormat } from '../util/util';
+import { getSchemaFormat, SchemaFormat } from '../../util/util';
 import { useTheme } from 'nextra-theme-docs';
 
 interface Props {

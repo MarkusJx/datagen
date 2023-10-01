@@ -8,9 +8,9 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import useDemoWorker from '../hooks/useDemoWorker';
+import useDemoWorker from '../../hooks/useDemoWorker';
 import { LoadingButton } from '@mui/lab';
-import { createThemeWithColor } from '../util/theme';
+import { createThemeWithColor } from '../../util/theme';
 
 interface Props {
   setGenerated(data: string): void;

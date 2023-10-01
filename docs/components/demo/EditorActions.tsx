@@ -7,9 +7,8 @@ import {
   Tooltip,
 } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
-import { downloadFile, getSchemaFormat } from '../util/util';
-import { useTheme } from 'nextra-theme-docs';
-import { createThemeWithColor } from '../util/theme';
+import { downloadFile, getSchemaFormat } from '../../util/util';
+import useThemesWithColor from '../../hooks/useThemesWithColor';
 
 interface Props {
   resetSchema(): void;
@@ -18,16 +17,13 @@ interface Props {
   disabled?: boolean;
 }
 
-const lightTheme = createThemeWithColor('#333333');
-const darkTheme = createThemeWithColor('#d2d2d2');
-
 const EditorActions: React.FC<Props> = ({
   resetSchema,
   generated,
   schema,
   disabled,
 }) => {
-  const { theme } = useTheme();
+  const [theme] = useThemesWithColor('#333333', '#d2d2d2');
 
   const handleDownload = () => {
     const format = getSchemaFormat(schema);
@@ -35,7 +31,7 @@ const EditorActions: React.FC<Props> = ({
   };
 
   return (
-    <ThemeProvider theme={theme === 'dark' ? darkTheme : lightTheme}>
+    <ThemeProvider theme={theme}>
       <Grid
         container
         gap={2}

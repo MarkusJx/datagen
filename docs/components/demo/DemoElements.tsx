@@ -5,10 +5,10 @@ import GenerateButton from './GenerateButton';
 import SchemaEditor from './SchemaEditor';
 import GeneratedViewer from './GeneratedViewer';
 import { CircularProgress, LinearProgress } from '@mui/material';
-import defaultSchema from '../util/defaultSchema';
-import useDemoWorker from '../hooks/useDemoWorker';
-import Center from './Center';
-import useLocalStorage from '../hooks/useLocalStorage';
+import defaultSchema from '../../util/defaultSchema';
+import useDemoWorker from '../../hooks/useDemoWorker';
+import Center from '../Center';
+import useLocalStorage from '../../hooks/useLocalStorage';
 import EditorActions from './EditorActions';
 
 const DemoElements: React.FC = () => {

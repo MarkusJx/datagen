@@ -26,3 +26,16 @@ export const createThemeWithColor = (color: string) =>
       },
     },
   });
+
+export const createDarkLightTheme = (dark: string, light: string) => {
+  const darkTheme = createThemeWithColor(dark);
+  const lightTheme = createThemeWithColor(light);
+
+  return (theme: string | undefined) => {
+    if (theme === 'dark') {
+      return darkTheme;
+    } else {
+      return lightTheme;
+    }
+  };
+};

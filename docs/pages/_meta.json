@@ -17,5 +17,10 @@
     "title": "Demo",
     "type": "page",
     "href": "/demo"
+  },
+  "downloads": {
+    "title": "Downloads",
+    "type": "page",
+    "href": "/downloads"
   }
 }
