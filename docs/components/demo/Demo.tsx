@@ -3,7 +3,7 @@ import { Callout } from 'nextra/components';
 import { isMobile } from 'react-device-detect';
 import DemoElements from './DemoElements';
 import { useMediaQuery } from '@mui/material';
-import Center from './Center';
+import Center from '../Center';
 
 const Demo: React.FC = () => {
   const tooSmall = useMediaQuery('(max-width: 1000px)');

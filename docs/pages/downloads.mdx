@@ -1,0 +1,56 @@
+import DatagenDownload from '../components/downloads/DatagenDownload';
+import Downloads from '../components/downloads/Downloads';
+import DatagenVersion from '../components/downloads/DatagenVersion';
+import HostSystem from '../components/downloads/HostSystem';
+import PluginsDownloads from '../components/downloads/PluginsDownloads';
+import DownloadsContext from '../components/downloads/DownloadsContext';
+
+# Downloads
+
+This page contains links to download the latest version of `datagen`.
+`datagen` and its plugins are distributed as single binaries.
+Therefore, no runtime dependencies are required.
+
+<DownloadsContext>
+  <Downloads>
+    <DatagenVersion>The latest version is `unknown`.</DatagenVersion>
+    <DatagenDownload>
+      ## Datagen
+
+      This is the main `datagen` binary. It contains the core functionality
+      and can be used to generate data for a variety of use cases. There are
+      no installation steps required. Just download the binary and run it.
+
+    </DatagenDownload>
+    <PluginsDownloads>
+      ## Plugins
+
+      [Plugins](docs/plugins.md) are used to extend the functionality of `datagen`.
+
+    </PluginsDownloads>
+    <HostSystem>These downloads are based on your current system type: `unknown`.</HostSystem>
+
+  </Downloads>
+</DownloadsContext>
+
+For more download options, check out the
+[latest release on GitHub](https://github.com/MarkusJx/datagen/releases/latest).
+
+## Other installation options
+
+### Install using npm
+
+`datagen` is also available as a [npm package](docs/packages/nodeCli.md).
+You can install it using the following command:
+
+```bash
+npm install -g datagen-rs-cli
+```
+
+### Build from source
+
+If you want to build and install `datagen` from source, you can do so using the following command:
+
+```bash
+cargo install datagen-rs-cli
+```
