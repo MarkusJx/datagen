@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Button } from '@mui/material';
 import OSIcon from './OSIcon';
 import Center from '../Center';
@@ -10,11 +10,6 @@ interface Props {
 
 const DatagenDownload: React.FC<Props> = ({ children }) => {
   const { osArtifacts } = useDownloadsContext();
-
-  console.log('no effect', osArtifacts);
-  useEffect(() => {
-    console.log('effect', osArtifacts);
-  });
 
   return (
     <div>
