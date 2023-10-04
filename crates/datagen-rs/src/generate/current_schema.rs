@@ -10,7 +10,7 @@ use crate::generate::schema_value::SchemaValue;
 use crate::plugins::plugin::Plugin;
 use crate::plugins::plugin_list::PluginList;
 use crate::schema::schema_definition::SchemaOptions;
-use crate::util::types::Result;
+use anyhow::anyhow;
 #[cfg(feature = "generate")]
 use std::collections::BTreeMap;
 use std::sync::atomic::AtomicBool;
@@ -92,11 +92,11 @@ impl CurrentSchema {
     }
 
     #[cfg(feature = "map-schema")]
-    fn resolve_child_ref(&self, reference: String) -> Result<ResolvedReference> {
+    fn resolve_child_ref(&self, reference: String) -> anyhow::Result<ResolvedReference> {
         if reference.starts_with("../") {
             self.parent
                 .as_ref()
-                .ok_or(format!(
+                .ok_or(anyhow!(
                     "The current schema at path '{}' has no parent",
                     self.value.lock().unwrap().path
                 ))?
@@ -110,7 +110,7 @@ impl CurrentSchema {
     }
 
     #[cfg(feature = "map-schema")]
-    pub fn resolve_ref(&self, reference: String) -> Result<ResolvedReference> {
+    pub fn resolve_ref(&self, reference: String) -> anyhow::Result<ResolvedReference> {
         if reference.starts_with("ref:") {
             let stripped = reference.strip_prefix("ref:").unwrap().to_string();
             if stripped.starts_with("./") {
@@ -167,7 +167,7 @@ impl CurrentSchema {
         self.value.lock().unwrap().path.clone()
     }
 
-    pub fn get_plugin<'a>(&'a self, key: &String) -> Result<&'a dyn Plugin> {
+    pub fn get_plugin<'a>(&'a self, key: &String) -> anyhow::Result<&'a dyn Plugin> {
         self.plugins.get(key)
     }
 

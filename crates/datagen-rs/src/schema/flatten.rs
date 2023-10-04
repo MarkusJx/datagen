@@ -41,13 +41,16 @@ pub mod generate {
     use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
     use crate::schema::flatten::{Flatten, FlattenableValue};
     use crate::schema::transform::Transform;
-    use crate::util::types::Result;
+    use anyhow::anyhow;
     use indexmap::IndexMap;
     use std::any::{Any, TypeId};
     use std::sync::Arc;
 
     impl IntoGeneratedArc for FlattenableValue {
-        fn into_generated_arc(self, schema: CurrentSchemaRef) -> Result<Arc<GeneratedSchema>> {
+        fn into_generated_arc(
+            self,
+            schema: CurrentSchemaRef,
+        ) -> anyhow::Result<Arc<GeneratedSchema>> {
             match self {
                 FlattenableValue::Object(object) => object.into_random(schema),
                 FlattenableValue::Reference(reference) => reference.into_random(schema),
@@ -62,18 +65,18 @@ pub mod generate {
     }
 
     impl IntoGenerated for Flatten {
-        fn into_generated(self, schema: CurrentSchemaRef) -> Result<GeneratedSchema> {
+        fn into_generated(self, schema: CurrentSchemaRef) -> anyhow::Result<GeneratedSchema> {
             let generated = self
                 .values
                 .into_iter()
                 .map(|value| value.into_generated_arc(schema.clone()))
-                .collect::<Result<Vec<_>>>()?;
+                .collect::<anyhow::Result<Vec<_>>>()?;
 
             let type_id = if let Some(gen) = generated.first() {
                 match gen.as_ref() {
                     GeneratedSchema::Object(o) => o.type_id(),
                     GeneratedSchema::Array(a) => a.type_id(),
-                    _ => return Err("Flatten values must be objects or arrays".into()),
+                    _ => return Err(anyhow!("Flatten values must be objects or arrays")),
                 }
             } else {
                 return Ok(GeneratedSchema::None);
@@ -84,9 +87,9 @@ pub mod generate {
                     generated.into_iter()
                         .map(|value| match value.as_ref() {
                             GeneratedSchema::Array(array) => Ok(array.clone()),
-                            _ => Err("Flatten values must all either be objects or arrays (the first value was an array, this one is not)".into()),
+                            _ => Err(anyhow!("Flatten values must all either be objects or arrays (the first value was an array, this one is not)")),
                         })
-                        .collect::<Result<Vec<_>>>()?
+                        .collect::<anyhow::Result<Vec<_>>>()?
                         .into_iter()
                         .flatten()
                         .collect::<Vec<_>>(),
@@ -96,9 +99,9 @@ pub mod generate {
                     generated.into_iter()
                         .map(|value| match value.as_ref() {
                             GeneratedSchema::Object(object) => Ok(object.clone()),
-                            _ => Err("Flatten values must all either be objects or arrays (the first value was an object, this one is not)".into()),
+                            _ => Err(anyhow!("Flatten values must all either be objects or arrays (the first value was an object, this one is not)")),
                         })
-                        .collect::<Result<Vec<_>>>()?
+                        .collect::<anyhow::Result<Vec<_>>>()?
                         .into_iter()
                         .flatten()
                         .collect::<IndexMap<_, _>>(),

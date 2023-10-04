@@ -74,7 +74,7 @@ pub mod generate {
     use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
     use crate::schema::string::{FormatArg, StringGenerator, StringSchema};
     use crate::schema::transform::Transform;
-    use crate::util::types::Result;
+    use anyhow::anyhow;
     use fake::faker::address::en::{
         CityName, CountryCode, CountryName, Latitude, Longitude, StateName, StreetName, ZipCode,
     };
@@ -88,7 +88,10 @@ pub mod generate {
     use std::sync::Arc;
 
     impl IntoGeneratedArc for StringSchema {
-        fn into_generated_arc(self, schema: CurrentSchemaRef) -> Result<Arc<GeneratedSchema>> {
+        fn into_generated_arc(
+            self,
+            schema: CurrentSchemaRef,
+        ) -> anyhow::Result<Arc<GeneratedSchema>> {
             match self {
                 StringSchema::Constant { value, .. } => schema.resolve_ref(value)?.into_random(),
                 StringSchema::Generated { generator, .. } => generator.into_random(schema),
@@ -104,7 +107,7 @@ pub mod generate {
     }
 
     impl IntoGenerated for StringGenerator {
-        fn into_generated(self, schema: CurrentSchemaRef) -> Result<GeneratedSchema> {
+        fn into_generated(self, schema: CurrentSchemaRef) -> anyhow::Result<GeneratedSchema> {
             Ok(match self {
                 StringGenerator::Uuid => GeneratedSchema::String(UUIDv4.fake()),
                 StringGenerator::Email => GeneratedSchema::String(FreeEmail().fake()),
@@ -135,40 +138,42 @@ pub mod generate {
 
                     let data = args
                         .into_iter()
-                        .map(|(name, arg)| -> Result<(String, Arc<GeneratedSchema>)> {
-                            Ok((
-                                name,
-                                match arg {
-                                    FormatArg::Number(num) => {
-                                        GeneratedSchema::String(num.to_string()).into()
-                                    }
-                                    FormatArg::Integer(num) => {
-                                        GeneratedSchema::String(num.to_string()).into()
-                                    }
-                                    FormatArg::String(str) => {
-                                        schema.resolve_ref(str)?.into_random()?
-                                    }
-                                    FormatArg::StringSchema(str) => {
-                                        let res = str.into_generated_arc(schema.clone())?;
-                                        match res.as_ref() {
-                                            GeneratedSchema::Number(num) => {
-                                                GeneratedSchema::String(num.to_string()).into()
-                                            }
-                                            GeneratedSchema::Integer(num) => {
-                                                GeneratedSchema::String(num.to_string()).into()
-                                            }
-                                            _ => res,
+                        .map(
+                            |(name, arg)| -> anyhow::Result<(String, Arc<GeneratedSchema>)> {
+                                Ok((
+                                    name,
+                                    match arg {
+                                        FormatArg::Number(num) => {
+                                            GeneratedSchema::String(num.to_string()).into()
                                         }
-                                    }
-                                    FormatArg::Reference(reference) => {
-                                        reference.into_generated_arc(schema.clone())?
-                                    }
-                                },
-                            ))
-                        })
-                        .collect::<Result<HashMap<_, _>>>()?
+                                        FormatArg::Integer(num) => {
+                                            GeneratedSchema::String(num.to_string()).into()
+                                        }
+                                        FormatArg::String(str) => {
+                                            schema.resolve_ref(str)?.into_random()?
+                                        }
+                                        FormatArg::StringSchema(str) => {
+                                            let res = str.into_generated_arc(schema.clone())?;
+                                            match res.as_ref() {
+                                                GeneratedSchema::Number(num) => {
+                                                    GeneratedSchema::String(num.to_string()).into()
+                                                }
+                                                GeneratedSchema::Integer(num) => {
+                                                    GeneratedSchema::String(num.to_string()).into()
+                                                }
+                                                _ => res,
+                                            }
+                                        }
+                                        FormatArg::Reference(reference) => {
+                                            reference.into_generated_arc(schema.clone())?
+                                        }
+                                    },
+                                ))
+                            },
+                        )
+                        .collect::<anyhow::Result<HashMap<_, _>>>()?
                         .into_iter()
-                        .map(|(name, arg)| -> Result<(String, String)> {
+                        .map(|(name, arg)| -> anyhow::Result<(String, String)> {
                             if let GeneratedSchema::String(str) = arg.as_ref() {
                                 Ok((name, str.clone()))
                             } else if serialize_non_strings
@@ -177,14 +182,14 @@ pub mod generate {
                             {
                                 Ok((name, serde_json::to_string(&arg)?))
                             } else {
-                                Err(format!(
+                                Err(anyhow!(
                                     "Unable to format non-string value: {}",
                                     serde_json::to_string(&arg)?
                                 )
                                 .into())
                             }
                         })
-                        .collect::<Result<HashMap<_, _>>>()?;
+                        .collect::<anyhow::Result<HashMap<_, _>>>()?;
 
                     GeneratedSchema::String(hbs.render("template", &data)?)
                 }

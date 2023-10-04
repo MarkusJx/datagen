@@ -6,4 +6,3 @@ pub mod plugin_error;
 #[cfg(feature = "generate")]
 pub mod sequential_vec;
 pub mod traits;
-pub mod types;

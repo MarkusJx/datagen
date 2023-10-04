@@ -3,7 +3,6 @@ mod util;
 use crate::util::cli_progress::{CliProgressRef, CliProgressTrait};
 use clap::{Parser, Subcommand};
 use datagen_rs::util::helpers::{generate_random_data, read_schema, write_json_schema};
-use datagen_rs::util::types::Result;
 use datagen_rs_progress_plugin::{PluginWithSchemaResult, ProgressPlugin};
 use std::process::exit;
 
@@ -32,7 +31,7 @@ fn generate_data(
     schema_file: String,
     out_file: Option<String>,
     progress_bar: &CliProgressRef,
-) -> Result<Option<String>> {
+) -> anyhow::Result<Option<String>> {
     let progress_bar_copy = progress_bar.clone();
     let PluginWithSchemaResult { schema, plugins } =
         ProgressPlugin::with_schema(read_schema(schema_file)?, move |current, total| {

@@ -3,7 +3,6 @@ use crate::UploadPlugin;
 use datagen_rs::plugins::plugin::Plugin;
 use datagen_rs::schema::schema_definition::Schema;
 use datagen_rs::util::helpers::generate_random_data;
-use datagen_rs::util::types::Result;
 use mockito::{Matcher, Mock, ServerGuard};
 use serde_json::{from_value, json, Value};
 use std::vec;
@@ -20,7 +19,7 @@ fn create_mock(server: &mut ServerGuard, method: &str, status: usize) -> Mock {
         .expect(1)
 }
 
-fn create_object_schema(plugin_args: Value) -> Result<String> {
+fn create_object_schema(plugin_args: Value) -> anyhow::Result<String> {
     let schema: Schema = from_value(json!({
         "type": "object",
         "properties": {

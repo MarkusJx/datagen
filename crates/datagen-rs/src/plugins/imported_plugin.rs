@@ -2,7 +2,7 @@ use crate::generate::current_schema::CurrentSchemaRef;
 use crate::generate::generated_schema::GeneratedSchema;
 use crate::plugins::plugin::{Plugin, PluginInitResult};
 use crate::util::plugin_error::native::MapPluginError;
-use crate::util::types::Result;
+use anyhow::anyhow;
 use libloading::{Library, Symbol};
 use serde_json::Value;
 use std::env;
@@ -35,7 +35,7 @@ const LIB_EXTENSION: &str = ".dylib";
 pub struct ImportedPlugin(Arc<PluginData>);
 
 impl ImportedPlugin {
-    pub fn load<T: AsRef<OsStr> + Display + Clone>(path: T, args: Value) -> Result<Self> {
+    pub fn load<T: AsRef<OsStr> + Display + Clone>(path: T, args: Value) -> anyhow::Result<Self> {
         let lib = Self::try_load(path.to_string())?;
         let constructor: Symbol<InitFn> = unsafe { lib.get(b"_plugin_create\0") }?;
         let version_fn: Symbol<VersionFn> = unsafe { lib.get(b"_plugin_version\0") }?;
@@ -44,7 +44,7 @@ impl ImportedPlugin {
         let version_str = version.to_str()?;
 
         if version_str != "1.0.0" {
-            Err(format!("Unsupported plugin version: {version_str}").into())
+            Err(anyhow!("Unsupported plugin version: {version_str}"))
         } else {
             let args_raw = Box::into_raw(Box::new(args));
             match unsafe { constructor(args_raw) } {
@@ -54,7 +54,8 @@ impl ImportedPlugin {
                 }
                 PluginInitResult::Err(err) => {
                     let err = unsafe { CString::from_raw(err) };
-                    Err(format!("Failed to initialize plugin '{path}': {}", err.to_str()?).into())
+                    Err(anyhow!("Failed to initialize plugin '{path}'")
+                        .context(anyhow!(err.to_str()?.to_string())))
                 }
             }
         }
@@ -64,7 +65,7 @@ impl ImportedPlugin {
         self.0.clone()
     }
 
-    fn try_load(path: String) -> Result<Library> {
+    fn try_load(path: String) -> anyhow::Result<Library> {
         let err = match unsafe { Library::new(&path) } {
             Ok(lib) => return Ok(lib),
             Err(err) => err,
@@ -91,19 +92,18 @@ impl ImportedPlugin {
             }
         }
 
-        Err(format!(
-            "Failed to load plugin '{}'. Tried paths: {}. Original error: {err}",
+        Err(anyhow::Error::new(err).context(anyhow!(
+            "Failed to load plugin '{}'. Tried paths: {}",
             tried_paths[0],
             tried_paths.join(", ")
-        )
-        .into())
+        )))
     }
 
     fn try_load_with_prefix(
         prefix: Option<String>,
         mut path: String,
         tried_paths: &mut Vec<String>,
-    ) -> Result<Library> {
+    ) -> anyhow::Result<Library> {
         if let Some(prefix) = prefix {
             path = format!("{}/{}", prefix, path);
             if let Ok(lib) = unsafe { Library::new(&path) } {
@@ -125,10 +125,15 @@ impl ImportedPlugin {
         if cfg!(target_os = "linux") || cfg!(target_os = "macos") {
             let p = Path::new(&path);
             if let Some(file) = p.file_name() {
-                let file = format!("lib{}", file.to_str().expect("Failed to convert filename"));
+                let file = format!(
+                    "lib{}",
+                    file.to_str().ok_or(anyhow!("Failed to convert filename"))?
+                );
 
                 if let Some(parent) = p.parent() {
-                    let parent = parent.to_str().expect("Failed to convert parent path");
+                    let parent = parent
+                        .to_str()
+                        .ok_or(anyhow!("Failed to convert parent path"))?;
                     if parent.is_empty() {
                         path = file;
                     } else {
@@ -150,7 +155,11 @@ impl Plugin for ImportedPlugin {
         self.0.plugin.name()
     }
 
-    fn generate(&self, schema: CurrentSchemaRef, args: Value) -> Result<Arc<GeneratedSchema>> {
+    fn generate(
+        &self,
+        schema: CurrentSchemaRef,
+        args: Value,
+    ) -> anyhow::Result<Arc<GeneratedSchema>> {
         self.0
             .plugin
             .generate(schema, args)
@@ -162,14 +171,14 @@ impl Plugin for ImportedPlugin {
         schema: CurrentSchemaRef,
         value: Arc<GeneratedSchema>,
         args: Value,
-    ) -> Result<Arc<GeneratedSchema>> {
+    ) -> anyhow::Result<Arc<GeneratedSchema>> {
         self.0
             .plugin
             .transform(schema, value, args)
             .map_plugin_error(self, "transform")
     }
 
-    fn serialize(&self, value: &Arc<GeneratedSchema>, args: Value) -> Result<String> {
+    fn serialize(&self, value: &Arc<GeneratedSchema>, args: Value) -> anyhow::Result<String> {
         self.0
             .plugin
             .serialize(value, args)

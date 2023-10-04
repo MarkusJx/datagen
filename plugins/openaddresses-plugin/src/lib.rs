@@ -9,11 +9,12 @@ use crate::backends::memory_backend::MemoryBackend;
 use crate::backends::sqlite_backend::SQLiteBackend;
 use crate::objects::args::{BackendType, IntoGenerated, PluginArgs, StringOrVec};
 use crate::objects::call_args::CallArgs;
+#[cfg(not(feature = "sqlite"))]
+use anyhow::anyhow;
 use datagen_rs::declare_plugin;
 use datagen_rs::generate::current_schema::CurrentSchemaRef;
 use datagen_rs::generate::generated_schema::GeneratedSchema;
 use datagen_rs::plugins::plugin::{Plugin, PluginConstructor};
-use datagen_rs::util::types::Result;
 #[cfg(feature = "log")]
 use log::LevelFilter;
 #[cfg(feature = "log")]
@@ -61,7 +62,11 @@ impl Plugin for OpenAddressesPlugin {
         "openaddresses".into()
     }
 
-    fn generate(&self, schema: CurrentSchemaRef, args: Value) -> Result<Arc<GeneratedSchema>> {
+    fn generate(
+        &self,
+        schema: CurrentSchemaRef,
+        args: Value,
+    ) -> anyhow::Result<Arc<GeneratedSchema>> {
         let args: CallArgs = serde_json::from_value(args)?;
         let feature = self.backend.lock().unwrap().get_random_feature()?;
 
@@ -89,7 +94,7 @@ impl PluginConstructor for OpenAddressesPlugin {
     ///     }
     /// })).unwrap();
     /// ```
-    fn new(args: Value) -> Result<Self> {
+    fn new(args: Value) -> anyhow::Result<Self> {
         let args: PluginArgs = serde_json::from_value(args)?;
         let paths = match args.files.clone() {
             StringOrVec::Single(path) => vec![path],
@@ -113,7 +118,7 @@ impl PluginConstructor for OpenAddressesPlugin {
             BackendType::SQLite { .. } => Box::new(SQLiteBackend::new(paths, args)?),
             #[cfg(not(feature = "sqlite"))]
             BackendType::SQLite { .. } => {
-                return Err("The SQLite backend is not enabled in this build".into())
+                return Err(anyhow!("The SQLite backend is not enabled in this build"))
             }
             BackendType::Memory => Box::new(MemoryBackend::new(paths, args)?),
         };

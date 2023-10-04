@@ -47,12 +47,12 @@ pub mod generate {
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::schema::transform::{ReferenceOrString, Transform};
     use crate::util::traits::generate::{ResolveRef, TransformTrait};
-    use crate::util::types::Result;
+    use anyhow::anyhow;
     use indexmap::IndexMap;
     use std::sync::Arc;
 
     impl ResolveRef for ReferenceOrString {
-        fn resolve_ref(self, schema: &CurrentSchemaRef) -> Result<Arc<GeneratedSchema>> {
+        fn resolve_ref(self, schema: &CurrentSchemaRef) -> anyhow::Result<Arc<GeneratedSchema>> {
             match self {
                 ReferenceOrString::Reference(reference) => {
                     reference.into_generated_arc(schema.clone())
@@ -67,7 +67,7 @@ pub mod generate {
             self,
             schema: CurrentSchemaRef,
             value: Arc<GeneratedSchema>,
-        ) -> Result<Arc<GeneratedSchema>> {
+        ) -> anyhow::Result<Arc<GeneratedSchema>> {
             match self {
                 Transform::Filter(filter) => filter.transform(schema, value),
                 Transform::FilterNonNull => match value.as_ref() {
@@ -87,7 +87,9 @@ pub mod generate {
                             .collect::<IndexMap<_, _>>();
                         Ok(GeneratedSchema::Object(map).into())
                     }
-                    _ => Err("FilterNonNull can only be used on arrays and objects".into()),
+                    _ => Err(anyhow!(
+                        "FilterNonNull can only be used on arrays and objects"
+                    )),
                 },
                 Transform::ToString(to_string) => to_string.transform(schema, value),
                 Transform::ToLowerCase(to_lower_case) => to_lower_case.transform(schema, value),

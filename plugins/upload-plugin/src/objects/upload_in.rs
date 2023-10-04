@@ -1,6 +1,5 @@
 use datagen_rs::generate::generated_schema::GeneratedSchema;
 use datagen_rs::schema::serializer::Serializer;
-use datagen_rs::util::types::Result;
 use reqwest::RequestBuilder;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -20,7 +19,7 @@ pub(crate) trait AddData {
         upload_in: &UploadIn,
         serializer: &Serializer,
         data: Arc<GeneratedSchema>,
-    ) -> Result<RequestBuilder>;
+    ) -> anyhow::Result<RequestBuilder>;
 }
 
 impl AddData for RequestBuilder {
@@ -29,7 +28,7 @@ impl AddData for RequestBuilder {
         upload_in: &UploadIn,
         serializer: &Serializer,
         data: Arc<GeneratedSchema>,
-    ) -> Result<RequestBuilder> {
+    ) -> anyhow::Result<RequestBuilder> {
         Ok(match upload_in {
             UploadIn::Body => self.body(serializer.serialize_generated(data, None)?),
             UploadIn::Query => self.query(&data),

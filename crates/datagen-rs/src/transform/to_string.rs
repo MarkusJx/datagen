@@ -33,7 +33,7 @@ pub mod generate {
     use crate::transform::to_string::ToStringTransform;
     use crate::util::generate_error::GenerateError;
     use crate::util::traits::generate::TransformTrait;
-    use crate::util::types::Result;
+    use anyhow::anyhow;
     use handlebars::Handlebars;
     use std::collections::HashMap;
     use std::sync::Arc;
@@ -43,7 +43,7 @@ pub mod generate {
             self,
             schema: CurrentSchemaRef,
             value: Arc<GeneratedSchema>,
-        ) -> Result<Arc<GeneratedSchema>> {
+        ) -> anyhow::Result<Arc<GeneratedSchema>> {
             match self {
                 ToStringTransform::Format {
                     format,
@@ -76,11 +76,11 @@ pub mod generate {
                                     }
                                 }
                             })
-                            .collect::<Result<HashMap<_, _>>>()?;
+                            .collect::<anyhow::Result<HashMap<_, _>>>()?;
 
                         Ok(GeneratedSchema::String(hbs.render("template", &data)?).into())
                     }
-                    _ => Err("Cannot format non-object".into()),
+                    _ => Err(anyhow!("Cannot format non-object")),
                 },
                 ToStringTransform::Default => serde_json::to_string(&value)
                     .map(GeneratedSchema::String)

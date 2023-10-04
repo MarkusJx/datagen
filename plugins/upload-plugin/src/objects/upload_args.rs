@@ -2,9 +2,9 @@ use crate::auth::authentication::{AnyAuth, Authentication, NoAuth};
 use crate::objects::auth_args::AuthArgs;
 use crate::objects::http_method::HttpMethod;
 use crate::objects::upload_in::{AddData, UploadIn};
+use anyhow::anyhow;
 use datagen_rs::generate::generated_schema::GeneratedSchema;
 use datagen_rs::schema::serializer::Serializer;
-use datagen_rs::util::types::{AnyError, Result};
 use futures::{stream, StreamExt};
 use indexmap::IndexMap;
 use reqwest::header::{HeaderMap, HeaderName};
@@ -82,7 +82,7 @@ impl From<&UploadArgs> for RequestCreator {
 }
 
 impl RequestCreator {
-    async fn get_builder(&self) -> Result<RequestBuilder> {
+    async fn get_builder(&self) -> anyhow::Result<RequestBuilder> {
         let mut builder = self
             .method
             .get_builder(&self.client, self.url.clone())
@@ -98,7 +98,7 @@ impl RequestCreator {
 }
 
 impl UploadArgs {
-    fn get_headers(&self) -> Result<HeaderMap> {
+    fn get_headers(&self) -> anyhow::Result<HeaderMap> {
         let mut map = HeaderMap::new();
 
         if self.upload_in.is_none() || self.upload_in.unwrap_or_default() == UploadIn::Body {
@@ -108,7 +108,7 @@ impl UploadArgs {
                     Serializer::Json { .. } => "application/json",
                     Serializer::Yaml { .. } => "application/yaml",
                     Serializer::Xml { .. } => "application/xml",
-                    _ => return Err("Unsupported serializer".into()),
+                    _ => return Err(anyhow!("Unsupported serializer")),
                 }
                 .parse()?,
             );
@@ -133,14 +133,17 @@ impl UploadArgs {
         vec![value.clone()]
     }
 
-    pub(crate) fn serialize_generated(&self, value: &Arc<GeneratedSchema>) -> Result<String> {
+    pub(crate) fn serialize_generated(
+        &self,
+        value: &Arc<GeneratedSchema>,
+    ) -> anyhow::Result<String> {
         self.serializer
             .as_ref()
             .unwrap_or_default()
             .serialize_generated(value.clone(), None)
     }
 
-    pub(crate) fn upload_data(&self, value: &Arc<GeneratedSchema>) -> Result<()> {
+    pub(crate) fn upload_data(&self, value: &Arc<GeneratedSchema>) -> anyhow::Result<()> {
         let headers = self.get_headers()?;
         let split = self.split(value);
         let creator = RequestCreator::from(self);
@@ -167,9 +170,9 @@ impl UploadArgs {
                                 .add_data(upload_in, serializer, d)?
                                 .send()
                                 .await
-                                .map_err(|e| AnyError::from(e.to_string()))?
+                                .map_err(|e| anyhow!(e.to_string()))?
                                 .error_for_status()
-                                .map_err(|e| AnyError::from(e.to_string()))
+                                .map_err(|e| anyhow!(e.to_string()))
                         }
                     })
                     .buffered(creator.num_parallel_requests)
@@ -181,12 +184,11 @@ impl UploadArgs {
                 res.and_then(|ok| {
                     if let Some(expected) = self.expected_status_code {
                         if ok.status() != expected {
-                            return Err(format!(
+                            return Err(anyhow!(
                                 "Expected status code {}, got {}",
                                 expected,
                                 ok.status()
-                            )
-                            .into());
+                            ));
                         }
                     }
 

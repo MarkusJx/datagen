@@ -19,7 +19,7 @@ impl IntoGenerated for ArgValue {
         self,
         schema: &CurrentSchemaRef,
         feature: &GeoFeature,
-    ) -> datagen_rs::util::types::Result<Arc<GeneratedSchema>> {
+    ) -> anyhow::Result<Arc<GeneratedSchema>> {
         match self {
             ArgValue::Args(call_args) => call_args.into_generated(schema, feature),
             ArgValue::Address(address) => address.into_generated(schema, feature),

@@ -23,11 +23,13 @@ pub mod generate {
     use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
     use crate::schema::any_value::AnyValue;
     use crate::schema::transform::Transform;
-    use crate::util::types::Result;
     use std::sync::Arc;
 
     impl IntoGeneratedArc for AnyValue {
-        fn into_generated_arc(self, schema: CurrentSchemaRef) -> Result<Arc<GeneratedSchema>> {
+        fn into_generated_arc(
+            self,
+            schema: CurrentSchemaRef,
+        ) -> anyhow::Result<Arc<GeneratedSchema>> {
             match self {
                 AnyValue::Any(any) => any.into_random(schema),
                 AnyValue::String(string) => schema.resolve_ref(string)?.into_random(),

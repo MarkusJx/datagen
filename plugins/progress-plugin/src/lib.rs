@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 /// A plugin that can be used to track the progress of the data generation of [`datagen_rs`].
 /// The plugin will call the given callback with the current progress and
 /// the total number of elements.
@@ -18,7 +19,6 @@ use datagen_rs::schema::object::Object;
 #[cfg(not(feature = "plugin"))]
 use datagen_rs::schema::schema_definition::Schema;
 use datagen_rs::util::traits::generate::TransformTrait;
-use datagen_rs::util::types::Result;
 use rand::prelude::SliceRandom;
 use rand::Rng;
 use serde_json::Value;
@@ -99,7 +99,7 @@ impl<F: Fn(usize, usize)> ProgressPlugin<F> {
     /// let generated = generate_random_data(schema, Some(plugins)).unwrap();
     /// println!("{}", generated);
     /// ```
-    pub fn with_schema(mut schema: Schema, callback: F) -> Result<PluginWithSchemaResult>
+    pub fn with_schema(mut schema: Schema, callback: F) -> anyhow::Result<PluginWithSchemaResult>
     where
         F: Fn(usize, usize) + 'static,
     {
@@ -107,7 +107,7 @@ impl<F: Fn(usize, usize)> ProgressPlugin<F> {
 
         schema.value = AnyValue::Any(Any::Plugin(datagen_rs::schema::plugin::Plugin {
             plugin_name: "progress".into(),
-            args: Some(serde_json::to_value(schema.value).map_err(|e| e.to_string())?),
+            args: Some(serde_json::to_value(schema.value).map_err(anyhow::Error::new)?),
             transform: None,
         }));
 
@@ -171,7 +171,7 @@ impl<F: Fn(usize, usize)> ProgressPlugin<F> {
         &self,
         schema: CurrentSchemaRef,
         val: AnyValue,
-    ) -> Result<Arc<GeneratedSchema>> {
+    ) -> anyhow::Result<Arc<GeneratedSchema>> {
         match val {
             AnyValue::Any(any) => match any {
                 Any::Array(array) => self.convert_array(schema, *array),
@@ -183,16 +183,16 @@ impl<F: Fn(usize, usize)> ProgressPlugin<F> {
         }
     }
 
-    fn get_array_length(&self, len: &ArrayLength) -> Result<u32> {
+    fn get_array_length(&self, len: &ArrayLength) -> anyhow::Result<u32> {
         match len {
             ArrayLength::Random { min, max } => self
                 .arrays
                 .lock()
                 .unwrap()
                 .get_mut(&RandomArrayLength::new(*min, *max))
-                .ok_or("Array length not found".to_string())?
+                .ok_or(anyhow!("Array length not found"))?
                 .pop_front()
-                .ok_or("Array length not found".into()),
+                .ok_or(anyhow!("Array length not found")),
             ArrayLength::Constant { value } => Ok(*value),
         }
     }
@@ -201,7 +201,7 @@ impl<F: Fn(usize, usize)> ProgressPlugin<F> {
         &self,
         schema: CurrentSchemaRef,
         array: Array,
-    ) -> Result<Arc<GeneratedSchema>> {
+    ) -> anyhow::Result<Arc<GeneratedSchema>> {
         let len = self.get_array_length(&array.length)?;
         schema.map_array(
             len as _,
@@ -220,7 +220,7 @@ impl<F: Fn(usize, usize)> ProgressPlugin<F> {
         &self,
         schema: CurrentSchemaRef,
         object: Object,
-    ) -> Result<Arc<GeneratedSchema>> {
+    ) -> anyhow::Result<Arc<GeneratedSchema>> {
         schema.map_index_map(object.properties, object.transform, true, |cur, value| {
             let res = self.convert_any_value(cur.clone(), value)?;
             self.increase_count();
@@ -232,7 +232,7 @@ impl<F: Fn(usize, usize)> ProgressPlugin<F> {
         &self,
         schema: CurrentSchemaRef,
         mut any_of: AnyOf,
-    ) -> Result<Arc<GeneratedSchema>> {
+    ) -> anyhow::Result<Arc<GeneratedSchema>> {
         any_of.values.shuffle(&mut rand::thread_rng());
         let mut num = any_of.num.unwrap_or(1);
         match num.cmp(&0) {
@@ -247,7 +247,7 @@ impl<F: Fn(usize, usize)> ProgressPlugin<F> {
             .values
             .drain(0..num as usize)
             .map(|value| value.into_random(schema.clone()))
-            .collect::<Result<Vec<_>>>()?;
+            .collect::<anyhow::Result<Vec<_>>>()?;
 
         let mut res = if values.is_empty() {
             Arc::new(GeneratedSchema::None)
@@ -339,7 +339,11 @@ impl<F: Fn(usize, usize)> Plugin for ProgressPlugin<F> {
         "progress".into()
     }
 
-    fn generate(&self, schema: CurrentSchemaRef, args: Value) -> Result<Arc<GeneratedSchema>> {
+    fn generate(
+        &self,
+        schema: CurrentSchemaRef,
+        args: Value,
+    ) -> anyhow::Result<Arc<GeneratedSchema>> {
         let mut val: AnyValue = serde_json::from_value(args)?;
 
         self.total_elements

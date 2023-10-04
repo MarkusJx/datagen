@@ -8,8 +8,6 @@ use crate::plugins::plugin::Plugin;
 use crate::plugins::plugin_list::PluginList;
 #[cfg(any(feature = "schema", any(feature = "serialize", feature = "generate")))]
 use crate::schema::schema_definition::Schema;
-#[cfg(any(feature = "schema", feature = "serialize"))]
-use crate::util::types::Result;
 #[cfg(feature = "schema")]
 use schemars::schema_for;
 #[cfg(feature = "schema")]
@@ -26,7 +24,7 @@ use std::sync::Arc;
 #[cfg(feature = "schema")]
 /// Get the JSON schema as a [`Value`].
 #[allow(unused)]
-pub fn get_schema_value() -> Result<Value> {
+pub fn get_schema_value() -> anyhow::Result<Value> {
     let schema = schema_for!(Schema);
     serde_json::to_value(schema).map_err(|e| e.into())
 }
@@ -45,7 +43,7 @@ pub fn get_schema_value() -> Result<Value> {
 ///
 /// write_json_schema("schema.json").unwrap();
 /// ```
-pub fn write_json_schema<P: AsRef<Path>>(path: P) -> Result<()> {
+pub fn write_json_schema<P: AsRef<Path>>(path: P) -> anyhow::Result<()> {
     let file = File::create(path)?;
     let schema = schema_for!(Schema);
 
@@ -64,7 +62,7 @@ pub fn write_json_schema<P: AsRef<Path>>(path: P) -> Result<()> {
 ///
 /// let schema = read_schema("schema.json").unwrap();
 /// ```
-pub fn read_schema<P: AsRef<Path>>(path: P) -> Result<Schema> {
+pub fn read_schema<P: AsRef<Path>>(path: P) -> anyhow::Result<Schema> {
     let file = File::open(path)?;
     let schema: Schema = serde_json::from_reader(file)?;
 
@@ -102,7 +100,7 @@ pub fn read_schema<P: AsRef<Path>>(path: P) -> Result<Schema> {
 pub fn generate_random_data(
     schema: Schema,
     additional_plugins: Option<HashMap<String, Box<dyn Plugin>>>,
-) -> Result<String> {
+) -> anyhow::Result<String> {
     let plugins = PluginList::from_schema(&schema, additional_plugins)?;
     let options = Arc::new(schema.options.unwrap_or_default());
     let root = CurrentSchema::root(options.clone(), plugins.clone());

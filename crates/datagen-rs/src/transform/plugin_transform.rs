@@ -21,7 +21,6 @@ pub mod generate {
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::transform::plugin_transform::PluginTransform;
     use crate::util::traits::generate::TransformTrait;
-    use crate::util::types::Result;
     use std::sync::Arc;
 
     impl TransformTrait for PluginTransform {
@@ -29,7 +28,7 @@ pub mod generate {
             self,
             schema: CurrentSchemaRef,
             value: Arc<GeneratedSchema>,
-        ) -> Result<Arc<GeneratedSchema>> {
+        ) -> anyhow::Result<Arc<GeneratedSchema>> {
             schema.get_plugin(&self.name)?.transform(
                 schema.clone(),
                 value,

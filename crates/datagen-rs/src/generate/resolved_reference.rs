@@ -1,5 +1,5 @@
 use crate::generate::generated_schema::GeneratedSchema;
-use crate::util::types::Result;
+use anyhow::anyhow;
 use rand::prelude::SliceRandom;
 use std::sync::Arc;
 
@@ -22,12 +22,12 @@ impl ResolvedReference {
         Self::Multiple(schemas)
     }
 
-    pub fn into_random(self) -> Result<Arc<GeneratedSchema>> {
+    pub fn into_random(self) -> anyhow::Result<Arc<GeneratedSchema>> {
         Ok(match self {
             Self::Single(schema) => schema,
             Self::Multiple(schemas) => schemas
                 .choose(&mut rand::thread_rng())
-                .ok_or("Failed to choose random schema value")?
+                .ok_or(anyhow!("Failed to choose random schema value"))?
                 .clone(),
             Self::None => Arc::new(GeneratedSchema::None),
         })

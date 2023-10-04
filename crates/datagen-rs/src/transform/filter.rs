@@ -37,7 +37,6 @@ pub mod generate {
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::transform::filter::{FilterTransform, FilterTransformOp};
     use crate::util::traits::generate::{ResolveRef, TransformTrait};
-    use crate::util::types::Result;
     use std::sync::Arc;
 
     impl TransformTrait for FilterTransform {
@@ -45,7 +44,7 @@ pub mod generate {
             self,
             schema: CurrentSchemaRef,
             value: Arc<GeneratedSchema>,
-        ) -> Result<Arc<GeneratedSchema>> {
+        ) -> anyhow::Result<Arc<GeneratedSchema>> {
             let current = self
                 .field
                 .map(|reference| reference.resolve_ref(&schema))

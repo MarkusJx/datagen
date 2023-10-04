@@ -1,7 +1,6 @@
 use crate::objects::geo_data::GeoFeature;
 use datagen_rs::generate::current_schema::CurrentSchemaRef;
 use datagen_rs::generate::generated_schema::GeneratedSchema;
-use datagen_rs::util::types::Result;
 use serde::Deserialize;
 use std::sync::Arc;
 
@@ -10,7 +9,7 @@ pub(crate) trait IntoGenerated {
         self,
         schema: &CurrentSchemaRef,
         feature: &GeoFeature,
-    ) -> Result<Arc<GeneratedSchema>>;
+    ) -> anyhow::Result<Arc<GeneratedSchema>>;
 }
 
 #[derive(Deserialize, Clone)]

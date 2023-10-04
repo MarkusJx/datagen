@@ -1,5 +1,4 @@
 use crate::generate::current_schema::CurrentSchemaRef;
-use crate::util::types::Result;
 use indexmap::IndexMap;
 use ordered_float::OrderedFloat;
 #[cfg(feature = "schema")]
@@ -40,7 +39,7 @@ impl GeneratedSchema {
 }
 
 pub trait IntoRandom {
-    fn into_random(self, schema: CurrentSchemaRef) -> Result<Arc<GeneratedSchema>>;
+    fn into_random(self, schema: CurrentSchemaRef) -> anyhow::Result<Arc<GeneratedSchema>>;
 }
 
 #[cfg(feature = "map-schema")]
@@ -49,11 +48,10 @@ pub mod generate {
     use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
     use crate::schema::transform::Transform;
     use crate::util::traits::generate::TransformTrait;
-    use crate::util::types::Result;
     use std::sync::Arc;
 
     pub(crate) trait IntoGenerated: Sized {
-        fn into_generated(self, schema: CurrentSchemaRef) -> Result<GeneratedSchema>;
+        fn into_generated(self, schema: CurrentSchemaRef) -> anyhow::Result<GeneratedSchema>;
 
         fn get_transform(&self) -> Option<Vec<Transform>>;
 
@@ -63,7 +61,10 @@ pub mod generate {
     }
 
     pub(crate) trait IntoGeneratedArc: Sized {
-        fn into_generated_arc(self, schema: CurrentSchemaRef) -> Result<Arc<GeneratedSchema>>;
+        fn into_generated_arc(
+            self,
+            schema: CurrentSchemaRef,
+        ) -> anyhow::Result<Arc<GeneratedSchema>>;
 
         fn get_transform(&self) -> Option<Vec<Transform>>;
 
@@ -76,7 +77,10 @@ pub mod generate {
     where
         T: IntoGenerated,
     {
-        fn into_generated_arc(self, schema: CurrentSchemaRef) -> Result<Arc<GeneratedSchema>> {
+        fn into_generated_arc(
+            self,
+            schema: CurrentSchemaRef,
+        ) -> anyhow::Result<Arc<GeneratedSchema>> {
             Ok(Arc::new(self.into_generated(schema)?))
         }
 
@@ -93,7 +97,7 @@ pub mod generate {
     where
         T: IntoGeneratedArc,
     {
-        fn into_random(self, schema: CurrentSchemaRef) -> Result<Arc<GeneratedSchema>> {
+        fn into_random(self, schema: CurrentSchemaRef) -> anyhow::Result<Arc<GeneratedSchema>> {
             let transform = self.get_transform();
             let should_finalize = self.should_finalize();
 

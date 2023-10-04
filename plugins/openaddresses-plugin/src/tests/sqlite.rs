@@ -2,7 +2,6 @@ use crate::backends::sqlite_backend::SQLiteBackend;
 use crate::tests::{generate_random, get_by_hash, TestAddress, ADDR_FILE_NAME};
 use crate::OpenAddressesPlugin;
 use datagen_rs::plugins::plugin::PluginConstructor;
-use datagen_rs::util::types::Result;
 use rand::random;
 use serde_json::json;
 use serial_test::serial;
@@ -32,7 +31,7 @@ impl Drop for Cleanup {
     }
 }
 
-fn create_database(file: Option<&str>) -> Result<(Cleanup, OpenAddressesPlugin)> {
+fn create_database(file: Option<&str>) -> anyhow::Result<(Cleanup, OpenAddressesPlugin)> {
     let id: u32 = random();
 
     let cleanup = Cleanup::new(id);
