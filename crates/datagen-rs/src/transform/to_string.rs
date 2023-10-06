@@ -33,7 +33,7 @@ pub mod generate {
     use crate::transform::to_string::ToStringTransform;
     use crate::util::generate_error::GenerateError;
     use crate::util::traits::generate::TransformTrait;
-    use anyhow::anyhow;
+    use anyhow::{anyhow, Context};
     use handlebars::Handlebars;
     use std::collections::HashMap;
     use std::sync::Arc;
@@ -84,7 +84,7 @@ pub mod generate {
                 },
                 ToStringTransform::Default => serde_json::to_string(&value)
                     .map(GeneratedSchema::String)
-                    .map_err(Into::into)
+                    .context("Failed to serialize generated schema to string")
                     .map(Into::into),
             }
         }

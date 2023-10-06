@@ -10,6 +10,7 @@ use crate::generate::schema_value::SchemaValue;
 use crate::plugins::plugin::Plugin;
 use crate::plugins::plugin_list::PluginList;
 use crate::schema::schema_definition::SchemaOptions;
+#[cfg(feature = "map-schema")]
 use anyhow::anyhow;
 #[cfg(feature = "generate")]
 use std::collections::BTreeMap;
