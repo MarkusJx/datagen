@@ -31,8 +31,7 @@ pub mod native {
                 inner: anyhow!(
                     "Failed to call function '{func_name}' on plugin '{}': {error}",
                     plugin.name(),
-                )
-                .into(),
+                ),
                 _plugin: plugin.get_data(),
             }
         }

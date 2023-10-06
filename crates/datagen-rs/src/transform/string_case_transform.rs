@@ -95,8 +95,7 @@ pub mod generate {
                             "Cannot convert non-string value '{}' to {}case",
                             rest.name(),
                             if upper_case { "upper" } else { "lower" }
-                        )
-                        .into()),
+                        )),
                     };
                 } else if serialize_non_strings {
                     serde_json::to_string(&value)?
@@ -105,8 +104,7 @@ pub mod generate {
                         "Cannot convert non-string value '{}' to {}case",
                         value.name(),
                         if upper_case { "upper" } else { "lower" }
-                    )
-                    .into());
+                    ));
                 }
             }
         };

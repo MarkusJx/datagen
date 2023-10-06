@@ -46,7 +46,7 @@ impl<T: Clone + IntoJsCall + 'static, R: FromNapiValue + Debug + 'static> Plugin
 
         let status = func.call(Ok(args), ThreadsafeFunctionCallMode::Blocking);
         if status != Status::Ok {
-            Err(anyhow!("Could not call function: {:?}", status).into())
+            Err(anyhow!("Could not call function: {:?}", status))
         } else {
             futures::executor::block_on(rx)?.map_err(anyhow::Error::msg)
         }

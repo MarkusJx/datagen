@@ -185,8 +185,7 @@ pub mod generate {
                                 Err(anyhow!(
                                     "Unable to format non-string value: {}",
                                     serde_json::to_string(&arg)?
-                                )
-                                .into())
+                                ))
                             }
                         })
                         .collect::<anyhow::Result<HashMap<_, _>>>()?;

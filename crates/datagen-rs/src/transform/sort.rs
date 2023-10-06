@@ -40,7 +40,7 @@ pub mod generate {
                 GeneratedSchema::String(string) => Ok(ComparableSchema::String(string.clone())),
                 GeneratedSchema::Bool(bool) => Ok(ComparableSchema::Bool(*bool)),
                 GeneratedSchema::None => Ok(ComparableSchema::None),
-                _ => Err(anyhow!("Cannot convert {} to comparable", value.name()).into()),
+                _ => Err(anyhow!("Cannot convert {} to comparable", value.name())),
             }
         }
     }
@@ -51,7 +51,7 @@ pub mod generate {
                 if let Some(value) = obj.get(key) {
                     value.as_ref().try_into()
                 } else {
-                    Err(anyhow!("Key '{}' not found in object", key).into())
+                    Err(anyhow!("Key '{}' not found in object", key))
                 }
             }
             GeneratedSchema::None => Ok(ComparableSchema::None),
