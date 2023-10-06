@@ -3,7 +3,7 @@ use crate::classes::node_plugin_args::{
     GenerateArgs, GenerateCall, PluginCall, SerializeArgs, SerializeCall, TransformArgs,
     TransformCall,
 };
-use anyhow::anyhow;
+use anyhow::{anyhow, Context};
 use datagen_rs::generate::current_schema::CurrentSchemaRef;
 use datagen_rs::generate::generated_schema::GeneratedSchema;
 use datagen_rs::plugins::plugin::Plugin;
@@ -88,11 +88,10 @@ impl Plugin for NodePlugin {
                 schema: CurrentSchema::from_ref(schema),
             },
         )
-        .map_err(|e| {
+        .with_context(|| {
             anyhow!(
-                "Failed to call function 'generate' on plugin '{}': {}",
+                "Failed to call function 'generate' on plugin '{}'",
                 self.name,
-                e
             )
         })?;
 
@@ -115,12 +114,11 @@ impl Plugin for NodePlugin {
                 schema: CurrentSchema::from_ref(schema),
             },
         )
-        .map_err(|e| {
+        .with_context(|| {
             anyhow!(
                 "Failed to call function 'transform' on plugin '{}'",
                 self.name,
             )
-            .context(e)
         })?;
 
         serde_json::from_value::<GeneratedSchema>(res)
@@ -136,12 +134,11 @@ impl Plugin for NodePlugin {
                 value: serde_json::to_value(value).map_err(anyhow::Error::new)?,
             },
         )
-        .map_err(|e| {
+        .with_context(|| {
             anyhow!(
                 "Failed to call function 'serialize' on plugin '{}'",
                 self.name,
             )
-            .context(e)
         })
     }
 }

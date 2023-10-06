@@ -28,10 +28,10 @@ pub mod native {
             func_name: &'static str,
         ) -> Self {
             Self {
-                inner: anyhow!(
-                    "Failed to call function '{func_name}' on plugin '{}': {error}",
+                inner: error.context(anyhow!(
+                    "Failed to call function '{func_name}' on plugin '{}'",
                     plugin.name(),
-                ),
+                )),
                 _plugin: plugin.get_data(),
             }
         }
