@@ -18,3 +18,4 @@ serde_json = { version = "1.0", features = ["preserve_order"] }
 indicatif = "0.17"
 colored = "2.0"
 num-format = "0.4"
+anyhow = "1"

@@ -1,7 +1,7 @@
 use crate::backends::backend::{Backend, BackendConstructor};
 use crate::objects::args::{BackendType, PluginArgs};
 use crate::objects::geo_data::GeoFeature;
-use datagen_rs::util::types::Result;
+use anyhow::{anyhow, Context};
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 #[cfg(test)]
@@ -28,15 +28,17 @@ impl AddressFile {
         }
     }
 
-    fn get_contents(&mut self) -> Result<&Vec<GeoFeature>> {
+    fn get_contents(&mut self) -> anyhow::Result<&Vec<GeoFeature>> {
         if self.contents.is_none() {
             let reader = BufReader::new(&self.file);
 
             self.contents.replace(
                 reader
                     .lines()
-                    .map(|line| -> Result<_> { serde_json::from_str(&line?).map_err(Into::into) })
-                    .collect::<Result<Vec<_>>>()?,
+                    .map(|line| -> anyhow::Result<_> {
+                        serde_json::from_str(&line?).map_err(Into::into)
+                    })
+                    .collect::<anyhow::Result<Vec<_>>>()?,
             );
             self.file.rewind()?;
         }
@@ -44,19 +46,19 @@ impl AddressFile {
         Ok(self.contents.as_ref().unwrap())
     }
 
-    fn get_random_line(&mut self) -> Result<GeoFeature> {
+    fn get_random_line(&mut self) -> anyhow::Result<GeoFeature> {
         self.get_contents()?
             .choose(&mut thread_rng())
             .cloned()
-            .ok_or("Failed to get random address line".into())
+            .ok_or(anyhow!("Failed to get random address line"))
     }
 }
 
 impl Backend for MemoryBackend {
-    fn get_random_feature(&mut self) -> Result<GeoFeature> {
+    fn get_random_feature(&mut self) -> anyhow::Result<GeoFeature> {
         self.files
             .choose_mut(&mut thread_rng())
-            .ok_or("Failed to choose random address file".to_string())?
+            .ok_or(anyhow!("Failed to choose random address file"))?
             .get_random_line()
     }
 
@@ -72,19 +74,18 @@ impl Backend for MemoryBackend {
 }
 
 impl BackendConstructor for MemoryBackend {
-    fn new(paths: Vec<String>, args: PluginArgs) -> Result<Self> {
+    fn new(paths: Vec<String>, args: PluginArgs) -> anyhow::Result<Self> {
         if let BackendType::SQLite { .. } = args.backend.unwrap_or_default() {
-            return Err(
-                "Unable to create memory backend: The selected backend type is not memory".into(),
-            );
+            return Err(anyhow!(
+                "Unable to create memory backend: The selected backend type is not memory"
+            ));
         }
 
         Ok(Self {
             files: paths
                 .into_iter()
-                .map(File::open)
-                .map(|r| r.map_err(Into::into))
-                .collect::<Result<Vec<_>>>()?
+                .map(|f| File::open(&f).context(anyhow!("Failed to open file: {}", f)))
+                .collect::<anyhow::Result<Vec<_>>>()?
                 .into_iter()
                 .map(AddressFile::new)
                 .collect(),

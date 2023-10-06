@@ -1,4 +1,5 @@
 use crate::classes::current_schema::CurrentSchema;
+use anyhow::anyhow;
 use futures::channel::oneshot::{channel, Receiver, Sender};
 use napi::bindgen_prelude::FromNapiValue;
 use napi::threadsafe_function::{ThreadsafeFunction, ThreadsafeFunctionCallMode};
@@ -40,17 +41,14 @@ pub(crate) struct PluginCall<T: Clone + IntoJsCall, R: FromNapiValue + Debug> {
 }
 
 impl<T: Clone + IntoJsCall + 'static, R: FromNapiValue + Debug + 'static> PluginCall<T, R> {
-    pub(crate) fn call(
-        func: &ThreadsafeFunction<PluginCall<T, R>>,
-        args: T,
-    ) -> datagen_rs::util::types::Result<R> {
+    pub(crate) fn call(func: &ThreadsafeFunction<PluginCall<T, R>>, args: T) -> anyhow::Result<R> {
         let (args, rx) = Self::new(args);
 
         let status = func.call(Ok(args), ThreadsafeFunctionCallMode::Blocking);
         if status != Status::Ok {
-            Err(format!("Could not call function: {:?}", status).into())
+            Err(anyhow!("Could not call function: {:?}", status))
         } else {
-            futures::executor::block_on(rx)?.map_err(|e| e.into())
+            futures::executor::block_on(rx)?.map_err(anyhow::Error::msg)
         }
     }
 

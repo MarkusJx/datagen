@@ -1,27 +1,26 @@
 use crate::generate::current_schema::CurrentSchemaRef;
 use crate::generate::generated_schema::GeneratedSchema;
 use crate::schema::transform::Transform;
-use crate::util::types::Result;
 use indexmap::IndexMap;
 use std::sync::Arc;
 
 pub trait MapSchema {
-    fn map_index_map<K, F: Fn(&CurrentSchemaRef, K) -> Result<Arc<GeneratedSchema>>>(
+    fn map_index_map<K, F: Fn(&CurrentSchemaRef, K) -> anyhow::Result<Arc<GeneratedSchema>>>(
         &self,
         map: IndexMap<String, K>,
         transform: Option<Vec<Transform>>,
         finalize: bool,
         func: F,
-    ) -> Result<Arc<GeneratedSchema>>;
+    ) -> anyhow::Result<Arc<GeneratedSchema>>;
 
-    fn map_array<K: Clone, F: Fn(&CurrentSchemaRef, K) -> Result<Arc<GeneratedSchema>>>(
+    fn map_array<K: Clone, F: Fn(&CurrentSchemaRef, K) -> anyhow::Result<Arc<GeneratedSchema>>>(
         &self,
         num: usize,
         arg: K,
         transform: Option<Vec<Transform>>,
         finalize: bool,
         func: F,
-    ) -> Result<Arc<GeneratedSchema>>;
+    ) -> anyhow::Result<Arc<GeneratedSchema>>;
 }
 
 #[cfg(feature = "map-schema")]
@@ -31,18 +30,17 @@ pub mod generate {
     use crate::generate::schema_mapper::MapSchema;
     use crate::schema::transform::Transform;
     use crate::util::traits::generate::TransformTrait;
-    use crate::util::types::Result;
     use indexmap::IndexMap;
     use std::sync::Arc;
 
     impl MapSchema for CurrentSchemaRef {
-        fn map_index_map<K, F: Fn(&CurrentSchemaRef, K) -> Result<Arc<GeneratedSchema>>>(
+        fn map_index_map<K, F: Fn(&CurrentSchemaRef, K) -> anyhow::Result<Arc<GeneratedSchema>>>(
             &self,
             map: IndexMap<String, K>,
             transform: Option<Vec<Transform>>,
             finalize: bool,
             func: F,
-        ) -> Result<Arc<GeneratedSchema>> {
+        ) -> anyhow::Result<Arc<GeneratedSchema>> {
             let mut res = IndexMap::new();
             let mut current_schema: Option<CurrentSchemaRef> = None;
 
@@ -68,14 +66,17 @@ pub mod generate {
             }
         }
 
-        fn map_array<K: Clone, F: Fn(&CurrentSchemaRef, K) -> Result<Arc<GeneratedSchema>>>(
+        fn map_array<
+            K: Clone,
+            F: Fn(&CurrentSchemaRef, K) -> anyhow::Result<Arc<GeneratedSchema>>,
+        >(
             &self,
             length: usize,
             value: K,
             transform: Option<Vec<Transform>>,
             finalize: bool,
             func: F,
-        ) -> Result<Arc<GeneratedSchema>> {
+        ) -> anyhow::Result<Arc<GeneratedSchema>> {
             let mut res = Vec::with_capacity(length as _);
 
             for i in 0..length {

@@ -9,5 +9,5 @@ crate-type = ["dylib"]
 [dependencies]
 datagen-rs = { path = "../../crates/datagen-rs" }
 serde_json = "1.0"
-serde = { version = "1.0", features = ["derive"] }
-
+serde = { version = "1.0", features = ["derive", "rc"] }
+anyhow = "1"

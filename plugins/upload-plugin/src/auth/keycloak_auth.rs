@@ -1,7 +1,6 @@
 use crate::auth::authentication::Authentication;
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use datagen_rs::util::types::Result;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use reqwest::Client;
 use reqwest::RequestBuilder;
@@ -93,7 +92,7 @@ impl KeycloakToken {
         Utc::now().add(Duration::from_secs(expires_in))
     }
 
-    fn token_headers() -> Result<HeaderMap> {
+    fn token_headers() -> anyhow::Result<HeaderMap> {
         Ok(vec![(
             HeaderName::from_str("Accept")?,
             HeaderValue::from_str("application/json")?,
@@ -102,7 +101,7 @@ impl KeycloakToken {
         .collect())
     }
 
-    async fn fetch(args: &KeycloakAuthArgs, client: Option<Client>) -> Result<Self> {
+    async fn fetch(args: &KeycloakAuthArgs, client: Option<Client>) -> anyhow::Result<Self> {
         let client = client.unwrap_or_else(Client::new);
 
         let res: KeycloakAuthResponse = client
@@ -121,7 +120,7 @@ impl KeycloakToken {
         Ok(Self::new(res, client))
     }
 
-    async fn refresh_token(&mut self, args: &KeycloakAuthArgs) -> Result<()> {
+    async fn refresh_token(&mut self, args: &KeycloakAuthArgs) -> anyhow::Result<()> {
         let res: KeycloakAuthResponse = self
             .client
             .post(format!(
@@ -144,7 +143,7 @@ impl KeycloakToken {
         Ok(())
     }
 
-    async fn get_token(&mut self, args: &KeycloakAuthArgs) -> Result<String> {
+    async fn get_token(&mut self, args: &KeycloakAuthArgs) -> anyhow::Result<String> {
         if self.refresh_expires_at.sub(Duration::from_secs(10)) <= Utc::now() {
             let new = Self::fetch(args, Some(self.client.clone())).await?;
 
@@ -173,7 +172,7 @@ impl KeycloakAuth {
         }
     }
 
-    async fn fetch_token(&self) -> Result<String> {
+    async fn fetch_token(&self) -> anyhow::Result<String> {
         let mut token_lock = self.token.lock().await;
         if token_lock.is_none() {
             token_lock.replace(KeycloakToken::fetch(&self.args, None).await?);
@@ -185,7 +184,7 @@ impl KeycloakAuth {
 
 #[async_trait]
 impl Authentication for KeycloakAuth {
-    async fn add_auth(&self, builder: RequestBuilder) -> Result<RequestBuilder> {
+    async fn add_auth(&self, builder: RequestBuilder) -> anyhow::Result<RequestBuilder> {
         Ok(builder.bearer_auth(self.fetch_token().await?))
     }
 }

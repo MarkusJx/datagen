@@ -18,7 +18,7 @@ pub mod generate {
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::transform::regex_filter::RegexFilter;
     use crate::util::traits::generate::TransformTrait;
-    use crate::util::types::Result;
+    use anyhow::anyhow;
     use std::sync::Arc;
 
     impl TransformTrait for RegexFilter {
@@ -26,7 +26,7 @@ pub mod generate {
             self,
             schema: CurrentSchemaRef,
             value: Arc<GeneratedSchema>,
-        ) -> Result<Arc<GeneratedSchema>> {
+        ) -> anyhow::Result<Arc<GeneratedSchema>> {
             let str = match value.as_ref() {
                 GeneratedSchema::String(str) => str.clone(),
                 _ => {
@@ -37,7 +37,7 @@ pub mod generate {
                     {
                         serde_json::to_string(&value)?
                     } else {
-                        return Err("Cannot filter non-string value by regex".into());
+                        return Err(anyhow!("Cannot filter non-string value by regex"));
                     }
                 }
             };

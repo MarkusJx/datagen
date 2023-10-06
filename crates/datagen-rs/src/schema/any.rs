@@ -41,11 +41,13 @@ pub mod generate {
     use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
     use crate::schema::any::Any;
     use crate::schema::transform::Transform;
-    use crate::util::types::Result;
     use std::sync::Arc;
 
     impl IntoGeneratedArc for Any {
-        fn into_generated_arc(self, schema: CurrentSchemaRef) -> Result<Arc<GeneratedSchema>> {
+        fn into_generated_arc(
+            self,
+            schema: CurrentSchemaRef,
+        ) -> anyhow::Result<Arc<GeneratedSchema>> {
             match self {
                 Any::Number(number) => number.into_random(schema),
                 Any::Integer(integer) => integer.into_random(schema),

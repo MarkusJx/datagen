@@ -1,6 +1,5 @@
 use crate::auth::keycloak_auth::KeycloakAuthResponse;
 use crate::tests::create_schema;
-use datagen_rs::util::types::Result;
 use mockito::{Matcher, Mock, ServerGuard};
 use serde_json::{json, to_string};
 
@@ -33,7 +32,7 @@ fn create_request_mock(server: &mut ServerGuard) -> Mock {
         .expect(5)
 }
 
-fn create_keycloak_schema(server: &ServerGuard) -> Result<String> {
+fn create_keycloak_schema(server: &ServerGuard) -> anyhow::Result<String> {
     create_schema(json!({
         "url": server.url(),
         "returnNull": true,

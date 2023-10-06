@@ -3,10 +3,10 @@ use crate::classes::node_plugin_args::{
     GenerateArgs, GenerateCall, PluginCall, SerializeArgs, SerializeCall, TransformArgs,
     TransformCall,
 };
+use anyhow::{anyhow, Context};
 use datagen_rs::generate::current_schema::CurrentSchemaRef;
 use datagen_rs::generate::generated_schema::GeneratedSchema;
 use datagen_rs::plugins::plugin::Plugin;
-use datagen_rs::util::types::Result;
 use napi::threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction};
 use napi::{Env, JsFunction};
 use serde_json::Value;
@@ -76,7 +76,11 @@ impl Plugin for NodePlugin {
         self.name.clone()
     }
 
-    fn generate(&self, schema: CurrentSchemaRef, args: Value) -> Result<Arc<GeneratedSchema>> {
+    fn generate(
+        &self,
+        schema: CurrentSchemaRef,
+        args: Value,
+    ) -> anyhow::Result<Arc<GeneratedSchema>> {
         let res: Value = PluginCall::call(
             &self.generate,
             GenerateArgs {
@@ -84,10 +88,10 @@ impl Plugin for NodePlugin {
                 schema: CurrentSchema::from_ref(schema),
             },
         )
-        .map_err(|e| {
-            format!(
-                "Failed to call function 'generate' on plugin '{}': {}",
-                self.name, e
+        .with_context(|| {
+            anyhow!(
+                "Failed to call function 'generate' on plugin '{}'",
+                self.name,
             )
         })?;
 
@@ -101,19 +105,19 @@ impl Plugin for NodePlugin {
         schema: CurrentSchemaRef,
         value: Arc<GeneratedSchema>,
         args: Value,
-    ) -> Result<Arc<GeneratedSchema>> {
+    ) -> anyhow::Result<Arc<GeneratedSchema>> {
         let res: Value = PluginCall::call(
             &self.transform,
             TransformArgs {
-                value: serde_json::to_value(value).map_err(|e| e.to_string())?,
+                value: serde_json::to_value(value).map_err(anyhow::Error::new)?,
                 args,
                 schema: CurrentSchema::from_ref(schema),
             },
         )
-        .map_err(|e| {
-            format!(
-                "Failed to call function 'transform' on plugin '{}': {}",
-                self.name, e
+        .with_context(|| {
+            anyhow!(
+                "Failed to call function 'transform' on plugin '{}'",
+                self.name,
             )
         })?;
 
@@ -122,20 +126,19 @@ impl Plugin for NodePlugin {
             .map(Into::into)
     }
 
-    fn serialize(&self, value: &Arc<GeneratedSchema>, args: Value) -> Result<String> {
+    fn serialize(&self, value: &Arc<GeneratedSchema>, args: Value) -> anyhow::Result<String> {
         PluginCall::call(
             &self.serialize,
             SerializeArgs {
                 args,
-                value: serde_json::to_value(value).map_err(|e| e.to_string())?,
+                value: serde_json::to_value(value).map_err(anyhow::Error::new)?,
             },
         )
-        .map_err(|e| {
-            format!(
-                "Failed to call function 'serialize' on plugin '{}': {}",
-                self.name, e
+        .with_context(|| {
+            anyhow!(
+                "Failed to call function 'serialize' on plugin '{}'",
+                self.name,
             )
-            .into()
         })
     }
 }

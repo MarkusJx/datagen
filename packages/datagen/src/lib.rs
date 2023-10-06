@@ -7,6 +7,7 @@ mod util;
 extern crate napi_derive;
 
 use crate::classes::node_plugin::NodePlugin;
+use crate::util::traits::IntoNapiResult;
 use datagen_rs::schema::schema_definition::Schema;
 use datagen_rs::util::helpers::{generate_random_data, get_schema_value};
 use datagen_rs_progress_plugin::{PluginWithSchemaResult, ProgressPlugin};
@@ -17,12 +18,12 @@ use std::collections::HashMap;
 
 #[napi]
 pub fn get_schema() -> napi::Result<Value> {
-    get_schema_value().map_err(|e| napi::Error::from_reason(e.to_string()))
+    get_schema_value().into_napi()
 }
 
 #[napi]
 pub async fn get_schema_async() -> napi::Result<Value> {
-    get_schema_value().map_err(|e| napi::Error::from_reason(e.to_string()))
+    get_schema_value().into_napi()
 }
 
 fn parse_schema(schema: Value) -> napi::Result<Schema> {
@@ -53,7 +54,7 @@ pub async fn generate_random_data_internal(
                     ThreadsafeFunctionCallMode::NonBlocking,
                 );
             })
-            .map_err(|e| napi::Error::from_reason(e.to_string()))?;
+            .into_napi()?;
 
         (schema, Some(plugins))
     } else {
@@ -68,5 +69,5 @@ pub async fn generate_random_data_internal(
         }
     }
 
-    generate_random_data(schema, plugins).map_err(|e| napi::Error::from_reason(e.to_string()))
+    generate_random_data(schema, plugins).into_napi()
 }

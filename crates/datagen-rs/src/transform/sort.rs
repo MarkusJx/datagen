@@ -18,8 +18,7 @@ pub mod generate {
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::transform::sort::SortTransform;
     use crate::util::traits::generate::TransformTrait;
-    use crate::util::types::Result;
-    use std::error::Error;
+    use anyhow::anyhow;
     use std::sync::Arc;
 
     #[derive(Debug, Clone, PartialEq, PartialOrd)]
@@ -32,31 +31,31 @@ pub mod generate {
     }
 
     impl TryFrom<&GeneratedSchema> for ComparableSchema {
-        type Error = Box<dyn Error + Send + Sync>;
+        type Error = anyhow::Error;
 
-        fn try_from(value: &GeneratedSchema) -> std::result::Result<Self, Self::Error> {
+        fn try_from(value: &GeneratedSchema) -> Result<Self, Self::Error> {
             match value {
                 GeneratedSchema::Number(number) => Ok(ComparableSchema::Number((*number).into())),
                 GeneratedSchema::Integer(integer) => Ok(ComparableSchema::Integer(*integer)),
                 GeneratedSchema::String(string) => Ok(ComparableSchema::String(string.clone())),
                 GeneratedSchema::Bool(bool) => Ok(ComparableSchema::Bool(*bool)),
                 GeneratedSchema::None => Ok(ComparableSchema::None),
-                _ => Err(format!("Cannot convert {} to comparable", value.name()).into()),
+                _ => Err(anyhow!("Cannot convert {} to comparable", value.name())),
             }
         }
     }
 
-    fn find_by_key(value: &Arc<GeneratedSchema>, key: &str) -> Result<ComparableSchema> {
+    fn find_by_key(value: &Arc<GeneratedSchema>, key: &str) -> anyhow::Result<ComparableSchema> {
         match value.as_ref() {
             GeneratedSchema::Object(obj) => {
                 if let Some(value) = obj.get(key) {
                     value.as_ref().try_into()
                 } else {
-                    Err(format!("Key '{}' not found in object", key).into())
+                    Err(anyhow!("Key '{}' not found in object", key))
                 }
             }
             GeneratedSchema::None => Ok(ComparableSchema::None),
-            _ => Err("Sort can only be applied to objects".into()),
+            _ => Err(anyhow!("Sort can only be applied to objects")),
         }
     }
 
@@ -65,7 +64,7 @@ pub mod generate {
             self,
             _schema: CurrentSchemaRef,
             value: Arc<GeneratedSchema>,
-        ) -> Result<Arc<GeneratedSchema>> {
+        ) -> anyhow::Result<Arc<GeneratedSchema>> {
             if let GeneratedSchema::Array(arr) = value.as_ref() {
                 let array = arr.clone();
 
@@ -73,7 +72,7 @@ pub mod generate {
                     let mut array = array
                         .into_iter()
                         .map(|e| Ok((find_by_key(&e, &by)?, e)))
-                        .collect::<Result<Vec<_>>>()?;
+                        .collect::<anyhow::Result<Vec<_>>>()?;
 
                     array.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
 
@@ -90,7 +89,7 @@ pub mod generate {
                     let mut array = array
                         .into_iter()
                         .map(|e| Ok((e.as_ref().try_into()?, e)))
-                        .collect::<Result<Vec<(ComparableSchema, Arc<GeneratedSchema>)>>>(
+                        .collect::<anyhow::Result<Vec<(ComparableSchema, Arc<GeneratedSchema>)>>>(
                     )?;
                     array.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
 
@@ -105,7 +104,7 @@ pub mod generate {
                     )))
                 }
             } else {
-                Err("Sort can only be applied to arrays".into())
+                Err(anyhow!("Sort can only be applied to arrays"))
             }
         }
     }

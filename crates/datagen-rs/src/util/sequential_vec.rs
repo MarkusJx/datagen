@@ -1,4 +1,4 @@
-use crate::util::types::Result;
+use anyhow::anyhow;
 use rand::seq::SliceRandom;
 
 pub struct SequentialVec<T> {
@@ -7,9 +7,9 @@ pub struct SequentialVec<T> {
 }
 
 impl<T> SequentialVec<T> {
-    pub fn new(data: Vec<T>) -> Result<Self> {
+    pub fn new(data: Vec<T>) -> anyhow::Result<Self> {
         if data.is_empty() {
-            Err("Cannot create SequentialVec from empty vec".into())
+            Err(anyhow!("Cannot create SequentialVec from empty vec"))
         } else {
             Ok(Self { data, index: 0 })
         }

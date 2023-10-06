@@ -3,7 +3,6 @@ pub mod generate {
     use crate::generate::current_schema::CurrentSchemaRef;
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::schema::transform::Transform;
-    use crate::util::types::Result;
     use std::sync::Arc;
 
     pub trait TransformTrait {
@@ -11,7 +10,7 @@ pub mod generate {
             self,
             schema: CurrentSchemaRef,
             value: Arc<GeneratedSchema>,
-        ) -> Result<Arc<GeneratedSchema>>;
+        ) -> anyhow::Result<Arc<GeneratedSchema>>;
     }
 
     impl TransformTrait for Vec<Transform> {
@@ -19,7 +18,7 @@ pub mod generate {
             self,
             schema: CurrentSchemaRef,
             mut value: Arc<GeneratedSchema>,
-        ) -> Result<Arc<GeneratedSchema>> {
+        ) -> anyhow::Result<Arc<GeneratedSchema>> {
             for transform in self {
                 value = transform.transform(schema.clone(), value)?;
             }
@@ -29,11 +28,11 @@ pub mod generate {
     }
 
     pub trait ResolveRef {
-        fn resolve_ref(self, schema: &CurrentSchemaRef) -> Result<Arc<GeneratedSchema>>;
+        fn resolve_ref(self, schema: &CurrentSchemaRef) -> anyhow::Result<Arc<GeneratedSchema>>;
     }
 
     impl ResolveRef for String {
-        fn resolve_ref(self, schema: &CurrentSchemaRef) -> Result<Arc<GeneratedSchema>> {
+        fn resolve_ref(self, schema: &CurrentSchemaRef) -> anyhow::Result<Arc<GeneratedSchema>> {
             schema.resolve_ref(self)?.into_random()
         }
     }

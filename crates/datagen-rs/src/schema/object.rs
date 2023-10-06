@@ -22,11 +22,13 @@ pub mod generate {
     use crate::generate::schema_mapper::MapSchema;
     use crate::schema::object::Object;
     use crate::schema::transform::Transform;
-    use crate::util::types::Result;
     use std::sync::Arc;
 
     impl IntoGeneratedArc for Object {
-        fn into_generated_arc(self, schema: CurrentSchemaRef) -> Result<Arc<GeneratedSchema>> {
+        fn into_generated_arc(
+            self,
+            schema: CurrentSchemaRef,
+        ) -> anyhow::Result<Arc<GeneratedSchema>> {
             schema.map_index_map(self.properties, None, false, |schema, value| {
                 value.into_random(schema.clone())
             })

@@ -1,6 +1,6 @@
 use crate::generate::current_schema::CurrentSchemaRef;
 use crate::generate::generated_schema::GeneratedSchema;
-use crate::util::types::Result;
+use anyhow::anyhow;
 use serde_json::Value;
 use std::fmt::Debug;
 use std::sync::Arc;
@@ -12,8 +12,8 @@ pub enum PluginInitResult {
     Err(*mut std::ffi::c_char),
 }
 
-impl<T: Plugin + 'static> From<Result<T>> for PluginInitResult {
-    fn from(result: Result<T>) -> Self {
+impl<T: Plugin + 'static> From<anyhow::Result<T>> for PluginInitResult {
+    fn from(result: anyhow::Result<T>) -> Self {
         match result {
             Ok(value) => PluginInitResult::Ok(Box::into_raw(Box::new(value))),
             Err(err) => {
@@ -36,7 +36,6 @@ impl<T: Plugin + 'static> From<Result<T>> for PluginInitResult {
 /// use datagen_rs::plugins::plugin::Plugin;
 /// use datagen_rs::generate::current_schema::CurrentSchemaRef;
 /// use datagen_rs::generate::generated_schema::GeneratedSchema;
-/// use datagen_rs::util::types::Result;
 /// use serde_json::Value;
 /// use std::sync::Arc;
 ///  
@@ -54,7 +53,7 @@ impl<T: Plugin + 'static> From<Result<T>> for PluginInitResult {
 ///         &self,
 ///         schema: CurrentSchemaRef,
 ///         args: Value
-///     ) -> Result<Arc<GeneratedSchema>> {
+///     ) -> anyhow::Result<Arc<GeneratedSchema>> {
 ///         // ...
 ///         Ok(Arc::new(GeneratedSchema::None))
 ///     }
@@ -66,7 +65,7 @@ impl<T: Plugin + 'static> From<Result<T>> for PluginInitResult {
 ///         schema: CurrentSchemaRef,
 ///         value: Arc<GeneratedSchema>,
 ///         args: Value,
-///     ) -> Result<Arc<GeneratedSchema>> {
+///     ) -> anyhow::Result<Arc<GeneratedSchema>> {
 ///         // ...
 ///         Ok(value)
 ///     }
@@ -77,7 +76,7 @@ impl<T: Plugin + 'static> From<Result<T>> for PluginInitResult {
 ///         &self,
 ///         value: &Arc<GeneratedSchema>,
 ///         args: Value
-///     ) -> Result<String> {
+///     ) -> anyhow::Result<String> {
 ///         // ...
 ///         Ok("".into())
 ///     }
@@ -101,8 +100,12 @@ pub trait Plugin: Debug {
     /// # Returns
     /// The generated data.
     #[allow(unused_variables)]
-    fn generate(&self, schema: CurrentSchemaRef, args: Value) -> Result<Arc<GeneratedSchema>> {
-        Err("Operation 'generate' is not supported".into())
+    fn generate(
+        &self,
+        schema: CurrentSchemaRef,
+        args: Value,
+    ) -> anyhow::Result<Arc<GeneratedSchema>> {
+        Err(anyhow!("Operation 'generate' is not supported"))
     }
 
     /// Transform generated data with the given arguments.
@@ -123,8 +126,8 @@ pub trait Plugin: Debug {
         schema: CurrentSchemaRef,
         value: Arc<GeneratedSchema>,
         args: Value,
-    ) -> Result<Arc<GeneratedSchema>> {
-        Err("Operation 'transform' is not supported".into())
+    ) -> anyhow::Result<Arc<GeneratedSchema>> {
+        Err(anyhow!("Operation 'transform' is not supported"))
     }
 
     /// Serialize generated data to a string with the given arguments.
@@ -139,8 +142,8 @@ pub trait Plugin: Debug {
     /// # Returns
     /// The serialized data.
     #[allow(unused_variables)]
-    fn serialize(&self, value: &Arc<GeneratedSchema>, args: Value) -> Result<String> {
-        Err("Operation 'serialize' is not supported".into())
+    fn serialize(&self, value: &Arc<GeneratedSchema>, args: Value) -> anyhow::Result<String> {
+        Err(anyhow!("Operation 'serialize' is not supported"))
     }
 }
 
@@ -150,7 +153,6 @@ pub trait Plugin: Debug {
 /// # Example
 /// ```
 /// use datagen_rs::plugins::plugin::{Plugin, PluginConstructor};
-/// use datagen_rs::util::types::Result;
 ///
 /// #[derive(Debug, Default)]
 /// struct MyPlugin;
@@ -162,14 +164,14 @@ pub trait Plugin: Debug {
 /// }
 ///
 /// impl PluginConstructor for MyPlugin {
-///     fn new(args: serde_json::Value) -> Result<Self> {
+///     fn new(args: serde_json::Value) -> anyhow::Result<Self> {
 ///         Ok(Self)
 ///     }
 /// }
 /// ```
 pub trait PluginConstructor: Plugin + Sized {
     /// Create a new plugin instance with the given arguments.
-    fn new(args: Value) -> Result<Self>;
+    fn new(args: Value) -> anyhow::Result<Self>;
 }
 
 /// Declare a plugin.
@@ -184,7 +186,6 @@ pub trait PluginConstructor: Plugin + Sized {
 /// ## Plugin with constructor
 /// ```
 /// use datagen_rs::plugins::plugin::{Plugin, PluginConstructor};
-/// use datagen_rs::util::types::Result;
 /// use serde_json::Value;
 ///
 /// #[derive(Debug, Default)]
@@ -197,7 +198,7 @@ pub trait PluginConstructor: Plugin + Sized {
 /// }
 ///
 /// impl PluginConstructor for MyPlugin {
-///     fn new(args: Value) -> Result<Self> {
+///     fn new(args: Value) -> anyhow::Result<Self> {
 ///         Ok(Self)
 ///     }
 /// }
@@ -208,7 +209,6 @@ pub trait PluginConstructor: Plugin + Sized {
 /// ## Plugin without constructor
 /// ```
 /// use datagen_rs::plugins::plugin::{Plugin, PluginConstructor};
-/// use datagen_rs::util::types::Result;
 /// use datagen_rs::declare_plugin;
 /// use serde_json::Value;
 ///
@@ -227,7 +227,7 @@ pub trait PluginConstructor: Plugin + Sized {
 macro_rules! declare_plugin {
     ($plugin_type:ty, $constructor: path) => {
         impl datagen_rs::plugins::plugin::PluginConstructor for $plugin_type {
-            fn new(args: serde_json::Value) -> datagen_rs::util::types::Result<Self> {
+            fn new(args: serde_json::Value) -> anyhow::Result<Self> {
                 Ok($constructor())
             }
         }
@@ -242,9 +242,8 @@ macro_rules! declare_plugin {
             use datagen_rs::plugins::plugin::PluginConstructor;
 
             // make sure the constructor is the correct type.
-            let constructor: fn(
-                args: serde_json::Value,
-            ) -> datagen_rs::util::types::Result<$plugin_type> = <$plugin_type>::new;
+            let constructor: fn(args: serde_json::Value) -> anyhow::Result<$plugin_type> =
+                <$plugin_type>::new;
 
             let args = Box::from_raw(args);
             constructor(*args).into()

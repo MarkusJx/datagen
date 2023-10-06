@@ -32,11 +32,10 @@ pub mod generate {
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::schema::number::Number;
     use crate::schema::transform::Transform;
-    use crate::util::types::Result;
     use rand::Rng;
 
     impl IntoGenerated for Number {
-        fn into_generated(self, _: CurrentSchemaRef) -> Result<GeneratedSchema> {
+        fn into_generated(self, _: CurrentSchemaRef) -> anyhow::Result<GeneratedSchema> {
             Ok(match self {
                 Number::Constant { value, .. } => GeneratedSchema::Number(value.into()),
                 Number::Random {

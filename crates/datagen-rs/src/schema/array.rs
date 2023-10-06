@@ -31,7 +31,6 @@ pub mod generate {
     use crate::generate::schema_mapper::MapSchema;
     use crate::schema::array::{Array, ArrayLength};
     use crate::schema::transform::Transform;
-    use crate::util::types::Result;
     use rand::Rng;
     use std::sync::Arc;
 
@@ -48,7 +47,10 @@ pub mod generate {
     }
 
     impl IntoGeneratedArc for Array {
-        fn into_generated_arc(self, schema: CurrentSchemaRef) -> Result<Arc<GeneratedSchema>> {
+        fn into_generated_arc(
+            self,
+            schema: CurrentSchemaRef,
+        ) -> anyhow::Result<Arc<GeneratedSchema>> {
             let length = self.length.get_length();
             schema.map_array(length as _, self.items, None, false, |cur, value| {
                 value.into_random(cur.clone())

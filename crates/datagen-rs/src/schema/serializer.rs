@@ -57,12 +57,12 @@ pub mod generate {
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::plugins::plugin_list::PluginList;
     use crate::schema::serializer::Serializer;
-    use crate::util::types::Result;
+    use anyhow::anyhow;
     use std::io::Read;
     use std::sync::Arc;
     use xml::{EmitterConfig, ParserConfig};
 
-    fn format_xml<R: Read>(src: R) -> Result<String> {
+    fn format_xml<R: Read>(src: R) -> anyhow::Result<String> {
         let mut dest = Vec::new();
         let reader = ParserConfig::new()
             .trim_whitespace(true)
@@ -88,7 +88,7 @@ pub mod generate {
             &self,
             generated: Arc<GeneratedSchema>,
             plugins: Option<Arc<PluginList>>,
-        ) -> Result<String> {
+        ) -> anyhow::Result<String> {
             match self {
                 Serializer::Json { pretty } => pretty
                     .unwrap_or(false)
@@ -101,7 +101,7 @@ pub mod generate {
                     pretty,
                 } => {
                     let res = quick_xml::se::to_string_with_root(root_element, &generated)
-                        .map_err(|e| e.to_string())?;
+                        .map_err(anyhow::Error::new)?;
 
                     if pretty.unwrap_or(false) {
                         format_xml(res.as_bytes())
@@ -110,7 +110,7 @@ pub mod generate {
                     }
                 }
                 Serializer::Plugin { plugin_name, args } => plugins
-                    .ok_or("A plugin serializer is not allowed at this point")?
+                    .ok_or(anyhow!("A plugin serializer is not allowed at this point"))?
                     .get(plugin_name)?
                     .serialize(&generated, args.clone().unwrap_or_default()),
             }

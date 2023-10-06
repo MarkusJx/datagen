@@ -2,7 +2,7 @@ use crate::backends::backend::{Backend, BackendConstructor};
 use crate::objects::args::{BackendType, PluginArgs};
 use crate::objects::geo_data::GeoFeature;
 use crate::SQLITE_MAX_VARIABLE_NUMBER;
-use datagen_rs::util::types::Result;
+use anyhow::anyhow;
 use rand::seq::IteratorRandom;
 use rand::thread_rng;
 use rusqlite::types::Type;
@@ -33,7 +33,7 @@ impl SQLiteBackend {
         .is_ok()
     }
 
-    fn create_table(db: &Connection, table_name: &String) -> Result<()> {
+    fn create_table(db: &Connection, table_name: &String) -> anyhow::Result<()> {
         #[cfg(feature = "log")]
         log::debug!("Creating table '{table_name}'");
 
@@ -51,7 +51,7 @@ impl SQLiteBackend {
         db: &Connection,
         table_name: &String,
         buf: &mut Vec<Value>,
-    ) -> Result<()> {
+    ) -> anyhow::Result<()> {
         if buf.is_empty() {
             return Ok(());
         }
@@ -69,11 +69,11 @@ impl SQLiteBackend {
         Ok(())
     }
 
-    fn str_to_feature(str: &str) -> Result<Value> {
+    fn str_to_feature(str: &str) -> anyhow::Result<Value> {
         serde_json::to_value(serde_json::from_str::<GeoFeature>(str)?).map_err(Into::into)
     }
 
-    fn fill_cache(&mut self, table_name: &String) -> Result<&mut Vec<GeoFeature>> {
+    fn fill_cache(&mut self, table_name: &String) -> anyhow::Result<&mut Vec<GeoFeature>> {
         let mut stmt = self.db.prepare(&format!(
             "select feature from {table_name} order by random() limit ?1"
         ))?;
@@ -85,7 +85,7 @@ impl SQLiteBackend {
                     .map_err(|e| rusqlite::Error::FromSqlConversionFailure(0, Type::Text, e.into()))
             })?
             .map(|e| e.map_err(Into::into))
-            .collect::<Result<Vec<_>>>()?,
+            .collect::<anyhow::Result<Vec<_>>>()?,
         );
 
         #[cfg(feature = "log")]
@@ -99,13 +99,13 @@ impl SQLiteBackend {
 }
 
 impl Backend for SQLiteBackend {
-    fn get_random_feature(&mut self) -> Result<GeoFeature> {
+    fn get_random_feature(&mut self) -> anyhow::Result<GeoFeature> {
         let table_name = {
             let (table_name, data) = self
                 .data_cache
                 .iter_mut()
                 .choose(&mut thread_rng())
-                .ok_or("The data cache is empty".to_string())?;
+                .ok_or(anyhow!("The data cache is empty"))?;
 
             if let Some(feature) = data.pop() {
                 return Ok(feature);
@@ -115,7 +115,7 @@ impl Backend for SQLiteBackend {
         };
 
         let data = self.fill_cache(&table_name)?;
-        data.pop().ok_or("Failed to find data".into())
+        data.pop().ok_or(anyhow!("Failed to find data"))
     }
 
     #[cfg(test)]
@@ -130,16 +130,16 @@ impl Backend for SQLiteBackend {
 }
 
 impl BackendConstructor for SQLiteBackend {
-    fn new(paths: Vec<String>, args: PluginArgs) -> Result<Self> {
+    fn new(paths: Vec<String>, args: PluginArgs) -> anyhow::Result<Self> {
         let BackendType::SQLite {
             database_name,
             batch_size,
             cache_size,
         } = args.backend.unwrap_or_default()
         else {
-            return Err(
-                "Unable to create SQLite backend: The selected backend type is not SQLite".into(),
-            );
+            return Err(anyhow!(
+                "Unable to create SQLite backend: The selected backend type is not SQLite"
+            ));
         };
 
         #[cfg(feature = "log")]
@@ -148,7 +148,7 @@ impl BackendConstructor for SQLiteBackend {
         let db = Connection::open(database_name)?;
         let num_rows = batch_size.unwrap_or(SQLITE_MAX_VARIABLE_NUMBER);
         if num_rows > SQLITE_MAX_VARIABLE_NUMBER {
-            return Err(format!(
+            return Err(anyhow!(
                 "batchSize cannot be greater than {}",
                 SQLITE_MAX_VARIABLE_NUMBER
             )

@@ -32,7 +32,6 @@ pub mod generate {
     use crate::schema::file::{File, FileMode};
     use crate::schema::transform::Transform;
     use crate::util::sequential_vec::SequentialVec;
-    use crate::util::types::Result;
     use once_cell::sync::Lazy;
     use serde_json::Value;
     use std::collections::HashMap;
@@ -43,7 +42,7 @@ pub mod generate {
         Lazy::new(|| Mutex::new(HashMap::new()));
 
     impl IntoGenerated for File {
-        fn into_generated(self, _: CurrentSchemaRef) -> Result<GeneratedSchema> {
+        fn into_generated(self, _: CurrentSchemaRef) -> anyhow::Result<GeneratedSchema> {
             let mut lock = FILES.lock().unwrap();
             let data = match lock.get_mut(&self.path) {
                 Some(val) => val,

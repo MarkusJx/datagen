@@ -6,7 +6,7 @@ use std::fmt::{Debug, Display, Formatter};
 use std::sync::Arc;
 
 pub(crate) struct PluginError {
-    inner: Box<dyn Error>,
+    inner: anyhow::Error,
     #[cfg(feature = "native-plugin")]
     _plugin: Arc<PluginData>,
 }
@@ -19,36 +19,42 @@ pub mod native {
     use crate::plugins::imported_plugin::ImportedPlugin;
     use crate::plugins::plugin::Plugin;
     use crate::util::plugin_error::PluginError;
-    use crate::util::types::Result;
-    use std::error::Error;
+    use anyhow::anyhow;
 
     impl PluginError {
         fn from_error(
-            error: Box<dyn Error>,
+            error: anyhow::Error,
             plugin: &ImportedPlugin,
             func_name: &'static str,
         ) -> Self {
             Self {
-                inner: format!(
-                    "Failed to call function '{func_name}' on plugin '{}': {error}",
+                inner: error.context(anyhow!(
+                    "Failed to call function '{func_name}' on plugin '{}'",
                     plugin.name(),
-                )
-                .into(),
+                )),
                 _plugin: plugin.get_data(),
             }
         }
     }
 
     pub(crate) trait MapPluginError<T> {
-        /// Ensure a plugin throwing an error is still loaded once [`Result<T>::unwrap`]
-        /// or similar is called on the [`Result<T>`]. If this is not called on a thrown
+        /// Ensure a plugin throwing an error is still loaded once [`anyhow::Result<T>::unwrap`]
+        /// or similar is called on the [`anyhow::Result<T>`]. If this is not called on a thrown
         /// error, the plugin may be un-loaded before the error value is retrieved,
         /// causing the program to crash.
-        fn map_plugin_error(self, plugin: &ImportedPlugin, func_name: &'static str) -> Result<T>;
+        fn map_plugin_error(
+            self,
+            plugin: &ImportedPlugin,
+            func_name: &'static str,
+        ) -> anyhow::Result<T>;
     }
 
-    impl<T> MapPluginError<T> for Result<T> {
-        fn map_plugin_error(self, plugin: &ImportedPlugin, func_name: &'static str) -> Result<T> {
+    impl<T> MapPluginError<T> for anyhow::Result<T> {
+        fn map_plugin_error(
+            self,
+            plugin: &ImportedPlugin,
+            func_name: &'static str,
+        ) -> anyhow::Result<T> {
             self.map_err(|e| PluginError::from_error(e, plugin, func_name).into())
         }
     }

@@ -26,11 +26,10 @@ pub mod generate {
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::schema::bool::Bool;
     use crate::schema::transform::Transform;
-    use crate::util::types::Result;
     use rand::Rng;
 
     impl IntoGenerated for Bool {
-        fn into_generated(self, _: CurrentSchemaRef) -> Result<GeneratedSchema> {
+        fn into_generated(self, _: CurrentSchemaRef) -> anyhow::Result<GeneratedSchema> {
             Ok(match self {
                 Bool::Constant { value, .. } => GeneratedSchema::Bool(value),
                 Bool::Random { probability, .. } => {

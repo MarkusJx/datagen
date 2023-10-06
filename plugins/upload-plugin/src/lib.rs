@@ -7,7 +7,6 @@ use crate::objects::upload_args::UploadArgs;
 use datagen_rs::declare_plugin;
 use datagen_rs::generate::generated_schema::GeneratedSchema;
 use datagen_rs::plugins::plugin::Plugin;
-use datagen_rs::util::types::Result;
 use serde_json::{from_value, Value};
 use std::sync::Arc;
 
@@ -19,8 +18,8 @@ impl Plugin for UploadPlugin {
         "upload-plugin".into()
     }
 
-    fn serialize(&self, value: &Arc<GeneratedSchema>, args: Value) -> Result<String> {
-        let args: UploadArgs = from_value(args).map_err(|e| e.to_string())?;
+    fn serialize(&self, value: &Arc<GeneratedSchema>, args: Value) -> anyhow::Result<String> {
+        let args: UploadArgs = from_value(args).map_err(anyhow::Error::new)?;
         args.upload_data(value)?;
 
         if args.return_null.unwrap_or_default() {

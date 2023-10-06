@@ -1,6 +1,5 @@
 use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
 use crate::generate_schema;
-use crate::util::types::Result;
 use serde_json::json;
 use std::sync::Arc;
 
@@ -43,7 +42,7 @@ fn create_object(
     convert_type: &str,
     serialize_non_strings: bool,
     recursive: bool,
-) -> Result<Arc<GeneratedSchema>> {
+) -> anyhow::Result<Arc<GeneratedSchema>> {
     generate_schema!({
         "type": "object",
         "properties": {
@@ -134,7 +133,7 @@ fn create_array(
     convert_type: &str,
     serialize_non_strings: bool,
     recursive: bool,
-) -> Result<Arc<GeneratedSchema>> {
+) -> anyhow::Result<Arc<GeneratedSchema>> {
     generate_schema!({
         "type": "array",
         "length": {

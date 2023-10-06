@@ -41,7 +41,7 @@ pub mod generate {
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::transform::string_case_transform::{ToLowerCase, ToUpperCase};
     use crate::util::traits::generate::TransformTrait;
-    use crate::util::types::Result;
+    use anyhow::anyhow;
     use indexmap::IndexMap;
     use std::sync::Arc;
 
@@ -51,7 +51,7 @@ pub mod generate {
         recursive: bool,
         schema: CurrentSchemaRef,
         value: Arc<GeneratedSchema>,
-    ) -> Result<Arc<GeneratedSchema>> {
+    ) -> anyhow::Result<Arc<GeneratedSchema>> {
         let str = match value.as_ref() {
             GeneratedSchema::String(str) => str.clone(),
             GeneratedSchema::Integer(i) => i.to_string(),
@@ -74,7 +74,7 @@ pub mod generate {
                                         )?,
                                     ))
                                 })
-                                .collect::<Result<IndexMap<_, _>>>()?,
+                                .collect::<anyhow::Result<IndexMap<_, _>>>()?,
                         )
                         .into()),
                         GeneratedSchema::Array(arr) => Ok(GeneratedSchema::Array(
@@ -88,25 +88,23 @@ pub mod generate {
                                         value.clone(),
                                     )
                                 })
-                                .collect::<Result<Vec<_>>>()?,
+                                .collect::<anyhow::Result<Vec<_>>>()?,
                         )
                         .into()),
-                        _ => Err(format!(
+                        _ => Err(anyhow!(
                             "Cannot convert non-string value '{}' to {}case",
                             rest.name(),
                             if upper_case { "upper" } else { "lower" }
-                        )
-                        .into()),
+                        )),
                     };
                 } else if serialize_non_strings {
                     serde_json::to_string(&value)?
                 } else {
-                    return Err(format!(
+                    return Err(anyhow!(
                         "Cannot convert non-string value '{}' to {}case",
                         value.name(),
                         if upper_case { "upper" } else { "lower" }
-                    )
-                    .into());
+                    ));
                 }
             }
         };
@@ -124,7 +122,7 @@ pub mod generate {
             self,
             schema: CurrentSchemaRef,
             value: Arc<GeneratedSchema>,
-        ) -> Result<Arc<GeneratedSchema>> {
+        ) -> anyhow::Result<Arc<GeneratedSchema>> {
             transform_value(
                 true,
                 self.serialize_non_strings
@@ -142,7 +140,7 @@ pub mod generate {
             self,
             schema: CurrentSchemaRef,
             value: Arc<GeneratedSchema>,
-        ) -> Result<Arc<GeneratedSchema>> {
+        ) -> anyhow::Result<Arc<GeneratedSchema>> {
             transform_value(
                 false,
                 self.serialize_non_strings

@@ -22,11 +22,13 @@ pub mod generate {
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::schema::plugin::Plugin;
     use crate::schema::transform::Transform;
-    use crate::util::types::Result;
     use std::sync::Arc;
 
     impl IntoGeneratedArc for Plugin {
-        fn into_generated_arc(self, schema: CurrentSchemaRef) -> Result<Arc<GeneratedSchema>> {
+        fn into_generated_arc(
+            self,
+            schema: CurrentSchemaRef,
+        ) -> anyhow::Result<Arc<GeneratedSchema>> {
             schema
                 .get_plugin(&self.plugin_name)?
                 .generate(schema.clone(), self.args.unwrap_or_default())

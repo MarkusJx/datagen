@@ -21,9 +21,9 @@ use crate::schema::schema_definition::Schema;
 use crate::schema::serializer::Serializer;
 #[cfg(feature = "plugin")]
 use crate::schema::transform::Transform;
+use anyhow::anyhow;
 #[cfg(feature = "native-plugin")]
-use crate::util::types::AnyError;
-use crate::util::types::Result;
+use anyhow::Context;
 #[cfg(feature = "plugin")]
 use serde_json::Value;
 use std::collections::HashMap;
@@ -48,7 +48,7 @@ impl PluginList {
     pub fn from_schema(
         schema: &Schema,
         additional_plugins: Option<HashMap<String, Box<dyn Plugin>>>,
-    ) -> Result<Arc<Self>> {
+    ) -> anyhow::Result<Arc<Self>> {
         let additional = additional_plugins.unwrap_or_default();
         let mut plugins = schema
             .options
@@ -60,9 +60,7 @@ impl PluginList {
                     .filter(|(name, _)| !additional.contains_key(name))
                     .map(|(name, args)| {
                         if additional.contains_key(&name) {
-                            return Err(
-                                format!("A plugin with name '{name}' is already loaded").into()
-                            );
+                            return Err(anyhow!("A plugin with name '{name}' is already loaded"));
                         }
 
                         match args {
@@ -74,7 +72,7 @@ impl PluginList {
                             PluginInitArgs::Value(v) => Self::map_plugin(name, v, None),
                         }
                     })
-                    .collect::<Result<HashMap<_, _>>>()
+                    .collect::<anyhow::Result<HashMap<_, _>>>()
             })
             .map_or(Ok(None), |v| v.map(Some))?
             .unwrap_or_default();
@@ -105,7 +103,7 @@ impl PluginList {
         plugins: &mut HashMap<String, Box<dyn Plugin>>,
         schema: &Schema,
         func: F,
-    ) -> Result<()>
+    ) -> anyhow::Result<()>
     where
         F: Fn(&AnyValue) -> Vec<String>,
     {
@@ -114,7 +112,7 @@ impl PluginList {
                 .into_iter()
                 .filter(|p| !plugins.contains_key(p))
                 .map(|p| Self::map_plugin(p, Value::Null, None))
-                .collect::<Result<HashMap<_, _>>>()?,
+                .collect::<anyhow::Result<HashMap<_, _>>>()?,
         );
 
         Ok(())
@@ -125,13 +123,12 @@ impl PluginList {
         name: String,
         args: Value,
         path: Option<String>,
-    ) -> Result<(String, Box<dyn Plugin>)> {
+    ) -> anyhow::Result<(String, Box<dyn Plugin>)> {
         Ok((
             name.clone(),
             Box::new(
-                ImportedPlugin::load(path.unwrap_or(name.clone()), args).map_err(
-                    |e| -> AnyError { format!("Failed to load plugin '{name}': {e}").into() },
-                )?,
+                ImportedPlugin::load(path.unwrap_or(name.clone()), args)
+                    .context(format!("Failed to load plugin '{name}'"))?,
             ),
         ))
     }
@@ -141,8 +138,8 @@ impl PluginList {
         _name: String,
         _args: Value,
         _path: Option<String>,
-    ) -> Result<(String, Box<dyn Plugin>)> {
-        Err("Native plugin support is not enabled".into())
+    ) -> anyhow::Result<(String, Box<dyn Plugin>)> {
+        Err(anyhow!("Native plugin support is not enabled"))
     }
 
     #[cfg(feature = "plugin")]
@@ -250,11 +247,11 @@ impl PluginList {
         }
     }
 
-    pub fn get<'a>(&'a self, key: &String) -> Result<&'a dyn Plugin> {
+    pub fn get<'a>(&'a self, key: &String) -> anyhow::Result<&'a dyn Plugin> {
         Ok(self
             .plugins
             .get(key)
-            .ok_or(format!("Plugin with name '{key}' is not loaded"))?
+            .ok_or(anyhow!("Plugin with name '{key}' is not loaded"))?
             .as_ref())
     }
 

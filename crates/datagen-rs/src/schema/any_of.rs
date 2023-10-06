@@ -21,14 +21,16 @@ pub mod generate {
     use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
     use crate::schema::any_of::AnyOf;
     use crate::schema::transform::Transform;
-    use crate::util::types::Result;
     use rand::seq::SliceRandom;
     use rand::Rng;
     use std::cmp::Ordering;
     use std::sync::Arc;
 
     impl IntoGeneratedArc for AnyOf {
-        fn into_generated_arc(mut self, schema: CurrentSchemaRef) -> Result<Arc<GeneratedSchema>> {
+        fn into_generated_arc(
+            mut self,
+            schema: CurrentSchemaRef,
+        ) -> anyhow::Result<Arc<GeneratedSchema>> {
             self.values.shuffle(&mut rand::thread_rng());
             let mut num = self.num.unwrap_or(1);
             match num.cmp(&0) {
@@ -41,7 +43,7 @@ pub mod generate {
                 .values
                 .drain(0..num as usize)
                 .map(|value| value.into_random(schema.clone()))
-                .collect::<Result<Vec<_>>>()?;
+                .collect::<anyhow::Result<Vec<_>>>()?;
 
             if values.is_empty() {
                 Ok(Arc::new(GeneratedSchema::None))

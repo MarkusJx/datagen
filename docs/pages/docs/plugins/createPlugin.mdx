@@ -28,7 +28,6 @@ requires the `Debug{:rust}` trait to be implemented.
 use datagen_rs::plugins::plugin::Plugin;
 use datagen_rs::generate::current_schema::CurrentSchemaRef;
 use datagen_rs::generate::generated_schema::GeneratedSchema;
-use datagen_rs::util::types::Result;
 use serde_json::Value;
 
 #[derive(Debug, Default)]
@@ -46,19 +45,27 @@ impl Plugin for MyPlugin {
         schema: CurrentSchemaRef,
         value: Arc<GeneratedSchema>,
         args: Value,
-    ) -> Result<Arc<GeneratedSchema>> {
+    ) -> anyhow::Result<Arc<GeneratedSchema>> {
         // ...
     }
 
     // Optional: Implement the `generate` function
     // if the plugin provides a generator.
-    fn generate(&self, schema: CurrentSchemaRef, args: Value) -> Result<Arc<GeneratedSchema>> {
+    fn generate(
+        &self,
+        schema: CurrentSchemaRef,
+        args: Value
+    ) -> anyhow::Result<Arc<GeneratedSchema>> {
         // ...
     }
 
     // Optional: Implement the `serialize` function
     // if the plugin provides a serializer.
-    fn serialize(&self, value: &CurrentSchemaRef, args: Value) -> Result<String> {
+    fn serialize(
+        &self,
+        value: &CurrentSchemaRef,
+        args: Value
+    ) -> anyhow::Result<String> {
         // ...
     }
 }
@@ -72,7 +79,7 @@ called by `datagen` to create a new instance of the plugin struct.
 use datagen_rs::plugins::plugin::PluginConstructor;
 
 impl PluginConstructor for MyPlugin {
-    fn new(args: Value) -> Result<Self> {
+    fn new(args: Value) -> anyhow::Result<Self> {
         // ...
     }
 }

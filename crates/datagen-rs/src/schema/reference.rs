@@ -31,12 +31,14 @@ pub mod generate {
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::schema::reference::{Reference, StringOrNumber};
     use crate::schema::transform::Transform;
-    use crate::util::types::Result;
     use rand::prelude::SliceRandom;
     use std::sync::Arc;
 
     impl IntoGeneratedArc for Reference {
-        fn into_generated_arc(self, schema: CurrentSchemaRef) -> Result<Arc<GeneratedSchema>> {
+        fn into_generated_arc(
+            self,
+            schema: CurrentSchemaRef,
+        ) -> anyhow::Result<Arc<GeneratedSchema>> {
             let mut reference = self.reference;
             if !reference.starts_with("ref:") {
                 reference = format!("ref:{reference}");
@@ -61,7 +63,7 @@ pub mod generate {
                         Ok(vec![Arc::new(GeneratedSchema::Number(number.into()))])
                     }
                 })
-                .collect::<Result<Vec<_>>>()?
+                .collect::<anyhow::Result<Vec<_>>>()?
                 .into_iter()
                 .flatten()
                 .collect::<Vec<_>>();
