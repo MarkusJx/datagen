@@ -9,6 +9,7 @@ members = [
     "./plugins/openaddresses-plugin",
     "./plugins/progress-plugin",
     "./plugins/upload-plugin",
+    "./plugins/node-plugin",
     "./packages/datagen"
 ]
 

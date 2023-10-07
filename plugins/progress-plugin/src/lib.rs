@@ -42,14 +42,14 @@ impl RandomArrayLength {
 /// A plugin that can be used to track the progress of the data generation.
 /// The plugin will call the given callback with the current progress and
 /// the total number of elements.
-pub struct ProgressPlugin<F: Fn(usize, usize)> {
+pub struct ProgressPlugin<F: Fn(usize, usize) + Send + Sync> {
     total_elements: AtomicUsize,
     progress: AtomicUsize,
     arrays: Mutex<BTreeMap<RandomArrayLength, VecDeque<u32>>>,
     callback: F,
 }
 
-impl<F: Fn(usize, usize)> Debug for ProgressPlugin<F> {
+impl<F: Fn(usize, usize) + Send + Sync> Debug for ProgressPlugin<F> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ProgressPlugin")
             .field("total_elements", &self.total_elements)
@@ -70,7 +70,7 @@ pub struct PluginWithSchemaResult {
     pub plugins: HashMap<String, Box<dyn Plugin>>,
 }
 
-impl<F: Fn(usize, usize)> ProgressPlugin<F> {
+impl<F: Fn(usize, usize) + Send + Sync> ProgressPlugin<F> {
     #[cfg(not(feature = "plugin"))]
     /// Create a new progress plugin instance with the given schema and callback.
     /// The callback will be called with the current progress and the total number of elements.
@@ -334,7 +334,7 @@ impl<F: Fn(usize, usize)> ProgressPlugin<F> {
     }
 }
 
-impl<F: Fn(usize, usize)> Plugin for ProgressPlugin<F> {
+impl<F: Fn(usize, usize) + Send + Sync> Plugin for ProgressPlugin<F> {
     fn name(&self) -> String {
         "progress".into()
     }

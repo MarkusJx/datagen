@@ -13,6 +13,7 @@ path = "src/main.rs"
 [dependencies]
 datagen-rs = { path = "../datagen-rs", features = ["all"], version = "0.1.0" }
 datagen-rs-progress-plugin = { path = "../../plugins/progress-plugin", features = [], default-features = false, version = "0.1.0" }
+datagen-rs-node-plugin = { path = "../../plugins/node-plugin", features = ["nodejs"] }
 clap = { version = "4.4", features = ["derive"] }
 serde_json = { version = "1.0", features = ["preserve_order"] }
 indicatif = "0.17"

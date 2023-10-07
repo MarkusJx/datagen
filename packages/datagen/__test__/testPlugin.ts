@@ -2,7 +2,7 @@ import {
   DatagenPlugin,
   PluginInitFunction,
   CurrentSchema,
-} from '@datagen/types';
+} from 'datagen-rs-types';
 
 class TestPlugin implements DatagenPlugin {
   generate(_schema: CurrentSchema, _args: any): any {

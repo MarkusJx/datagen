@@ -5,7 +5,7 @@ import {
   getJsonSchema,
   getJsonSchemaAsync,
 } from '../.';
-import { DatagenPlugin, CurrentSchema } from '@datagen-rs/types';
+import { DatagenPlugin, CurrentSchema } from 'datagen-rs-types';
 
 test('generate data', async (t) => {
   const generated = await generateRandomData({
