@@ -56,3 +56,44 @@ fn main() {
   println!("{}", generated);
 }
 ```
+
+### Load plugins after initialization
+
+As the `NodeRunner::init` function can only be called once per process, you can use the
+`NodeRunner::load_new_plugins` function to load plugins after initialization.
+
+```rust
+fn main() {
+  let schema = from_str(r#"
+  {
+    "options": {
+      "plugins": {
+        "my-plugin": {
+          "path": "node:my-plugin",
+          "args": {
+            "arg1": "value1",
+            "arg2": "value2"
+          }
+        }
+      }
+    },
+    "type": "plugin",
+    "pluginName": "my-plugin",
+    "args": {
+      "arg1": "value1",
+      "arg2": "value2"
+    }
+  }
+  "#).unwrap();
+
+  let (runner, plugins) = NodeRunner::init(&schema).unwrap();
+  let generated = generate_random_data(schema, Some(plugins)).unwrap();
+
+  println!("{}", generated);
+
+  let new_plugins = runner.load_new_plugins(&schema).unwrap();
+  let generated = generate_random_data(schema, Some(new_plugins)).unwrap();
+
+  println!("{}", generated);
+}
+```
