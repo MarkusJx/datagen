@@ -24,6 +24,15 @@ jobs:
         run: cargo binstall --no-confirm cargo-nextest --secure
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2.2.1
+      - name: Install types dependencies
+        run: npm ci
+        working-directory: packages/types
+      - name: Install test-plugin dependencies
+        run: npm ci
+        working-directory: packages/test-plugin
+      - name: Build test-plugin
+        run: npm run build
+        working-directory: packages/test-plugin
       - name: Run tests
         run: |
           cargo nextest run -p datagen-rs-progress-plugin -p datagen-rs-upload-plugin \
