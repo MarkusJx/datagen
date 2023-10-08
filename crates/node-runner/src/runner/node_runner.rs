@@ -2,62 +2,170 @@ use crate::classes::node_plugin::NodePlugin;
 use crate::runner::node_plugin_args::NodePluginArgs;
 use crate::runner::types::{DropRefsTsfn, PluginMap, PluginMapResult, RefArc};
 use crate::util::napi::run_napi;
+use crate::util::traits::IntoNapiResult;
 use anyhow::{anyhow, Context};
 use datagen_rs::plugins::plugin::Plugin;
+use datagen_rs::plugins::plugin_list::PluginList;
 use datagen_rs::schema::schema_definition::{PluginInitArgs, Schema};
-use napi::threadsafe_function::ThreadsafeFunctionCallMode;
+use napi::threadsafe_function::{
+    ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode,
+};
 use napi::{CallContext, Env, JsError, JsFunction, JsObject, JsUnknown, Ref, ValueType};
 use std::collections::HashMap;
-use std::sync::mpsc::channel;
+use std::sync::mpsc::{channel, Sender};
 use std::sync::{Arc, Mutex};
 
+type RefsVec = Arc<Mutex<Vec<RefArc>>>;
+
+pub struct NodePluginLoader {
+    args: Vec<NodePluginArgs>,
+    sender: Sender<anyhow::Result<(PluginMap, Vec<RefArc>)>>,
+}
+
 pub struct NodeRunner {
+    refs: RefsVec,
     drop_refs: DropRefsTsfn,
+    load_plugins: Mutex<ThreadsafeFunction<NodePluginLoader>>,
 }
 
 impl NodeRunner {
+    /// Initialize the Node.js plugins from a schema.
+    /// This method spawns a new Node.js instance and loads the plugins.
+    /// This method can only be called once per process.
+    /// If you want to load new plugins, use [`Self::load_new_plugins`].
     pub fn init(schema: &Schema) -> anyhow::Result<(Self, PluginMap)> {
-        let node_plugins = schema
-            .options
-            .as_ref()
-            .and_then(|o| o.plugins.as_ref())
-            .map(|plugins| {
-                plugins
-                    .iter()
-                    .filter(|(name, args)| Self::is_node_plugin(name, args))
-                    .map(|(name, args)| NodePluginArgs::from_args(name, args))
-                    .collect::<Vec<_>>()
-            });
-
+        let node_plugins = Self::find_plugins(schema)?;
         let (sender, receiver) = channel::<PluginMapResult>();
 
+        let refs = Arc::new(Mutex::new(Vec::new()));
+        let refs_copy = refs.clone();
         std::thread::spawn(move || {
             run_napi(|env| {
                 sender
-                    .send(Self::load_plugins(env, node_plugins))
+                    .send(Self::load_plugins(env, node_plugins, &refs_copy))
                     .context("Failed to send result of Node.js plugin initialization")
             })
             .context("Failed to initialize Node.js plugins")
             .unwrap();
         });
 
-        let (res, drop_refs) = receiver
+        let (res, drop_refs, load_plugins) = receiver
             .recv()
             .context("Failed to initialize Node.js plugins")??;
 
-        Ok((Self { drop_refs }, res))
+        Ok((
+            Self {
+                drop_refs,
+                load_plugins,
+                refs,
+            },
+            res,
+        ))
     }
 
-    fn load_plugins(env: Env, node_plugins: Option<Vec<NodePluginArgs>>) -> PluginMapResult {
+    pub fn load_new_plugins(&self, schema: &Schema) -> anyhow::Result<PluginMap> {
+        let load_plugins = self.load_plugins.lock().unwrap();
+        let (sender, receiver) = channel();
+
+        load_plugins.call(
+            Ok(NodePluginLoader {
+                sender,
+                args: Self::find_plugins(schema).unwrap_or_default(),
+            }),
+            ThreadsafeFunctionCallMode::NonBlocking,
+        );
+
+        let (plugins, new_refs) = receiver
+            .recv()
+            .context("Failed to receive loaded plugins")??;
+
+        let mut refs = self.refs.lock().unwrap();
+        refs.extend(new_refs);
+
+        Ok(plugins)
+    }
+
+    fn find_plugins(schema: &Schema) -> anyhow::Result<Vec<NodePluginArgs>> {
+        Ok(
+            PluginList::find_and_map_plugins(schema, None, |name, args, path| {
+                if !name.starts_with("node:") && !path.starts_with("node:") {
+                    return Ok(None);
+                }
+
+                let args = PluginInitArgs::Args {
+                    path,
+                    args: Some(args),
+                };
+
+                Ok(Some((
+                    name.clone(),
+                    NodePluginArgs::from_args(&name, &args),
+                )))
+            })?
+            .into_values()
+            .collect(),
+        )
+    }
+
+    fn load_plugins(
+        env: Env,
+        node_plugins: Vec<NodePluginArgs>,
+        refs: &RefsVec,
+    ) -> PluginMapResult {
+        let mut refs_guard = refs.lock().unwrap();
+        let res = Self::load_plugin_list(env, node_plugins, &mut refs_guard);
+
+        let refs_copy = refs.clone();
+        let drop_refs = env.create_function_from_closure("dropRefs", move |ctx| {
+            let refs = refs_copy.lock().unwrap();
+            refs.iter().for_each(|r| {
+                let mut r = r.lock().unwrap();
+                r.unref(*ctx.env).unwrap();
+            });
+
+            Ok(())
+        })?;
+
+        let load_plugins = env.create_function_from_closure("loadPlugins", |ctx| {
+            let loader: &NodePluginLoader = ctx.env.unwrap(&ctx.get(1)?)?;
+            let mut refs = vec![];
+
+            loader
+                .sender
+                .send(
+                    Self::load_plugin_list(*ctx.env, loader.args.clone(), &mut refs)
+                        .map(|r| (r, refs)),
+                )
+                .context("Failed to send result of Node.js plugin initialization")
+                .into_napi()
+        })?;
+
+        Ok((
+            res?,
+            env.create_threadsafe_function(&drop_refs, 1, |_| Ok(Vec::<()>::new()))?,
+            Mutex::new(env.create_threadsafe_function(
+                &load_plugins,
+                1,
+                |ctx: ThreadSafeCallContext<NodePluginLoader>| {
+                    let mut obj = ctx.env.create_object()?;
+                    ctx.env.wrap(&mut obj, ctx.value)?;
+
+                    Ok(vec![obj])
+                },
+            )?),
+        ))
+    }
+
+    fn load_plugin_list(
+        env: Env,
+        args: Vec<NodePluginArgs>,
+        refs: &mut Vec<RefArc>,
+    ) -> anyhow::Result<PluginMap> {
         let require = env
             .get_global()?
             .get_named_property::<JsFunction>("require")?;
 
-        let mut refs = Vec::new();
-
-        let res = node_plugins
-            .into_iter()
-            .flatten()
+        args.into_iter()
             .map(|plugin| {
                 let imported = plugin.import_plugin(env, &require)?;
                 refs.push(imported.clone());
@@ -75,21 +183,7 @@ impl NodeRunner {
                         .context(anyhow!("Failed to create plugin '{}'", plugin.name))?,
                 ))
             })
-            .collect::<anyhow::Result<HashMap<_, _>>>();
-
-        let drop_refs = env.create_function_from_closure("dropRefs", move |ctx| {
-            refs.iter().for_each(|r| {
-                let mut r = r.lock().unwrap();
-                r.unref(*ctx.env).unwrap();
-            });
-
-            Ok(())
-        })?;
-
-        Ok((
-            res?,
-            env.create_threadsafe_function(&drop_refs, 1, |_| Ok(Vec::<()>::new()))?,
-        ))
+            .collect::<anyhow::Result<HashMap<_, _>>>()
     }
 
     fn create_plugin_closure(
@@ -175,16 +269,6 @@ impl NodeRunner {
 
             res
         })
-    }
-
-    fn is_node_plugin(name: &str, args: &PluginInitArgs) -> bool {
-        if name.starts_with("node:") {
-            true
-        } else if let PluginInitArgs::Args { path, .. } = args {
-            path.starts_with("node:")
-        } else {
-            false
-        }
     }
 }
 

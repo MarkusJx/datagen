@@ -1,3 +1,4 @@
+use crate::schema::any::Any;
 use crate::schema::any_value::AnyValue;
 use crate::schema::serializer::Serializer;
 use indexmap::IndexMap;

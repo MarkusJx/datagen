@@ -30,6 +30,8 @@ use std::collections::HashMap;
 #[cfg(feature = "plugin")]
 use std::sync::Arc;
 
+pub type PluginMap = HashMap<String, Box<dyn Plugin>>;
+
 #[derive(Debug)]
 pub struct PluginList {
     plugins: HashMap<String, Box<dyn Plugin>>,
@@ -47,8 +49,22 @@ impl PluginList {
     #[cfg(feature = "plugin")]
     pub fn from_schema(
         schema: &Schema,
-        additional_plugins: Option<HashMap<String, Box<dyn Plugin>>>,
+        additional_plugins: Option<PluginMap>,
     ) -> anyhow::Result<Arc<Self>> {
+        let plugins = Self::find_and_map_plugins(schema, additional_plugins, Self::map_plugin)?;
+
+        Ok(Self { plugins }.into())
+    }
+
+    #[cfg(feature = "plugin")]
+    pub fn find_and_map_plugins<M, R>(
+        schema: &Schema,
+        additional_plugins: Option<HashMap<String, R>>,
+        mapper: M,
+    ) -> anyhow::Result<HashMap<String, R>>
+    where
+        M: Fn(String, Value, String) -> anyhow::Result<Option<(String, R)>>,
+    {
         let additional = additional_plugins.unwrap_or_default();
         let mut plugins = schema
             .options
@@ -58,18 +74,20 @@ impl PluginList {
                 p.clone()
                     .into_iter()
                     .filter(|(name, _)| !additional.contains_key(name))
-                    .map(|(name, args)| {
+                    .filter_map(|(name, args)| {
                         if additional.contains_key(&name) {
-                            return Err(anyhow!("A plugin with name '{name}' is already loaded"));
+                            return Some(Err(anyhow!(
+                                "A plugin with name '{name}' is already loaded"
+                            )));
                         }
 
                         match args {
-                            PluginInitArgs::Args { path, args } => Self::map_plugin(
-                                name,
-                                args.clone().unwrap_or_default(),
-                                Some(path.clone()),
-                            ),
-                            PluginInitArgs::Value(v) => Self::map_plugin(name, v, None),
+                            PluginInitArgs::Args { path, args } => {
+                                mapper(name, args.clone().unwrap_or_default(), path.clone())
+                                    .map_or_else(|e| Some(Err(e)), |v| v.map(Ok))
+                            }
+                            PluginInitArgs::Value(v) => mapper(name.clone(), v, name)
+                                .map_or_else(|e| Some(Err(e)), |v| v.map(Ok)),
                         }
                     })
                     .collect::<anyhow::Result<HashMap<_, _>>>()
@@ -78,8 +96,8 @@ impl PluginList {
             .unwrap_or_default();
 
         plugins.extend(additional);
-        Self::add_plugins(&mut plugins, schema, Self::find_transformers)?;
-        Self::add_plugins(&mut plugins, schema, Self::find_generators)?;
+        Self::add_plugins(&mut plugins, schema, Self::find_transformers, &mapper)?;
+        Self::add_plugins(&mut plugins, schema, Self::find_generators, &mapper)?;
 
         if let Serializer::Plugin { plugin_name, .. } = schema
             .options
@@ -88,30 +106,34 @@ impl PluginList {
             .unwrap_or_default()
         {
             if !plugins.contains_key(plugin_name) {
-                plugins.insert(
-                    plugin_name.clone(),
-                    Self::map_plugin(plugin_name.clone(), Value::Null, None)?.1,
-                );
+                if let Some(mapped) = mapper(plugin_name.clone(), Value::Null, plugin_name.clone())?
+                {
+                    plugins.insert(plugin_name.clone(), mapped.1);
+                }
             }
         }
 
-        Ok(Self { plugins }.into())
+        Ok(plugins)
     }
 
     #[cfg(feature = "plugin")]
-    fn add_plugins<F>(
-        plugins: &mut HashMap<String, Box<dyn Plugin>>,
+    fn add_plugins<F, M, T>(
+        plugins: &mut HashMap<String, T>,
         schema: &Schema,
         func: F,
+        mapper: &M,
     ) -> anyhow::Result<()>
     where
         F: Fn(&AnyValue) -> Vec<String>,
+        M: Fn(String, Value, String) -> anyhow::Result<Option<(String, T)>>,
     {
         plugins.extend(
             func(&schema.value)
                 .into_iter()
                 .filter(|p| !plugins.contains_key(p))
-                .map(|p| Self::map_plugin(p, Value::Null, None))
+                .filter_map(|p| {
+                    mapper(p.clone(), Value::Null, p).map_or_else(|e| Some(Err(e)), |v| v.map(Ok))
+                })
                 .collect::<anyhow::Result<HashMap<_, _>>>()?,
         );
 
@@ -122,22 +144,22 @@ impl PluginList {
     fn map_plugin(
         name: String,
         args: Value,
-        path: Option<String>,
-    ) -> anyhow::Result<(String, Box<dyn Plugin>)> {
-        Ok((
+        path: String,
+    ) -> anyhow::Result<Option<(String, Box<dyn Plugin>)>> {
+        Ok(Some((
             name.clone(),
             Box::new(
-                ImportedPlugin::load(path.unwrap_or(name.clone()), args)
+                ImportedPlugin::load(path, args)
                     .context(format!("Failed to load plugin '{name}'"))?,
             ),
-        ))
+        )))
     }
 
     #[cfg(all(not(feature = "native-plugin"), feature = "plugin"))]
     fn map_plugin(
         _name: String,
         _args: Value,
-        _path: Option<String>,
+        _path: String,
     ) -> anyhow::Result<(String, Box<dyn Plugin>)> {
         Err(anyhow!("Native plugin support is not enabled"))
     }
@@ -208,41 +230,54 @@ impl PluginList {
     #[cfg(feature = "plugin")]
     fn find_transformers(any: &AnyValue) -> Vec<String> {
         match any {
-            AnyValue::Any(any) => match any {
-                Any::Object(object) => Self::find_object_transformers(object),
-                Any::Array(array) => Self::find_array_transformers(array),
-                Any::Flatten(flatten) => Self::find_flatten_transformers(flatten),
-                rest => match rest {
-                    Any::String(str) => str.get_transform(),
-                    Any::AnyOf(any_of) => any_of.get_transform(),
-                    Any::Reference(reference) => reference.get_transform(),
-                    Any::Integer(integer) => IntoGeneratedArc::get_transform(integer),
-                    Any::Number(number) => IntoGeneratedArc::get_transform(number),
-                    Any::Counter(counter) => IntoGeneratedArc::get_transform(counter),
-                    Any::Bool(boolean) => IntoGeneratedArc::get_transform(boolean),
-                    Any::Plugin(plugin) => plugin.get_transform(),
-                    Any::File(file) => IntoGeneratedArc::get_transform(file),
-                    Any::Object(_) => panic!("Object should be handled above"),
-                    Any::Array(_) => panic!("Array should be handled above"),
-                    Any::Flatten(_) => panic!("Flatten should be handled above"),
-                }
-                .map(|t| Self::transformers_to_vec(&t, &[]))
-                .unwrap_or_default(),
-            },
+            AnyValue::Any(any) => Self::find_transformers_in_any(any),
             _ => vec![],
+        }
+    }
+
+    #[cfg(feature = "plugin")]
+    fn find_transformers_in_any(any: &Any) -> Vec<String> {
+        match any {
+            Any::Object(object) => Self::find_object_transformers(object),
+            Any::Array(array) => Self::find_array_transformers(array),
+            Any::Flatten(flatten) => Self::find_flatten_transformers(flatten),
+            rest => match rest {
+                Any::String(str) => str.get_transform(),
+                Any::AnyOf(any_of) => any_of.get_transform(),
+                Any::Reference(reference) => reference.get_transform(),
+                Any::Integer(integer) => IntoGeneratedArc::get_transform(integer),
+                Any::Number(number) => IntoGeneratedArc::get_transform(number),
+                Any::Counter(counter) => IntoGeneratedArc::get_transform(counter),
+                Any::Bool(boolean) => IntoGeneratedArc::get_transform(boolean),
+                Any::Plugin(plugin) => plugin.get_transform(),
+                Any::File(file) => IntoGeneratedArc::get_transform(file),
+                Any::Object(_) => panic!("Object should be handled above"),
+                Any::Array(_) => panic!("Array should be handled above"),
+                Any::Flatten(_) => panic!("Flatten should be handled above"),
+            }
+            .map(|t| Self::transformers_to_vec(&t, &[]))
+            .unwrap_or_default(),
         }
     }
 
     #[cfg(feature = "plugin")]
     fn find_generators(any: &AnyValue) -> Vec<String> {
         match any {
-            AnyValue::Any(Any::Plugin(gen)) => vec![gen.plugin_name.clone()],
-            AnyValue::Any(Any::Object(obj)) => obj
+            AnyValue::Any(any) => Self::find_generators_in_any(any),
+            _ => vec![],
+        }
+    }
+
+    #[cfg(feature = "plugin")]
+    fn find_generators_in_any(any: &Any) -> Vec<String> {
+        match any {
+            Any::Plugin(gen) => vec![gen.plugin_name.clone()],
+            Any::Object(obj) => obj
                 .properties
                 .iter()
                 .flat_map(|(_, val)| Self::find_generators(val))
                 .collect(),
-            AnyValue::Any(Any::Array(arr)) => Self::find_generators(&arr.items),
+            Any::Array(arr) => Self::find_generators(&arr.items),
             _ => vec![],
         }
     }

@@ -5,7 +5,7 @@ use napi::{Env, JsFunction, ValueType};
 use serde_json::Value;
 use std::sync::{Arc, Mutex};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct NodePluginArgs {
     pub name: String,
     pub path: String,
@@ -32,7 +32,7 @@ impl NodePluginArgs {
         let imported = require
             .call(None, &[env.create_string(&self.path)?])
             .context(anyhow!(
-                "Failed to import plugin '{}' at '{}'",
+                "Failed to import plugin '{}' from '{}'",
                 self.name,
                 self.path
             ))?;

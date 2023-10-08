@@ -145,6 +145,13 @@ pub trait Plugin: Debug + Send + Sync {
     fn serialize(&self, value: &Arc<GeneratedSchema>, args: Value) -> anyhow::Result<String> {
         Err(anyhow!("Operation 'serialize' is not supported"))
     }
+
+    fn as_any(&self) -> &dyn std::any::Any
+    where
+        Self: Sized + 'static,
+    {
+        self
+    }
 }
 
 /// A plugin constructor.
