@@ -8,7 +8,8 @@ use datagen_rs::plugins::plugin::Plugin;
 use datagen_rs::plugins::plugin_list::PluginList;
 use datagen_rs::schema::schema_definition::Schema;
 use datagen_rs::util::helpers::{read_schema, write_json_schema};
-use datagen_rs_node_plugin::runner::node_runner::NodeRunner;
+#[cfg(feature = "node")]
+use datagen_rs_node_runner::runner::node_runner::NodeRunner;
 use datagen_rs_progress_plugin::{PluginWithSchemaResult, ProgressPlugin};
 use std::collections::HashMap;
 use std::process::exit;
@@ -60,6 +61,7 @@ fn generate_data(
     progress_bar: &CliProgressRef,
 ) -> anyhow::Result<Option<String>> {
     let progress_bar_copy = progress_bar.clone();
+    #[cfg_attr(not(feature = "node"), allow(unused_mut))]
     let PluginWithSchemaResult {
         schema,
         mut plugins,
@@ -67,12 +69,11 @@ fn generate_data(
         progress_bar_copy.increase(current, total);
     })?;
 
-    let (runner, node_plugins) = NodeRunner::init(&schema)?;
-    println!("{:?}", node_plugins);
+    #[cfg(feature = "node")]
+    let (_runner, node_plugins) = NodeRunner::init(&schema)?;
+    #[cfg(feature = "node")]
     plugins.extend(node_plugins);
-    let (generated, plugins) = generate_random_data(schema, Some(plugins))?;
-    drop(runner);
-    drop(plugins);
+    let (generated, _plugins) = generate_random_data(schema, Some(plugins))?;
 
     if let Some(out_file) = out_file {
         progress_bar.set_message("Writing results to file");

@@ -5,11 +5,11 @@ members = [
     "./crates/datagen-rs",
     "./crates/datagen-wasm",
     "./crates/build-vars",
+    "./crates/node-runner",
     "./plugins/log-plugin",
     "./plugins/openaddresses-plugin",
     "./plugins/progress-plugin",
     "./plugins/upload-plugin",
-    "./plugins/node-plugin",
     "./packages/datagen"
 ]
 

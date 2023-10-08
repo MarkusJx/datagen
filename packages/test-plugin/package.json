@@ -1,0 +1,17 @@
+{
+  "name": "test-plugin",
+  "version": "1.0.0",
+  "private": true,
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "MarkusJx",
+  "license": "MUT",
+  "devDependencies": {
+    "datagen-rs-types": "file:../types",
+    "typescript": "^5.2.2"
+  }
+}

@@ -13,7 +13,7 @@ use serde_json::Value;
 use std::fmt::{Debug, Formatter};
 use std::sync::Arc;
 
-#[cfg_attr(not(feature = "nodejs"), napi)]
+#[napi]
 #[derive(Clone)]
 pub struct NodePlugin {
     name: String,
@@ -25,30 +25,21 @@ pub struct NodePlugin {
 unsafe impl Send for NodePlugin {}
 unsafe impl Sync for NodePlugin {}
 
-#[cfg_attr(not(feature = "nodejs"), napi)]
+#[napi]
 impl NodePlugin {
-    #[cfg_attr(not(feature = "nodejs"), napi(constructor))]
+    #[napi(constructor)]
     pub fn new(
         name: String,
-        #[cfg_attr(
-            not(feature = "nodejs"),
-            napi(
-                ts_arg_type = "(err: Error | null, callback: (res: any) => void, schema: CurrentSchema, args: any) => void"
-            )
+        #[napi(
+            ts_arg_type = "(err: Error | null, callback: (res: any) => void, schema: CurrentSchema, args: any) => void"
         )]
         generate: JsFunction,
-        #[cfg_attr(
-            not(feature = "nodejs"),
-            napi(
-                ts_arg_type = "(err: Error | null, callback: (res: any) => void, schema: CurrentSchema, args: any, value: any) => void"
-            )
+        #[napi(
+            ts_arg_type = "(err: Error | null, callback: (res: any) => void, schema: CurrentSchema, args: any, value: any) => void"
         )]
         transform: JsFunction,
-        #[cfg_attr(
-            not(feature = "nodejs"),
-            napi(
-                ts_arg_type = "(err: Error | null, callback: (res: any) => void, args: any, value: any) => void"
-            )
+        #[napi(
+            ts_arg_type = "(err: Error | null, callback: (res: any) => void, args: any, value: any) => void"
         )]
         serialize: JsFunction,
         env: Env,

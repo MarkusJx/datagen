@@ -1,11 +1,11 @@
 use crate::classes::current_schema::CurrentSchema;
-use anyhow::anyhow;
-use futures::channel::oneshot::{channel, Receiver, Sender};
+use anyhow::{anyhow, Context};
 use napi::bindgen_prelude::FromNapiValue;
 use napi::threadsafe_function::{ThreadsafeFunction, ThreadsafeFunctionCallMode};
 use napi::{CallContext, Env, JsString, JsUnknown, Status};
 use serde_json::Value;
 use std::fmt::Debug;
+use std::sync::mpsc::{channel, Receiver, Sender};
 use std::sync::Mutex;
 
 #[derive(Clone)]
@@ -48,7 +48,9 @@ impl<T: Clone + IntoJsCall + 'static, R: FromNapiValue + Debug + 'static> Plugin
         if status != Status::Ok {
             Err(anyhow!("Could not call function: {:?}", status))
         } else {
-            futures::executor::block_on(rx)?.map_err(anyhow::Error::msg)
+            rx.recv()?
+                .map_err(anyhow::Error::msg)
+                .context("Could not receive result from function")
         }
     }
 
