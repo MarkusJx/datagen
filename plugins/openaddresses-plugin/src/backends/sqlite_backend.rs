@@ -22,6 +22,9 @@ pub(crate) struct SQLiteBackend {
     num_cached: u32,
 }
 
+unsafe impl Send for SQLiteBackend {}
+unsafe impl Sync for SQLiteBackend {}
+
 impl SQLiteBackend {
     #[doc(hidden)]
     pub(crate) fn table_exists(db: &Connection, table_name: &String) -> bool {

@@ -28,7 +28,7 @@ jobs:
         run: |
           cargo nextest run -p datagen-rs-progress-plugin -p datagen-rs-upload-plugin \
           -p datagen-rs-openaddresses-plugin --features sqlite -p datagen-rs --features all \
-          -P ci
+          -p ci -p datagen-rs-node-runner --features nodejs
       - name: Run doc tests
         run: cargo test --doc
       - name: Create test summary

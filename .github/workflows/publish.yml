@@ -107,6 +107,9 @@ jobs:
       - name: Publish upload-plugin
         if: ${{ github.event.inputs.dry-run != 'true' }}
         run: cargo publish -p datagen-rs-upload-plugin
+      - name: Publish node-runner
+        if: ${{ github.event.inputs.dry-run != 'true' }}
+        run: cargo publish -p datagen-rs-node-runner --features nodejs
       # cli
       - name: Publish cli
         if: ${{ github.event.inputs.dry-run != 'true' }}

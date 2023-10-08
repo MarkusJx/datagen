@@ -1,13 +1,17 @@
 use crate::json_string;
 use crate::runner::node_runner::NodeRunner;
+use crate::tests::{assert_error_eq, error_to_string};
 use datagen_rs::plugins::plugin::Plugin;
 use datagen_rs::schema::schema_definition::Schema;
 use datagen_rs::util::helpers::generate_random_data;
 use once_cell::sync::Lazy;
 use serde_json::{json, Value};
 use std::collections::HashMap;
+use std::fmt::format;
 
-static SCHEMA: Lazy<(NodeRunner, HashMap<String, Box<dyn Plugin>>)> = Lazy::new(|| {
+type RunnerPlugins = (NodeRunner, HashMap<String, Box<dyn Plugin>>);
+
+static SCHEMA: Lazy<RunnerPlugins> = Lazy::new(|| {
     napi::__private::register_class("CurrentSchema", None, "CurrentSchema\0", vec![]);
     napi::__private::register_class("NodePluginLoader", None, "NodePluginLoader\0", vec![]);
     let schema = serde_json::from_value(json!({
@@ -149,5 +153,97 @@ fn test_serialize() {
             "init": "test",
             "test": "value"
         })
+    );
+}
+
+#[test]
+fn test_generate_not_implemented() {
+    let schema = get_schema(json!({
+        "type": "plugin",
+        "pluginName": "empty",
+        "args": {
+            "foo": "bar"
+        }
+    }));
+
+    let plugins = SCHEMA.0.load_new_plugins(&schema).unwrap();
+    let err = generate_random_data(schema, Some(plugins)).unwrap_err();
+
+    assert_error_eq(
+        err,
+        anyhow::Error::msg("Plugin does not have a 'generate' function")
+            .context("Could not receive result from function")
+            .context("Failed to call function 'generate' on plugin 'empty'"),
+    );
+}
+
+#[test]
+fn test_transform_not_implemented() {
+    let schema = get_schema(json!({
+        "type": "object",
+        "properties": {
+            "test": "value"
+        },
+        "transform": [
+            {
+                "type": "plugin",
+                "name": "empty",
+                "args": {
+                    "foo": "transform"
+                }
+            }
+        ]
+    }));
+
+    let plugins = SCHEMA.0.load_new_plugins(&schema).unwrap();
+    let err = generate_random_data(schema, Some(plugins)).unwrap_err();
+
+    assert_error_eq(
+        err,
+        anyhow::Error::msg("Plugin does not have a 'transform' function")
+            .context("Could not receive result from function")
+            .context("Failed to call function 'transform' on plugin 'empty'"),
+    );
+}
+
+#[test]
+fn test_serialize_not_implemented() {
+    let schema = serde_json::from_value(json!({
+        "options": {
+            "plugins": {
+                "test": {
+                    "path": "node:../../../packages/test-plugin/dist/TestPlugin.js",
+                    "args": {
+                        "init": "test",
+                    }
+                },
+                "empty": {
+                    "path": "node:../../../packages/test-plugin/dist/EmptyPlugin.js",
+                    "args": null,
+                }
+            },
+            "serializer": {
+                "type": "plugin",
+                "pluginName": "empty",
+                "args": {
+                    "foo": "serialize"
+                }
+            }
+        },
+        "type": "object",
+        "properties": {
+            "test": "value"
+        },
+    }))
+    .unwrap();
+
+    let plugins = SCHEMA.0.load_new_plugins(&schema).unwrap();
+    let err = generate_random_data(schema, Some(plugins)).unwrap_err();
+
+    assert_error_eq(
+        err,
+        anyhow::Error::msg("Plugin does not have a 'serialize' function")
+            .context("Could not receive result from function")
+            .context("Failed to call function 'serialize' on plugin 'empty'"),
     );
 }

@@ -4,7 +4,7 @@ use crate::objects::geo_data::GeoFeature;
 use std::any::Any;
 use std::fmt::Debug;
 
-pub(crate) trait Backend: Debug {
+pub(crate) trait Backend: Debug + Send + Sync {
     fn get_random_feature(&mut self) -> anyhow::Result<GeoFeature>;
 
     #[cfg(test)]
