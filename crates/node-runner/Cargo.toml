@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 nodejs = { version = "0.5.0", features = [], optional = true }
-napi = { path = "../../../napi-rs/crates/napi", version = "2.13.3", features = [
+napi = { git = "https://github.com/napi-rs/napi-rs", version = "2.13.3", features = [
     "napi8",
     "deferred_trace",
     "async",

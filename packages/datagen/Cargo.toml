@@ -7,7 +7,7 @@ version = "0.1.0"
 crate-type = ["cdylib"]
 
 [dependencies]
-napi = { version = "2.13.3", default-features = false, features = [
+napi = { git = "https://github.com/napi-rs/napi-rs", version = "2.13.3", default-features = false, features = [
     "napi8",
     "deferred_trace",
     "async",
