@@ -160,7 +160,7 @@ impl PluginList {
         _name: String,
         _args: Value,
         _path: String,
-    ) -> anyhow::Result<(String, Box<dyn Plugin>)> {
+    ) -> anyhow::Result<Option<(String, Box<dyn Plugin>)>> {
         Err(anyhow!("Native plugin support is not enabled"))
     }
 
