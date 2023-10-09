@@ -2,6 +2,7 @@
 use datagen_rs::util::helpers::get_schema_value;
 #[cfg(feature = "generate")]
 use datagen_rs_progress_plugin::{PluginWithSchemaResult, ProgressPlugin};
+#[cfg(feature = "generate")]
 use js_sys::Function;
 #[cfg(any(feature = "schema", feature = "generate"))]
 use wasm_bindgen::prelude::wasm_bindgen;
@@ -10,11 +11,15 @@ use wasm_bindgen::JsError;
 #[cfg(feature = "generate")]
 use wasm_bindgen::JsValue;
 
+#[cfg(feature = "generate")]
 struct FunctionWrapper(Function);
 
+#[cfg(feature = "generate")]
 unsafe impl Send for FunctionWrapper {}
+#[cfg(feature = "generate")]
 unsafe impl Sync for FunctionWrapper {}
 
+#[cfg(feature = "generate")]
 impl FunctionWrapper {
     fn call1(&self, this: &JsValue, arg: &JsValue) -> Result<JsValue, JsValue> {
         self.0.call1(this, arg)
