@@ -2,12 +2,24 @@
 use datagen_rs::util::helpers::get_schema_value;
 #[cfg(feature = "generate")]
 use datagen_rs_progress_plugin::{PluginWithSchemaResult, ProgressPlugin};
+use js_sys::Function;
 #[cfg(any(feature = "schema", feature = "generate"))]
 use wasm_bindgen::prelude::wasm_bindgen;
 #[cfg(any(feature = "schema", feature = "generate"))]
 use wasm_bindgen::JsError;
 #[cfg(feature = "generate")]
 use wasm_bindgen::JsValue;
+
+struct FunctionWrapper(Function);
+
+unsafe impl Send for FunctionWrapper {}
+unsafe impl Sync for FunctionWrapper {}
+
+impl FunctionWrapper {
+    fn call1(&self, this: &JsValue, arg: &JsValue) -> Result<JsValue, JsValue> {
+        self.0.call1(this, arg)
+    }
+}
 
 #[cfg(feature = "generate")]
 #[wasm_bindgen]
@@ -31,10 +43,11 @@ pub fn get_schema() -> Result<String, JsError> {
 #[wasm_bindgen(js_name = "generateRandomData")]
 pub fn generate_random_data(
     schema: JsValue,
-    progress_callback: Option<js_sys::Function>,
+    progress_callback: Option<Function>,
 ) -> Result<String, JsError> {
     let schema = serde_wasm_bindgen::from_value(schema).map_err(JsError::from)?;
     let (schema, plugins) = if let Some(callback) = progress_callback {
+        let callback = FunctionWrapper(callback);
         let PluginWithSchemaResult { schema, plugins } =
             ProgressPlugin::with_schema(schema, move |current, total| {
                 callback

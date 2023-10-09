@@ -15,7 +15,12 @@ async function run() {
 
   const packageJsons = await glob('**/package.json', {
     cwd,
-    ignore: ['**/node_modules/**', '**/dist/**'],
+    ignore: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/target/**',
+      '**/test-plugin/package.json',
+    ],
     follow: true,
   });
 
