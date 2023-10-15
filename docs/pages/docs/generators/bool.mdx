@@ -1,3 +1,5 @@
+import RunCode from '../../../components/run/RunCode';
+
 # bool
 
 The `bool` generator generates a random or fixed boolean value.
@@ -14,12 +16,14 @@ This mode has one input:
 
 Generate the boolean `true`:
 
+<RunCode>
 ```json
 {
   "type": "bool",
   "value": true
 }
 ```
+</RunCode>
 
 ### Shorthand
 
@@ -30,6 +34,7 @@ In this mode, the generator will generate a boolean value.
 
 Generate the boolean `false` inside an object:
 
+<RunCode>
 ```json
 {
   "type": "object",
@@ -38,6 +43,7 @@ Generate the boolean `false` inside an object:
   }
 }
 ```
+</RunCode>
 
 ## Random mode
 
@@ -50,17 +56,21 @@ This mode has one optional input:
 
 Generate a random boolean value:
 
+<RunCode>
 ```json
 {
   "type": "bool"
 }
 ```
+</RunCode>
 
 Generate a random boolean value with a custom probability:
 
+<RunCode>
 ```json
 {
   "type": "bool",
   "probability": 0.75
 }
 ```
+</RunCode>

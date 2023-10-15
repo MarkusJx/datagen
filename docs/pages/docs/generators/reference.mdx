@@ -1,3 +1,5 @@
+import RunCode from '../../../components/run/RunCode';
+
 # reference
 
 A reference is a way to copy the contents of one field into another field.
@@ -19,6 +21,7 @@ the normalized path to the field to reference.
 
 Generate a random UUID and copy it into another field:
 
+<RunCode>
 ```json
 {
   "type": "object",
@@ -33,6 +36,7 @@ Generate a random UUID and copy it into another field:
   }
 }
 ```
+</RunCode>
 
 ### Using the `reference` generator
 
@@ -53,6 +57,7 @@ This generator has three inputs:
 
 Generate a random UUID and copy it into another field:
 
+<RunCode>
 ```json
 {
   "type": "object",
@@ -70,6 +75,7 @@ Generate a random UUID and copy it into another field:
   }
 }
 ```
+</RunCode>
 
 For a more complex example, check out the [complex reference example](../../examples/complex-reference.md).
 
@@ -81,6 +87,7 @@ array fields, instead it only consists of the names of fields inside objects.
 
 For example if you have the following schema:
 
+<RunCode>
 ```json
 {
   "type": "object",
@@ -97,6 +104,7 @@ For example if you have the following schema:
   }
 }
 ```
+</RunCode>
 
 The path to the `field2` field is `"field1.field2"`.
 If you want to reference the `field2` field from the root object, you can use
@@ -109,6 +117,7 @@ the field for each item in the array.
 
 For example, if you have the following schema:
 
+<RunCode>
 ```json
 {
   "type": "object",
@@ -128,6 +137,7 @@ For example, if you have the following schema:
   }
 }
 ```
+</RunCode>
 
 The path to the `field2` field is still `"field1.field2"` since the reference
 path does not contain the indices of the array. When referencing the `field2`
@@ -162,6 +172,7 @@ If you want to reference a field inside the grandparent object, you can use
 **Note:** When traversing up the object tree with an array inside, the field's index
 will count as an object. For example, if you have this schema:
 
+<RunCode>
 ```json
 {
   "type": "object",
@@ -183,6 +194,7 @@ will count as an object. For example, if you have this schema:
   }
 }
 ```
+</RunCode>
 
 The reference `"ref:../../field1"` will reference the `field1` field inside the
 parent object, not the grandparent object. This is because the item's index as
@@ -216,6 +228,7 @@ results, assuming all fields being referenced have been created, which is hardly
 
 Get all the `field1` fields from the root object:
 
+<RunCode>
 ```json
 {
   "type": "object",
@@ -237,6 +250,7 @@ Get all the `field1` fields from the root object:
   }
 }
 ```
+</RunCode>
 
 Both `field2.field1` and `field2.field2` as well as `field1` will be set to `"test"`.
 
