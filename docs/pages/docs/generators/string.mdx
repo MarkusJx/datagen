@@ -1,3 +1,5 @@
+import RunCode from '../../../components/run/RunCode';
+
 # string
 
 A `string` value. This generator can be accessed by a [shorthand](#shorthand) command or
@@ -17,6 +19,7 @@ with the value of the referenced field.
 
 Insert a fixed string value names "city" inside an object:
 
+<RunCode>
 ```json
 {
   "type": "object",
@@ -25,6 +28,7 @@ Insert a fixed string value names "city" inside an object:
   }
 }
 ```
+</RunCode>
 
 ## Generators
 
@@ -37,6 +41,7 @@ to generate the values.
 The `uuid` generator generates a random
 [universally unique identifier](https://en.wikipedia.org/wiki/Universally_unique_identifier):
 
+<RunCode>
 ```json
 {
   "type": "string",
@@ -45,11 +50,13 @@ The `uuid` generator generates a random
   }
 }
 ```
+</RunCode>
 
 ### email
 
 The `email` generator generates a random e-mail address:
 
+<RunCode>
 ```json
 {
   "type": "string",
@@ -58,11 +65,13 @@ The `email` generator generates a random e-mail address:
   }
 }
 ```
+</RunCode>
 
 ### firstName
 
 The `firstName` generator generates a random first name:
 
+<RunCode>
 ```json
 {
   "type": "string",
@@ -71,11 +80,13 @@ The `firstName` generator generates a random first name:
   }
 }
 ```
+</RunCode>
 
 ### lastName
 
 The `lastName` generator generates a random last name:
 
+<RunCode>
 ```json
 {
   "type": "string",
@@ -84,6 +95,7 @@ The `lastName` generator generates a random last name:
   }
 }
 ```
+</RunCode>
 
 ### fullName
 
@@ -91,6 +103,7 @@ The `fullName` generator generates a random first and last name.
 Please note that this generator does not output a name
 related to [`firstName`](#firstname) or [`lastName`](#lastname).
 
+<RunCode>
 ```json
 {
   "type": "string",
@@ -99,11 +112,13 @@ related to [`firstName`](#firstname) or [`lastName`](#lastname).
   }
 }
 ```
+</RunCode>
 
 ### username
 
 The `username` generator generates a random (internet) username.
 
+<RunCode>
 ```json
 {
   "type": "string",
@@ -112,11 +127,13 @@ The `username` generator generates a random (internet) username.
   }
 }
 ```
+</RunCode>
 
 ### city
 
 The `city` generator generates a random city name.
 
+<RunCode>
 ```json
 {
   "type": "string",
@@ -125,11 +142,13 @@ The `city` generator generates a random city name.
   }
 }
 ```
+</RunCode>
 
 ### country
 
 The `country` generator generates a random country name.
 
+<RunCode>
 ```json
 {
   "type": "string",
@@ -138,12 +157,14 @@ The `country` generator generates a random country name.
   }
 }
 ```
+</RunCode>
 
 ### countryCode
 
 The `countryCode` generator generates a random
 [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) country code.
 
+<RunCode>
 ```json
 {
   "type": "string",
@@ -152,11 +173,13 @@ The `countryCode` generator generates a random
   }
 }
 ```
+</RunCode>
 
 ### street
 
 The `street` generator generates a random street name.
 
+<RunCode>
 ```json
 {
   "type": "string",
@@ -165,11 +188,13 @@ The `street` generator generates a random street name.
   }
 }
 ```
+</RunCode>
 
 ### state
 
 The `state` generator generates a random state name.
 
+<RunCode>
 ```json
 {
   "type": "string",
@@ -178,11 +203,13 @@ The `state` generator generates a random state name.
   }
 }
 ```
+</RunCode>
 
 ### zipCode
 
 The `zipCode` generator generates a random zip code.
 
+<RunCode>
 ```json
 {
   "type": "string",
@@ -191,6 +218,7 @@ The `zipCode` generator generates a random zip code.
   }
 }
 ```
+</RunCode>
 
 ### latitude
 
@@ -199,6 +227,7 @@ While it is _not technically_ a string generator, as it outputs numbers, the
 place for it. If a string value is required, simply convert the latitude into a string
 using [`format`](#format).
 
+<RunCode>
 ```json
 {
   "type": "string",
@@ -207,9 +236,11 @@ using [`format`](#format).
   }
 }
 ```
+</RunCode>
 
 Get the latitude as a string:
 
+<RunCode>
 ```json
 {
   "type": "string",
@@ -226,11 +257,13 @@ Get the latitude as a string:
   }
 }
 ```
+</RunCode>
 
 ### longitude
 
 Equal to [`latitude`](#latitude), the `longitude` generator generates a random longitude.
 
+<RunCode>
 ```json
 {
   "type": "string",
@@ -239,11 +272,13 @@ Equal to [`latitude`](#latitude), the `longitude` generator generates a random l
   }
 }
 ```
+</RunCode>
 
 ### phone
 
 The `phone` generator generates a random phone number.
 
+<RunCode>
 ```json
 {
   "type": "string",
@@ -252,6 +287,7 @@ The `phone` generator generates a random phone number.
   }
 }
 ```
+</RunCode>
 
 ### format
 
@@ -260,7 +296,7 @@ templates. This generator requires the following inputs:
 
 - `format`: The format to use
 - `args`: An key-value object containing the values to fill in. The value may be
-  a simple string a [`string` schema](string.md), a simple number or a [`reference`](reference.md).
+  a simple string a [`string` schema](string.mdx), a simple number or a [`reference`](reference.mdx).
 - `serializeNonStrings`: Whether to serialize non-string values to strings if they are
   already not string values. If set to false and a non-string is passed in through
   a [reference](#references), an error will be returned. This does not
@@ -269,6 +305,7 @@ templates. This generator requires the following inputs:
 
 #### Example: Generate the full name of a person
 
+<RunCode>
 ```json
 {
   "type": "object",
@@ -299,6 +336,7 @@ templates. This generator requires the following inputs:
   }
 }
 ```
+</RunCode>
 
 The result will look something like this:
 
@@ -312,18 +350,19 @@ The result will look something like this:
 
 ## References
 
-Fixed string values may also be a [reference](reference.md). Reference strings start
+Fixed string values may also be a [reference](reference.mdx). Reference strings start
 with the value `"ref:"` and contain the normalized path to the field to reference.
 If found, the value of the referenced field will be inserted where the reference string
-was placed. Check the [reference](reference.md) page on further information on references.
+was placed. Check the [reference](reference.mdx) page on further information on references.
 The result is not limited to strings, it will have the type of the referenced field,
 whatever that may be.
 
 ### Example 1: Copy string
 
-Reference a field inside the [current object](reference.md#local-reference) using a
+Reference a field inside the [current object](reference.mdx#local-reference) using a
 shorthand string expression, copying its contents into its current position:
 
+<RunCode>
 ```json
 {
   "type": "object",
@@ -338,6 +377,7 @@ shorthand string expression, copying its contents into its current position:
   }
 }
 ```
+</RunCode>
 
 Will result in:
 
@@ -351,9 +391,10 @@ Will result in:
 ### Example 2: Copy an object
 
 Copying any other value works just like copying strings.
-Copy an object to the current position using a [global reference](reference.md#global-reference)
+Copy an object to the current position using a [global reference](reference.mdx#global-reference)
 an not using a shorthand string value:
 
+<RunCode>
 ```json
 {
   "type": "object",
@@ -382,6 +423,7 @@ an not using a shorthand string value:
   }
 }
 ```
+</RunCode>
 
 Will produce a result similar to this:
 

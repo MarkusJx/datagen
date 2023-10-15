@@ -10,6 +10,7 @@ import useDemoWorker from '../../hooks/useDemoWorker';
 import Center from '../Center';
 import useLocalStorage from '../../hooks/useLocalStorage';
 import EditorActions from './EditorActions';
+import { useRouter } from 'next/router';
 
 const DemoElements: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
@@ -27,6 +28,7 @@ const DemoElements: React.FC = () => {
     workerError,
     generateRandomData,
   } = useDemoWorker();
+  const router = useRouter();
 
   const handleGenerateProgress = (progress: number) => {
     setGenerateProgress(progress * 100);
@@ -39,8 +41,14 @@ const DemoElements: React.FC = () => {
 
   useEffect(() => {
     if (schemaLoaded && workerInitialized) {
+      let codeQuery = router.query['code'] as string | undefined;
+      if (codeQuery) {
+        codeQuery = atob(codeQuery);
+        setSchema(codeQuery);
+      }
+
       generateRandomData(
-        schema,
+        codeQuery ?? schema,
         setGenerating,
         setGenerated,
         false,

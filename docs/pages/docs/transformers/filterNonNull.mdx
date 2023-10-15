@@ -1,3 +1,5 @@
+import RunCode from '../../../components/run/RunCode';
+
 # filterNonNull
 
 The `filterNonNull` transformer removes all `null` values from an array or object.
@@ -8,6 +10,7 @@ The `filterNonNull` transformer has no additional properties.
 
 ### Remove all `null` values from an array
 
+<RunCode>
 ```json
 {
   "type": "array",
@@ -19,6 +22,7 @@ The `filterNonNull` transformer has no additional properties.
   ]
 }
 ```
+</RunCode>
 
 Will result in:
 
@@ -28,6 +32,7 @@ Will result in:
 
 ### Remove all names matching `John` from an object
 
+<RunCode>
 ```json
 {
   "type": "object",
@@ -54,6 +59,7 @@ Will result in:
   ]
 }
 ```
+</RunCode>
 
 Will result in:
 

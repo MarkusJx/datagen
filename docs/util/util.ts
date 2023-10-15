@@ -54,3 +54,13 @@ export const getSchemaFormat = (schema: string): SchemaFormat => {
 
   return SchemaFormat.JSON;
 };
+
+export const getCodeBlockCode = (codeBlock: HTMLDivElement): string => {
+  const code = codeBlock.querySelector('pre > code') as HTMLElement;
+
+  const codeString = code.innerText;
+  const codeLines = codeString.split('\n');
+  const codeIndent = codeLines[0]?.match(/^\s*/)?.[0] ?? '';
+
+  return codeLines.map((line) => line.replace(codeIndent, '')).join('\n');
+};

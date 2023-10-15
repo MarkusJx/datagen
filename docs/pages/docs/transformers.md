@@ -29,11 +29,11 @@ Will generate:
 
 ## Available Transformers
 
-- [`filter`](transformers/filter.md)
-- [`filterNonNull`](transformers/filterNonNull.md)
-- [`toString`](transformers/toString.md)
-- [`toLowerCase`](transformers/toLowerCase.md)
-- [`toUpperCase`](transformers/toUpperCase.md)
+- [`filter`](transformers/filter.mdx)
+- [`filterNonNull`](transformers/filterNonNull.mdx)
+- [`toString`](transformers/toString.mdx)
+- [`toLowerCase`](transformers/toLowerCase.mdx)
+- [`toUpperCase`](transformers/toUpperCase.mdx)
 - [`plugin`](transformers/plugin.md)
-- [`sort`](transformers/sort.md)
-- [`regexFilter`](transformers/regexFilter.md)
+- [`sort`](transformers/sort.mdx)
+- [`regexFilter`](transformers/regexFilter.mdx)

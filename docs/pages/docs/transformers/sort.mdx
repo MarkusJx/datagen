@@ -1,13 +1,14 @@
+import RunCode from '../../../components/run/RunCode';
+
 # sort
 
 The `sort` transformer sorts an input array.
 
 It takes the following arguments:
 
-\*`by`: The key to sort by. If not specified, the array is sorted by its values,
-assuming the values are comparable. If the values are not comparable, an error
-will be thrown.
-
+- `by`: The key to sort by. If not specified, the array is sorted by its values,
+  assuming the values are comparable. If the values are not comparable, an error
+  will be thrown.
 - `reverse`: If true, the array is sorted in reverse order.
 
 The sort key can be a string, referencing a value of an object
@@ -17,6 +18,7 @@ in the array. This does only work for objects nested directly in the array,
 
 ### Sort an integer array
 
+<RunCode>
 ```json
 {
   "type": "array",
@@ -33,9 +35,11 @@ in the array. This does only work for objects nested directly in the array,
   }
 }
 ```
+</RunCode>
 
 ### Sort an object array
 
+<RunCode>
 ```json
 {
   "type": "array",
@@ -63,3 +67,4 @@ in the array. This does only work for objects nested directly in the array,
   }
 }
 ```
+</RunCode>
