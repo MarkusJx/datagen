@@ -55,8 +55,8 @@ pub mod generate {
             let value = if self.path_specific.unwrap_or(false) {
                 fetch_inc_path_specific_counter(&schema.path().to_normalized_path())
             } else {
-                if COUNTER.load(ordering::SeqCst) == 0 {
-                    COUNTER.store(self.start.unwrap_or(0), ordering::SeqCst);
+                if COUNTER.load(Ordering::SeqCst) == 0 {
+                    COUNTER.store(self.start.unwrap_or(0), Ordering::SeqCst);
                 }
 
                 COUNTER.fetch_add(1, Ordering::SeqCst)
