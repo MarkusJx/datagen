@@ -1,3 +1,5 @@
+import RunCode from '../../../components/run/RunCode';
+
 # integer
 
 The `number` generator generates a random or fixed integer.
@@ -14,12 +16,14 @@ This mode has one input:
 
 Generate the number `10`:
 
+<RunCode>
 ```json
 {
   "type": "integer",
   "value": 10
 }
 ```
+</RunCode>
 
 ### Shorthand
 
@@ -30,6 +34,7 @@ In this mode, the generator will generate a fixed integer.
 
 Generate the number `10` inside an object:
 
+<RunCode>
 ```json
 {
   "type": "object",
@@ -38,6 +43,7 @@ Generate the number `10` inside an object:
   }
 }
 ```
+</RunCode>
 
 ## Random mode
 
@@ -51,14 +57,17 @@ This mode has two optional inputs:
 
 Generate a random integer:
 
+<RunCode>
 ```json
 {
   "type": "number"
 }
 ```
+</RunCode>
 
 Generate a random integer between `0` and `100`:
 
+<RunCode>
 ```json
 {
   "type": "number",
@@ -66,3 +75,4 @@ Generate a random integer between `0` and `100`:
   "max": 100
 }
 ```
+</RunCode>

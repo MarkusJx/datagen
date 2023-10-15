@@ -1,3 +1,5 @@
+import RunCode from '../../../components/run/RunCode';
+
 # filter
 
 The `filter` transformer is used to filter values by converting
@@ -15,6 +17,7 @@ The `filter` transformer has the following properties:
 
 ## Example
 
+<RunCode>
 ```json
 {
   "type": "object",
@@ -38,6 +41,7 @@ The `filter` transformer has the following properties:
   ]
 }
 ```
+</RunCode>
 
 Will result in
 
@@ -48,5 +52,5 @@ Will result in
 }
 ```
 
-You can combine this filter with [`filterNonNull`](filterNonNull.md) to remove
+You can combine this filter with [`filterNonNull`](filterNonNull.mdx) to remove
 all names matching `John`.

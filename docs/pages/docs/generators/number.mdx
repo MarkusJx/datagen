@@ -1,3 +1,5 @@
+import RunCode from '../../../components/run/RunCode';
+
 # number
 
 The `number` generator generates a random or fixed floating point number.
@@ -14,12 +16,14 @@ This mode has one input:
 
 Generate the number `10.5`:
 
+<RunCode>
 ```json
 {
   "type": "number",
   "value": 10.5
 }
 ```
+</RunCode>
 
 ### Shorthand
 
@@ -30,6 +34,7 @@ In this mode, the generator will generate a fixed floating point number.
 
 Generate the number `10.5` inside an object:
 
+<RunCode>
 ```json
 {
   "type": "object",
@@ -38,6 +43,7 @@ Generate the number `10.5` inside an object:
   }
 }
 ```
+</RunCode>
 
 ## Random mode
 
@@ -52,14 +58,17 @@ This mode has three optional inputs:
 
 Generate a random floating point number:
 
+<RunCode>
 ```json
 {
   "type": "number"
 }
 ```
+</RunCode>
 
 Generate a random floating point number between `0.0` and `100.0` with a precision of `2`:
 
+<RunCode>
 ```json
 {
   "type": "number",
@@ -68,3 +77,4 @@ Generate a random floating point number between `0.0` and `100.0` with a precisi
   "precision": 2
 }
 ```
+</RunCode>
