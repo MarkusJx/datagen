@@ -5,6 +5,7 @@
   "number": "number",
   "string": "string",
   "bool": "bool",
+  "counter": "counter",
   "anyof": "anyOf",
   "flatten": "flatten",
   "plugin": "plugin",
