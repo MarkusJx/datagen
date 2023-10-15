@@ -7,8 +7,8 @@ A generator which generates a number that increments each time it is called.
 - `step` (optional): The amount to increment the counter by each time it is called. Defaults to `1`. Can be negative.
 - `start` (optional): The number to start the counter at. Defaults to `0`.
 - `pathSpecific` (optional): Whether to use a counter specific to the path of the
-element generated. Defaults to `false`. If set to `true`, the counter will be
-incremented each time the generator is called with the same path.
+  element generated. Defaults to `false`. If set to `true`, the counter will be
+  incremented each time the generator is called with the same path.
 
 ## Example
 
