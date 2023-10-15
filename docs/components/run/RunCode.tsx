@@ -3,6 +3,7 @@ import React, { useEffect, useRef } from 'react';
 import { renderChild } from '../../util/renderChild';
 import { BsPlay } from 'react-icons/bs';
 import { getCodeBlockCode } from '../../util/util';
+import { useRouter } from 'next/router';
 
 interface Props {
   children: React.ReactNode;
@@ -11,6 +12,7 @@ interface Props {
 
 const RunCode: React.FC<Props> = ({ children, printUgly }) => {
   const ref = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const parent = ref.current?.querySelectorAll('button')?.item(0)
@@ -36,16 +38,13 @@ const RunCode: React.FC<Props> = ({ children, printUgly }) => {
       };
     }
 
-    const url = `${document.location.origin}/demo/?code=${encodeURIComponent(
-      btoa(JSON.stringify(codeObj, null, 2))
-    )}`;
+    const url =
+      '/demo/?code=' +
+      encodeURIComponent(btoa(JSON.stringify(codeObj, null, 2)));
 
     parent.appendChild(
       renderChild(
-        <Button
-          title="Run example"
-          onClick={() => (document.location.href = url)}
-        >
+        <Button title="Run example" onClick={() => router.push(url)}>
           <BsPlay size={22} />
         </Button>,
         'div',
