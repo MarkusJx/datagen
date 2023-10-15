@@ -6,14 +6,14 @@ A reference is a way to copy the contents of one field into another field.
 The copied contents may be of any type, including objects and arrays, but
 this can be limited by the type of the field that is being copied into.
 
-For example, the [`format` string generator](string.md#format) only accepts
+For example, the [`format` string generator](string.mdx#format) only accepts
 strings unless the `serializeNonStrings` option is set to `true`.
 
 ## Creating a reference
 
-### Using a [`string`](string.md#references) value
+### Using a [`string`](string.mdx#references) value
 
-A reference may be created using the [`string`](string.md) generator
+A reference may be created using the [`string`](string.mdx) generator
 and setting the value to a string that starts with `"ref:"` and contains
 the normalized path to the field to reference.
 
@@ -77,7 +77,7 @@ Generate a random UUID and copy it into another field:
 ```
 </RunCode>
 
-For a more complex example, check out the [complex reference example](../../examples/complex-reference.md).
+For a more complex example, check out the [complex reference example](../../examples/complex-reference.mdx).
 
 ## The reference path
 
@@ -212,7 +212,7 @@ the index of an array counts as an object when traversing up the object tree.
 It also has a few advantages, for example, if you want to reference a field inside an
 object inside an array from inside that object without referencing all other fields
 inside the array, you can traverse up the object tree and still keep the index of
-the current object. The [complex reference example](../../examples/complex-reference.md)
+the current object. The [complex reference example](../../examples/complex-reference.mdx)
 shows an example of this.
 
 ### Global reference
@@ -260,5 +260,5 @@ When referencing a field inside the current object, it is possible to exclude
 a field being referenced. This is useful when the reference is inside the
 field being referenced.
 
-Check out the [complex reference example](../../examples/complex-reference.md) for
+Check out the [complex reference example](../../examples/complex-reference.mdx) for
 an example of excluding references.
