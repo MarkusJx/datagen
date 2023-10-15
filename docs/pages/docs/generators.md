@@ -11,6 +11,7 @@ You can also create your own generators.
 - [`number`](generators/number.md)
 - [`string`](generators/string.md)
 - [`bool`](generators/bool.md)
+- [`counter`](generators/counter.md)
 - [`anyOf`](generators/anyof.md)
 - [`flatten`](generators/flatten.md)
 - [`plugin`](generators/plugin.md)
