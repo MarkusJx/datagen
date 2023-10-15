@@ -23,7 +23,7 @@ const EditorActions: React.FC<Props> = ({
   schema,
   disabled,
 }) => {
-  const [theme] = useThemesWithColor('#333333', '#d2d2d2');
+  const [theme] = useThemesWithColor('#d2d2d2', '#333333');
 
   const handleDownload = () => {
     const format = getSchemaFormat(schema);

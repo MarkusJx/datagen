@@ -1,17 +1,20 @@
+import RunCode from '../../components/run/RunCode';
+
 # Complex reference
 
-This example schema creates an array of 100 to 10000 people with a random number of related persons.
+This example schema creates an array of 10 to 100 people with a random number of related persons.
 The [`reference`](../docs/generators/reference.md) generator is used to create a relationship between two people.
 
 An exception is added to that [`reference`](../docs/generators/reference.md) generator in order to prevent a
 person from being related to themselves or to the same person twice.
 
+<RunCode>
 ```json
 {
   "type": "array",
   "length": {
-    "min": 100,
-    "max": 10000
+    "min": 10,
+    "max": 100
   },
   "items": {
     "type": "object",
@@ -62,6 +65,7 @@ person from being related to themselves or to the same person twice.
   }
 }
 ```
+</RunCode>
 
 ## Explanation
 
