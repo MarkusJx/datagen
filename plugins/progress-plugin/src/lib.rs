@@ -317,7 +317,7 @@ impl<F: Fn(usize, usize)> ProgressPlugin<F> {
 
                 let entry = arrays
                     .entry(RandomArrayLength::new(*min, *max))
-                    .or_insert_with(VecDeque::new);
+                    .or_default();
                 let mut rng = rand::thread_rng();
                 let res = rng.gen_range(*min..=*max);
                 entry.push_back(res);
