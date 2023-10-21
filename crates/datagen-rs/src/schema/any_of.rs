@@ -11,6 +11,7 @@ use serde::{Deserialize, Serialize};
 pub struct AnyOf {
     pub values: Vec<AnyValue>,
     pub num: Option<i64>,
+    pub allow_null: Option<bool>,
     pub transform: Option<Vec<Transform>>,
 }
 
@@ -32,10 +33,18 @@ pub mod generate {
             schema: CurrentSchemaRef,
         ) -> anyhow::Result<Arc<GeneratedSchema>> {
             self.values.shuffle(&mut rand::thread_rng());
+            let min = if self.allow_null.unwrap_or(false) {
+                0
+            } else {
+                1
+            };
+
             let mut num = self.num.unwrap_or(1);
             match num.cmp(&0) {
                 Ordering::Equal => num = self.values.len() as i64,
-                Ordering::Less => num = rand::thread_rng().gen_range(0..self.values.len() as i64),
+                Ordering::Less => {
+                    num = rand::thread_rng().gen_range(min..=self.values.len() as i64)
+                }
                 _ => {}
             }
 

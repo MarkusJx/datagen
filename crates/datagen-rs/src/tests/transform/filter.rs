@@ -4,20 +4,16 @@ use crate::generate_schema;
 use crate::schema::any_value::AnyValue;
 use crate::schema::object::Object;
 use crate::schema::string::StringSchema;
-use crate::schema::transform::{ReferenceOrString, Transform};
+use crate::schema::transform::Transform;
 use crate::tests::util::root_schema;
 use crate::transform::filter::{FilterTransform, FilterTransformOp};
 use serde_json::json;
 
-fn create_filter(
-    operator: FilterTransformOp,
-    other: GeneratedSchema,
-    field: Option<ReferenceOrString>,
-) -> Transform {
+fn create_filter(operator: FilterTransformOp, other: GeneratedSchema) -> Transform {
     Transform::Filter(FilterTransform {
         operator,
         other,
-        field,
+        field: None,
     })
 }
 
@@ -30,7 +26,6 @@ fn test_simple_filter() {
         transform: Some(vec![create_filter(
             FilterTransformOp::Equals,
             GeneratedSchema::String("test".to_string()),
-            None,
         )]),
     };
     let generated = str.clone().into_random(schema.clone()).unwrap();
@@ -44,7 +39,6 @@ fn test_simple_filter() {
         transform.replace(vec![create_filter(
             FilterTransformOp::NotEquals,
             GeneratedSchema::String("test".to_string()),
-            None,
         )]);
     }
 
@@ -63,7 +57,6 @@ fn test_filter_reference() {
         transform: Some(vec![create_filter(
             FilterTransformOp::Equals,
             GeneratedSchema::String("test".to_string()),
-            Some(ReferenceOrString::String("ref:./test".to_string())),
         )]),
     };
 
@@ -85,11 +78,18 @@ fn test_filter_reference() {
     obj.transform.replace(vec![create_filter(
         FilterTransformOp::NotEquals,
         GeneratedSchema::String("test".to_string()),
-        Some(ReferenceOrString::String("ref:./test".to_string())),
     )]);
     let generated = obj.into_random(schema).unwrap();
 
-    assert_eq!(generated, GeneratedSchema::None.into());
+    assert_eq!(
+        generated,
+        GeneratedSchema::Object(
+            vec![("test".to_string(), GeneratedSchema::None.into())]
+                .into_iter()
+                .collect()
+        )
+        .into()
+    );
 }
 
 #[test]
