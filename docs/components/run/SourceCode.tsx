@@ -27,11 +27,7 @@ const SourceCode: React.FC<Props> = ({ children }) => {
       return;
     }
 
-    if (!workerInitialized) {
-      setGenerated('Error: Web worker not initialized');
-    } else if (!workerSupported) {
-      setGenerated('Error: Web workers are not supported');
-    } else if (workerError) {
+    if (workerError) {
       setGenerated(workerError);
     } else {
       setGenerated('Generating...');
@@ -42,7 +38,7 @@ const SourceCode: React.FC<Props> = ({ children }) => {
   };
 
   useEffect(() => {
-    if (!ref.current) {
+    if (!ref.current || !workerInitialized || !workerSupported) {
       return;
     }
 
@@ -75,7 +71,7 @@ const SourceCode: React.FC<Props> = ({ children }) => {
         ['run-button']
       )
     );
-  }, []);
+  }, [workerInitialized, workerSupported, ref.current]);
 
   return <div ref={ref}>{children}</div>;
 };

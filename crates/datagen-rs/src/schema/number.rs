@@ -45,9 +45,9 @@ pub mod generate {
                     ..
                 } => {
                     let mut rng = rand::thread_rng();
-                    let min = min.unwrap_or(f64::MIN);
-                    let max = max.unwrap_or(f64::MAX);
-                    let mut value = rng.gen_range(min..=max);
+                    let min = min.unwrap_or(0_f64);
+                    let max = max.unwrap_or(1_f64);
+                    let mut value = rng.gen_range(min..max);
                     if let Some(precision) = precision {
                         value = (value * 10.0_f64.powi(precision as i32)).round()
                             / 10.0_f64.powi(precision as i32);
