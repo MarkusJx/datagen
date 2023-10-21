@@ -7,7 +7,10 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "schema", derive(JsonSchema))]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "schema", serde(rename_all = "camelCase"))]
+#[cfg_attr(
+    feature = "serialize",
+    serde(rename_all = "camelCase", deny_unknown_fields)
+)]
 pub struct Counter {
     pub step: Option<i64>,
     pub transform: Option<Vec<Transform>>,
@@ -34,18 +37,18 @@ pub mod generate {
     static COUNTER: AtomicI64 = AtomicI64::new(0);
     static PATH_SPECIFIC_COUNTER: Mutex<Option<HashMap<String, i64>>> = Mutex::new(None);
 
-    fn fetch_inc_path_specific_counter(path: &str) -> i64 {
+    fn fetch_inc_path_specific_counter(path: &str, start: i64, step: i64) -> i64 {
         let mut lock = PATH_SPECIFIC_COUNTER.lock().unwrap();
         let map = lock.get_or_insert_with(HashMap::new);
 
         match map.get_mut(path) {
             Some(el) => {
-                el.add_assign(1);
+                el.add_assign(step);
                 *el
             }
             None => {
-                map.insert(path.into(), 1);
-                1
+                map.insert(path.into(), start);
+                start
             }
         }
     }
@@ -53,13 +56,17 @@ pub mod generate {
     impl IntoGenerated for Counter {
         fn into_generated(self, schema: CurrentSchemaRef) -> anyhow::Result<GeneratedSchema> {
             let value = if self.path_specific.unwrap_or(false) {
-                fetch_inc_path_specific_counter(&schema.path().to_normalized_path())
+                fetch_inc_path_specific_counter(
+                    &schema.path().to_normalized_path(),
+                    self.start.unwrap_or(0),
+                    self.step.unwrap_or(1),
+                )
             } else {
                 if COUNTER.load(Ordering::SeqCst) == 0 {
                     COUNTER.store(self.start.unwrap_or(0), Ordering::SeqCst);
                 }
 
-                COUNTER.fetch_add(1, Ordering::SeqCst)
+                COUNTER.fetch_add(self.step.unwrap_or(1), Ordering::SeqCst)
             };
 
             Ok(GeneratedSchema::Integer(value))
