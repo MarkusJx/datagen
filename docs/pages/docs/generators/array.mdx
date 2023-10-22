@@ -3,17 +3,23 @@ import RunCode from '../../../components/run/RunCode';
 # array
 
 In order to generate an array, you can use the `array` generator.
-This generator has two inputs:
+This generator has two modes: `random` and `fixed`.
+
+## Random mode
+
+In this mode, the generator will generate an array with either a random or fixed length.
+The items inside the array will be generated using the `items` schema.
+The generator has the following parameters:
 
 - `length`: The length of the array, which is either a fixed or random value
 - `items`: The schema of the items inside the array
 
-## Defining the number of items generated
+### Defining the number of items generated
 
 The `length` parameter is an `object` containing either a fixed `value`
 or a lower and upper length limit to generate a random length between those two values.
 
-### Fixed length
+#### Fixed length
 
 Generate an array with a fixed length of 10 elements:
 
@@ -26,7 +32,7 @@ Generate an array with a fixed length of 10 elements:
 }
 ```
 
-### Random length
+#### Random length
 
 Generate an array with a random length between 5 and 10 elements:
 
@@ -40,7 +46,16 @@ Generate an array with a random length between 5 and 10 elements:
 }
 ```
 
-## Example
+## Fixed mode
+
+In this mode, the generator will generate an array from a fixed list of values.
+The generator has the following parameters:
+
+- `values`: The list of values to generate the array from
+
+## Examples
+
+### Generate an array of strings
 
 Generate an array full of [strings](string.mdx) with a random length:
 
@@ -56,6 +71,60 @@ Generate an array full of [strings](string.mdx) with a random length:
     "type": "string",
     "value": "test"
   }
+}
+```
+</RunCode>
+
+### Generate an array with fixed values
+
+<RunCode>
+```json
+{
+  "type": "array",
+  "values": [
+    "test",
+    "test2",
+    {
+      "type": "number",
+      "precision": 2
+    }
+  ]
+}
+```
+</RunCode>
+
+### Generate an array with fixed values and random values
+
+You can use the [`flatten` generator](./flatten.mdx) in order to
+combine the values of the array generators in order to generate an array with both
+fixed and random values:
+
+<RunCode>
+```json
+{
+  "type": "flatten",
+  "values": [
+    {
+      "type": "array",
+      "values": [
+        "test",
+        "test2"
+      ]
+    },
+    {
+      "type": "array",
+      "length": {
+        "min": 0,
+        "max": 5
+      },
+      "items": {
+        "type": "string",
+        "generator": {
+          "type": "fullName"
+        }
+      }
+    }
+  ]
 }
 ```
 </RunCode>

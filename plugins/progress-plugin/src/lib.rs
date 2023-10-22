@@ -202,18 +202,34 @@ impl<F: Fn(usize, usize)> ProgressPlugin<F> {
         schema: CurrentSchemaRef,
         array: Array,
     ) -> anyhow::Result<Arc<GeneratedSchema>> {
-        let len = self.get_array_length(&array.length)?;
-        schema.map_array(
-            len as _,
-            array.items,
-            array.transform,
-            true,
-            |cur, value| {
-                let res = self.convert_any_value(cur.clone(), value)?;
-                self.increase_count();
-                Ok(res)
-            },
-        )
+        match array {
+            Array::RandomArray(array) => {
+                let len = self.get_array_length(&array.length)?;
+                schema.map_array(
+                    len as _,
+                    array.items,
+                    array.transform,
+                    true,
+                    |cur, value| {
+                        let res = self.convert_any_value(cur.clone(), value)?;
+                        self.increase_count();
+                        Ok(res)
+                    },
+                )
+            }
+            Array::ArrayWithValues(array) => Ok(GeneratedSchema::Array(
+                array
+                    .values
+                    .into_iter()
+                    .map(|e| {
+                        let res = self.convert_any_value(schema.clone(), e)?;
+                        self.increase_count();
+                        Ok(res)
+                    })
+                    .collect::<anyhow::Result<Vec<_>>>()?,
+            )
+            .into()),
+        }
     }
 
     fn convert_object(
@@ -329,14 +345,26 @@ impl<F: Fn(usize, usize)> ProgressPlugin<F> {
     }
 
     fn map_array(&self, val: &mut Array) -> usize {
-        let len = self.add_array_len(&val.length);
+        match val {
+            Array::RandomArray(array) => {
+                let len = self.add_array_len(&array.length);
 
-        let mut res = 1;
-        for _ in 0..len {
-            res += self.map_any(&mut val.items);
+                let mut res = 1;
+                for _ in 0..len {
+                    res += self.map_any(&mut array.items);
+                }
+
+                res
+            }
+            Array::ArrayWithValues(array) => {
+                let mut res = 1;
+                for value in &mut array.values {
+                    res += self.map_any(value);
+                }
+
+                res
+            }
         }
-
-        res
     }
 }
 
