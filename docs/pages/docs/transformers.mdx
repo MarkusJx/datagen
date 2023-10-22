@@ -1,3 +1,5 @@
+import RunCode from '../../components/run/RunCode';
+
 # Transformers
 
 Transformers are used to transform data. They are used in the `transform` property of a schema.
@@ -9,6 +11,7 @@ In order to apply a transformer to a value, you need to add the `transform` prop
 to that value. The `transform` property is an array of transformers that will be applied
 to the value in order.
 
+<RunCode>
 ```json
 {
   "type": "string",
@@ -20,6 +23,7 @@ to the value in order.
   ]
 }
 ```
+</RunCode>
 
 Will generate:
 

@@ -170,8 +170,16 @@ impl PluginList {
 
     #[cfg(feature = "plugin")]
     fn find_array_transformers(array: &Array) -> Vec<String> {
-        let mut props = Self::find_transformers(&array.items);
-        if let Some(transform) = &array.transform {
+        let mut props = match array {
+            Array::RandomArray(arr) => Self::find_transformers(&arr.items),
+            Array::ArrayWithValues(arr) => arr
+                .values
+                .iter()
+                .flat_map(Self::find_transformers)
+                .collect(),
+        };
+
+        if let Some(transform) = &array.get_transform() {
             props.extend(Self::transformers_to_vec(transform, &props));
         }
 
@@ -242,7 +250,12 @@ impl PluginList {
                 .iter()
                 .flat_map(|(_, val)| Self::find_generators(val))
                 .collect(),
-            AnyValue::Any(Any::Array(arr)) => Self::find_generators(&arr.items),
+            AnyValue::Any(Any::Array(arr)) => match arr.as_ref() {
+                Array::RandomArray(arr) => Self::find_generators(&arr.items),
+                Array::ArrayWithValues(arr) => {
+                    arr.values.iter().flat_map(Self::find_generators).collect()
+                }
+            },
             _ => vec![],
         }
     }
