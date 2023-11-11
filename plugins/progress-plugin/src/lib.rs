@@ -247,27 +247,11 @@ impl<F: Fn(usize, usize)> ProgressPlugin<F> {
     fn convert_any_of(
         &self,
         schema: CurrentSchemaRef,
-        mut any_of: AnyOf,
+        any_of: AnyOf,
     ) -> anyhow::Result<Arc<GeneratedSchema>> {
-        any_of.values.shuffle(&mut rand::thread_rng());
-        let min = if any_of.allow_null.unwrap_or(false) {
-            0
-        } else {
-            1
-        };
-
-        let mut num = any_of.num.unwrap_or(1);
-        match num.cmp(&0) {
-            core::cmp::Ordering::Equal => num = any_of.values.len() as i64,
-            core::cmp::Ordering::Less => {
-                num = rand::thread_rng().gen_range(min..=any_of.values.len() as i64)
-            }
-            _ => {}
-        }
-
         let values = any_of
             .values
-            .drain(0..num as usize)
+            .into_iter()
             .map(|value| value.into_random(schema.clone()))
             .collect::<anyhow::Result<Vec<_>>>()?;
 
@@ -300,11 +284,17 @@ impl<F: Fn(usize, usize)> ProgressPlugin<F> {
                 }
                 Any::AnyOf(any_of) => {
                     any_of.values.shuffle(&mut rand::thread_rng());
+                    let min = if any_of.allow_null.unwrap_or(false) {
+                        0
+                    } else {
+                        1
+                    };
+
                     let mut num = any_of.num.unwrap_or(1);
                     match num.cmp(&0) {
                         core::cmp::Ordering::Equal => num = -1,
                         core::cmp::Ordering::Less => {
-                            num = rand::thread_rng().gen_range(0..any_of.values.len() as i64)
+                            num = rand::thread_rng().gen_range(min..=any_of.values.len() as i64)
                         }
                         _ => {}
                     }
