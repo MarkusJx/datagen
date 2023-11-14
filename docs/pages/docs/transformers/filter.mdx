@@ -2,20 +2,60 @@ import RunCode from '../../../components/run/RunCode';
 
 # filter
 
-The `filter` transformer is used to filter values by converting
+The `filter` transformer is used to filter values from arrays or objects by converting
 non-matching values to `null`.
 
 The `filter` transformer has the following properties:
 
-- `field`: Optional. The field or the reference to a field to filter on.
-  If not specified, the current value will be used.
+- `field`: The field to filter. The field may be a reference to another field.
+  If this is set and the transformer is used on an object or array, the whole object
+  or array will be removed if the field does not match the filter.
 - `operator`: The operator which will be used to compare the value with the other value.
   The operator may be one of:
   - `equals`: The value must be equal to the other value.
   - `notEquals`: The value must not be equal to the other value.
 - `other`: The other value to compare the value with.
 
-## Example
+## Examples
+
+### Remove all objects from an array which have a `name` field equal to `John`
+
+<RunCode>
+```json
+{
+  "type": "array",
+  "length": {
+    "value": 2
+  },
+  "items": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "anyOf",
+        "values": [
+          "John",
+          "Jane"
+        ]
+      },
+      "age": {
+        "type": "integer",
+        "value": 20
+      }
+    },
+    "transform": [
+      {
+        "type": "filter",
+        "field": "ref:./name",
+        "operator": "notEquals",
+        "other": "John"
+      }
+    ]
+  }
+}
+```
+</RunCode>
+
+### Remove all fields from an object which are equal to `John`
 
 <RunCode>
 ```json
@@ -34,7 +74,6 @@ The `filter` transformer has the following properties:
   "transform": [
     {
       "type": "filter",
-      "field": "ref:./name",
       "operator": "notEquals",
       "other": "John"
     }

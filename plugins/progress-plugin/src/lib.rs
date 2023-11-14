@@ -202,18 +202,34 @@ impl<F: Fn(usize, usize) + Send + Sync> ProgressPlugin<F> {
         schema: CurrentSchemaRef,
         array: Array,
     ) -> anyhow::Result<Arc<GeneratedSchema>> {
-        let len = self.get_array_length(&array.length)?;
-        schema.map_array(
-            len as _,
-            array.items,
-            array.transform,
-            true,
-            |cur, value| {
-                let res = self.convert_any_value(cur.clone(), value)?;
-                self.increase_count();
-                Ok(res)
-            },
-        )
+        match array {
+            Array::RandomArray(array) => {
+                let len = self.get_array_length(&array.length)?;
+                schema.map_array(
+                    len as _,
+                    array.items,
+                    array.transform,
+                    true,
+                    |cur, value| {
+                        let res = self.convert_any_value(cur.clone(), value)?;
+                        self.increase_count();
+                        Ok(res)
+                    },
+                )
+            }
+            Array::ArrayWithValues(array) => Ok(GeneratedSchema::Array(
+                array
+                    .values
+                    .into_iter()
+                    .map(|e| {
+                        let res = self.convert_any_value(schema.clone(), e)?;
+                        self.increase_count();
+                        Ok(res)
+                    })
+                    .collect::<anyhow::Result<Vec<_>>>()?,
+            )
+            .into()),
+        }
     }
 
     fn convert_object(
@@ -231,21 +247,11 @@ impl<F: Fn(usize, usize) + Send + Sync> ProgressPlugin<F> {
     fn convert_any_of(
         &self,
         schema: CurrentSchemaRef,
-        mut any_of: AnyOf,
+        any_of: AnyOf,
     ) -> anyhow::Result<Arc<GeneratedSchema>> {
-        any_of.values.shuffle(&mut rand::thread_rng());
-        let mut num = any_of.num.unwrap_or(1);
-        match num.cmp(&0) {
-            core::cmp::Ordering::Equal => num = any_of.values.len() as i64,
-            core::cmp::Ordering::Less => {
-                num = rand::thread_rng().gen_range(0..any_of.values.len() as i64)
-            }
-            _ => {}
-        }
-
         let values = any_of
             .values
-            .drain(0..num as usize)
+            .into_iter()
             .map(|value| value.into_random(schema.clone()))
             .collect::<anyhow::Result<Vec<_>>>()?;
 
@@ -278,11 +284,17 @@ impl<F: Fn(usize, usize) + Send + Sync> ProgressPlugin<F> {
                 }
                 Any::AnyOf(any_of) => {
                     any_of.values.shuffle(&mut rand::thread_rng());
+                    let min = if any_of.allow_null.unwrap_or(false) {
+                        0
+                    } else {
+                        1
+                    };
+
                     let mut num = any_of.num.unwrap_or(1);
                     match num.cmp(&0) {
                         core::cmp::Ordering::Equal => num = -1,
                         core::cmp::Ordering::Less => {
-                            num = rand::thread_rng().gen_range(0..any_of.values.len() as i64)
+                            num = rand::thread_rng().gen_range(min..=any_of.values.len() as i64)
                         }
                         _ => {}
                     }
@@ -311,7 +323,7 @@ impl<F: Fn(usize, usize) + Send + Sync> ProgressPlugin<F> {
 
                 let entry = arrays
                     .entry(RandomArrayLength::new(*min, *max))
-                    .or_insert_with(VecDeque::new);
+                    .or_default();
                 let mut rng = rand::thread_rng();
                 let res = rng.gen_range(*min..=*max);
                 entry.push_back(res);
@@ -323,14 +335,26 @@ impl<F: Fn(usize, usize) + Send + Sync> ProgressPlugin<F> {
     }
 
     fn map_array(&self, val: &mut Array) -> usize {
-        let len = self.add_array_len(&val.length);
+        match val {
+            Array::RandomArray(array) => {
+                let len = self.add_array_len(&array.length);
 
-        let mut res = 1;
-        for _ in 0..len {
-            res += self.map_any(&mut val.items);
+                let mut res = 1;
+                for _ in 0..len {
+                    res += self.map_any(&mut array.items);
+                }
+
+                res
+            }
+            Array::ArrayWithValues(array) => {
+                let mut res = 1;
+                for value in &mut array.values {
+                    res += self.map_any(value);
+                }
+
+                res
+            }
         }
-
-        res
     }
 }
 

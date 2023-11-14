@@ -102,7 +102,7 @@ impl KeycloakToken {
     }
 
     async fn fetch(args: &KeycloakAuthArgs, client: Option<Client>) -> anyhow::Result<Self> {
-        let client = client.unwrap_or_else(Client::new);
+        let client = client.unwrap_or_default();
 
         let res: KeycloakAuthResponse = client
             .post(format!(

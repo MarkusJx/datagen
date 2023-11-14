@@ -8,6 +8,8 @@ This generator has two inputs:
 - `values`: An array of possible values to generate from. These values may be any generator.
 - `num`: The number of values to generate. Defaults to `1`. If set to `0`, all values will be generated.
   If set to a negative number, a random number of values will be generated.
+- `allowNull`: Whether to allow no elements being generated when `num` is set to a negative number.
+  If `num` is not defined or set to a positive number, this doesn't do anything. Defaults to `false`.
 
 ## Examples
 

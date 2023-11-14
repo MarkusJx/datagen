@@ -1,59 +1,54 @@
-import { Button } from 'nextra/components';
-import React, { useEffect, useRef } from 'react';
-import { renderChild } from '../../util/renderChild';
-import { BsPlay } from 'react-icons/bs';
-import { getCodeBlockCode } from '../../util/util';
-import { useRouter } from 'next/router';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import Generated from './Generated';
+import SourceCode from './SourceCode';
+import { getHighlighter, Highlighter } from 'shiki';
+
+interface CodeContext {
+  generated: string | null;
+  setGenerated: (result: string) => void;
+  highlighter: Highlighter | null;
+}
+
+const Context = createContext<CodeContext>({
+  generated: null,
+  setGenerated: () => {},
+  highlighter: null,
+});
+
+export const useCodeContext = () => {
+  return useContext(Context);
+};
 
 interface Props {
   children: React.ReactNode;
-  printUgly?: boolean;
 }
 
-const RunCode: React.FC<Props> = ({ children, printUgly }) => {
-  const ref = useRef<HTMLDivElement>(null);
-  const router = useRouter();
+const highlighterPromise = getHighlighter({
+  theme: 'css-variables',
+  langs: ['json'],
+  themes: ['css-variables'],
+});
+
+const RunCode: React.FC<Props> = ({ children }) => {
+  const [generated, setGenerated] = useState<string | null>(null);
+  const [highlighter, setHighlighter] = useState<Highlighter | null>(null);
 
   useEffect(() => {
-    const parent = ref.current?.querySelectorAll('button')?.item(0)
-      ?.parentElement;
-    if (!parent) {
-      return;
-    }
-
-    parent.querySelectorAll('.run-button').forEach((button) => {
-      button.remove();
-    });
-
-    let codeObj = JSON.parse(getCodeBlockCode(ref.current));
-    if (!printUgly) {
-      codeObj = {
-        options: {
-          serializer: {
-            type: 'json',
-            pretty: true,
-          },
-        },
-        ...codeObj,
-      };
-    }
-
-    const url =
-      '/demo/?code=' +
-      encodeURIComponent(btoa(JSON.stringify(codeObj, null, 2)));
-
-    parent.appendChild(
-      renderChild(
-        <Button title="Run example" onClick={() => router.push(url)}>
-          <BsPlay size={22} />
-        </Button>,
-        'div',
-        ['run-button']
-      )
-    );
+    highlighterPromise.then(setHighlighter).catch(console.error);
   }, []);
 
-  return <div ref={ref}>{children}</div>;
+  return (
+    <Context.Provider
+      value={{
+        generated,
+        setGenerated,
+        highlighter,
+      }}
+    >
+      <SourceCode>{children}</SourceCode>
+      <Generated />
+    </Context.Provider>
+  );
 };
 
 export default RunCode;

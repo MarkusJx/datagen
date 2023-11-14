@@ -1,0 +1,9 @@
+import GlobalContext from '../components/util/GlobalContext';
+
+export default function App({ Component, pageProps }) {
+  return (
+    <GlobalContext>
+      <Component {...pageProps} />
+    </GlobalContext>
+  );
+}

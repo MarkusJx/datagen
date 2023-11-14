@@ -19,7 +19,7 @@ type DemoWorkerCallback = (
   progressCallback?: (progress: number) => void
 ) => Promise<void>;
 
-type DemoWorker = {
+export type DemoWorker = {
   workerInitialized: boolean;
   workerSupported: boolean;
   workerError?: string;
@@ -28,7 +28,7 @@ type DemoWorker = {
 
 const useDemoWorker = (): DemoWorker => {
   const worker = useRef<ModuleThread<GenerateWorker>>();
-  const [initialized, setInitialized] = useState(false);
+  const [initialized, setInitialized] = useState(!!worker.current);
   const [supported, setSupported] = useState(true);
   const [error, setError] = useState<string>();
 
@@ -53,6 +53,8 @@ const useDemoWorker = (): DemoWorker => {
         console.error(e);
         setError(e);
       });
+    } else {
+      setInitialized(true);
     }
 
     return () => {
