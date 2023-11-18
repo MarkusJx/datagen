@@ -1,54 +1,56 @@
 use crate::classes::current_schema::CurrentSchema;
-use anyhow::anyhow;
-use futures::channel::oneshot::{channel, Receiver, Sender};
+use anyhow::{anyhow, Context};
 use napi::bindgen_prelude::FromNapiValue;
 use napi::threadsafe_function::{ThreadsafeFunction, ThreadsafeFunctionCallMode};
 use napi::{CallContext, Env, JsString, JsUnknown, Status};
 use serde_json::Value;
 use std::fmt::Debug;
+use std::sync::mpsc::{channel, Receiver, Sender};
 use std::sync::Mutex;
 
 #[derive(Clone)]
-pub(crate) struct GenerateArgs {
+pub struct GenerateArgs {
     pub args: Value,
     pub schema: CurrentSchema,
 }
 
 #[derive(Clone)]
-pub(crate) struct TransformArgs {
+pub struct TransformArgs {
     pub args: Value,
     pub schema: CurrentSchema,
     pub value: Value,
 }
 
 #[derive(Clone)]
-pub(crate) struct SerializeArgs {
+pub struct SerializeArgs {
     pub args: Value,
     pub value: Value,
 }
 
-pub(crate) type GenerateCall = PluginCall<GenerateArgs, Value>;
-pub(crate) type TransformCall = PluginCall<TransformArgs, Value>;
-pub(crate) type SerializeCall = PluginCall<SerializeArgs, String>;
+pub type GenerateCall = PluginCall<GenerateArgs, Value>;
+pub type TransformCall = PluginCall<TransformArgs, Value>;
+pub type SerializeCall = PluginCall<SerializeArgs, String>;
 
-pub(crate) trait IntoJsCall {
+pub trait IntoJsCall {
     fn into_js_call(self, callback: JsUnknown, env: Env) -> napi::Result<Vec<JsUnknown>>;
 }
 
-pub(crate) struct PluginCall<T: Clone + IntoJsCall, R: FromNapiValue + Debug> {
+pub struct PluginCall<T: Clone + IntoJsCall, R: FromNapiValue + Debug> {
     args: T,
     sender: Mutex<Option<Sender<Result<R, String>>>>,
 }
 
 impl<T: Clone + IntoJsCall + 'static, R: FromNapiValue + Debug + 'static> PluginCall<T, R> {
-    pub(crate) fn call(func: &ThreadsafeFunction<PluginCall<T, R>>, args: T) -> anyhow::Result<R> {
+    pub fn call(func: &ThreadsafeFunction<PluginCall<T, R>>, args: T) -> anyhow::Result<R> {
         let (args, rx) = Self::new(args);
 
         let status = func.call(Ok(args), ThreadsafeFunctionCallMode::Blocking);
         if status != Status::Ok {
             Err(anyhow!("Could not call function: {:?}", status))
         } else {
-            futures::executor::block_on(rx)?.map_err(anyhow::Error::msg)
+            rx.recv()?
+                .map_err(anyhow::Error::msg)
+                .context("Could not receive result from function")
         }
     }
 
@@ -63,7 +65,7 @@ impl<T: Clone + IntoJsCall + 'static, R: FromNapiValue + Debug + 'static> Plugin
         )
     }
 
-    pub(crate) fn into_js_call(self, env: Env) -> napi::Result<Vec<JsUnknown>> {
+    pub fn into_js_call(self, env: Env) -> napi::Result<Vec<JsUnknown>> {
         let args = self.args.clone();
         let callback = self.into_callback(env)?;
         args.into_js_call(callback, env)

@@ -82,7 +82,7 @@ impl<T: Plugin + 'static> From<anyhow::Result<T>> for PluginInitResult {
 ///     }
 /// }
 /// ```
-pub trait Plugin: Debug {
+pub trait Plugin: Debug + Send + Sync {
     /// Returns the name of the plugin.
     /// The name of the plugin is used to
     /// identify the plugin if an error is thrown.

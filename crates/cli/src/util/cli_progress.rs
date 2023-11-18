@@ -2,8 +2,7 @@ use colored::Colorize;
 use indicatif::{ProgressBar, ProgressState, ProgressStyle};
 use num_format::{Locale, ToFormattedString};
 use std::fmt::Write;
-use std::rc::Rc;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 pub trait CliProgressTrait {
@@ -81,7 +80,7 @@ impl CliProgress {
     }
 }
 
-pub type CliProgressRef = Rc<Mutex<CliProgress>>;
+pub type CliProgressRef = Arc<Mutex<CliProgress>>;
 
 impl CliProgressTrait for CliProgressRef {
     fn increase(&self, current: usize, total: usize) {

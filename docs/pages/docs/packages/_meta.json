@@ -3,5 +3,6 @@
   "node": "@datagen-rs/node",
   "nodeTypes": "@datagen-rs/types",
   "rustCli": "datagen-rs-cli",
-  "datagen": "datagen-rs"
+  "datagen": "datagen-rs",
+  "node-runner": "datagen-rs-node-runner"
 }

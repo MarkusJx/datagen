@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig-base.json",
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "outDir": "./dist",
+    "lib": ["ESNext", "es2020", "dom"],
+    "sourceMap": false,
+    "incremental": false
+  },
+  "files": [
+    "./src/TestPlugin.ts",
+    "./src/EmptyPlugin.ts",
+  ]
+}

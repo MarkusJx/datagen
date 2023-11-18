@@ -7,14 +7,15 @@ version = "0.1.0"
 crate-type = ["cdylib"]
 
 [dependencies]
-napi = { version = "2.13", default-features = false, features = [
+napi = { version = "2.14.0", default-features = false, features = [
     "napi8",
     "deferred_trace",
     "async",
     "serde-json"] }
-napi-derive = "2.13"
+napi-derive = "2.14.1"
 datagen-rs = { path = "../../crates/datagen-rs", features = ["all"] }
 datagen-rs-progress-plugin = { path = "../../plugins/progress-plugin" }
+datagen-rs-node-runner = { path = "../../crates/node-runner" }
 serde_json = "1.0"
 futures = "0.3"
 anyhow = "1"
