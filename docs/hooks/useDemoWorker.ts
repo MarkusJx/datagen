@@ -113,6 +113,7 @@ const useDemoWorker = (): DemoWorker => {
       } catch (e: any) {
         console.error(e);
         setGenerated('Error: ' + e.message);
+        setGenerating(false);
       }
     },
   };
