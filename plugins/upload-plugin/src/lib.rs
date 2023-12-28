@@ -19,8 +19,17 @@ impl Plugin for UploadPlugin {
     }
 
     fn serialize(&self, value: &Arc<GeneratedSchema>, args: Value) -> anyhow::Result<String> {
+        self.serialize_with_progress(value, args, &|_, _| {})
+    }
+
+    fn serialize_with_progress(
+        &self,
+        value: &Arc<GeneratedSchema>,
+        args: Value,
+        callback: &dyn Fn(usize, usize),
+    ) -> anyhow::Result<String> {
         let args: UploadArgs = from_value(args).map_err(anyhow::Error::new)?;
-        args.upload_data(value)?;
+        args.upload_data(value, callback)?;
 
         if args.return_null.unwrap_or_default() {
             Ok("".into())

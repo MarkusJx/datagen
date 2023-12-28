@@ -145,6 +145,27 @@ pub trait Plugin: Debug + Send + Sync {
     fn serialize(&self, value: &Arc<GeneratedSchema>, args: Value) -> anyhow::Result<String> {
         Err(anyhow!("Operation 'serialize' is not supported"))
     }
+
+    /// Serialize generated data to a string with the given arguments and a progress callback.
+    /// The `serialize_with_progress` function is optional and will call
+    /// [`serialize`] by default.
+    ///
+    /// # Arguments
+    /// * `value` - The generated data to serialize.
+    /// * `args` - The arguments to use when serializing data.
+    /// * `callback` - A `fn(current: usize, total: usize) -> ()` callback to call with the current progress.
+    ///
+    /// # Returns
+    /// The serialized data.
+    #[allow(unused_variables)]
+    fn serialize_with_progress(
+        &self,
+        value: &Arc<GeneratedSchema>,
+        args: Value,
+        callback: &dyn Fn(usize, usize),
+    ) -> anyhow::Result<String> {
+        self.serialize(value, args)
+    }
 }
 
 /// A plugin constructor.
@@ -251,7 +272,7 @@ macro_rules! declare_plugin {
 
         #[no_mangle]
         pub extern "C" fn _plugin_version() -> *mut std::ffi::c_char {
-            std::ffi::CString::new("1.0.0").unwrap().into_raw()
+            std::ffi::CString::new("1.1.0").unwrap().into_raw()
         }
     };
 }

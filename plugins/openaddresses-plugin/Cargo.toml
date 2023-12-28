@@ -23,7 +23,7 @@ log4rs = { version = "1.2", optional = true }
 
 [build-dependencies]
 regex = { version = "1.9", optional = true }
-build-vars = { path = "../../crates/build-vars", optional = true }
+build-vars = { git = "https://github.com/MarkusJx/datagen", optional = true }
 
 [dev-dependencies]
 datagen-rs = { path = "../../crates/datagen-rs", features = ["generate", "test"], version = "0.1.0" }

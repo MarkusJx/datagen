@@ -5,8 +5,9 @@ mod util;
 #[macro_use]
 extern crate napi_derive;
 
+use crate::util::helpers::generate_random_data_with_progress;
 use datagen_rs::schema::schema_definition::Schema;
-use datagen_rs::util::helpers::{generate_random_data, get_schema_value};
+use datagen_rs::util::helpers::get_schema_value;
 use datagen_rs_node_runner::classes::node_plugin::NodePlugin;
 use datagen_rs_node_runner::util::traits::IntoNapiResult;
 use datagen_rs_progress_plugin::{PluginWithSchemaResult, ProgressPlugin};
@@ -39,10 +40,12 @@ pub struct GenerateProgress {
 pub async fn generate_random_data_internal(
     schema: Value,
     #[napi(ts_arg_type = "((progress: GenerateProgress) => void) | null | undefined")]
-    callback: Option<ThreadsafeFunction<GenerateProgress, ErrorStrategy::Fatal>>,
+    generate_progress: Option<ThreadsafeFunction<GenerateProgress, ErrorStrategy::Fatal>>,
+    #[napi(ts_arg_type = "((progress: GenerateProgress) => void) | null | undefined")]
+    serialize_progress: Option<ThreadsafeFunction<GenerateProgress, ErrorStrategy::Fatal>>,
     additional_plugins: HashMap<String, &NodePlugin>,
 ) -> napi::Result<String> {
-    let (schema, mut plugins) = if let Some(callback) = callback {
+    let (schema, mut plugins) = if let Some(callback) = generate_progress {
         let PluginWithSchemaResult { schema, plugins } =
             ProgressPlugin::with_schema(parse_schema(schema)?, move |current, total| {
                 callback.call(
@@ -68,5 +71,20 @@ pub async fn generate_random_data_internal(
         }
     }
 
-    generate_random_data(schema, plugins).into_napi()
+    generate_random_data_with_progress(
+        schema,
+        serialize_progress.map(|p| {
+            move |current, total| {
+                p.call(
+                    GenerateProgress {
+                        current: current as _,
+                        total: total as _,
+                    },
+                    ThreadsafeFunctionCallMode::NonBlocking,
+                );
+            }
+        }),
+        plugins,
+    )
+    .into_napi()
 }
