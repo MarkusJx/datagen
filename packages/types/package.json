@@ -40,6 +40,6 @@
     "trailingComma": "es5"
   },
   "dependencies": {
-    "datagen-rs-wasm": "file:../../crates/datagen-wasm/web-pkg"
+    "datagen-rs-wasm": "file:../../crates/datagen-wasm/node-pkg"
   }
 }
