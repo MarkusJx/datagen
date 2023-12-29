@@ -1,18 +1,18 @@
 [package]
 edition = "2021"
 name = "datagen-node"
-version = "0.1.0"
+version = "0.2.0"
 
 [lib]
 crate-type = ["cdylib"]
 
 [dependencies]
-napi = { version = "2.14.0", default-features = false, features = [
+napi = { version = "2.14.1", default-features = false, features = [
     "napi8",
     "deferred_trace",
     "async",
     "serde-json"] }
-napi-derive = "2.14.1"
+napi-derive = "2.14.6"
 datagen-rs = { path = "../../crates/datagen-rs", features = ["all"] }
 datagen-rs-progress-plugin = { path = "../../plugins/progress-plugin" }
 datagen-rs-node-runner = { path = "../../crates/node-runner" }
@@ -21,7 +21,7 @@ futures = "0.3"
 anyhow = "1"
 
 [build-dependencies]
-napi-build = "2.0.1"
+napi-build = "2.1.0"
 
 #[profile.release]
 #lto = true
