@@ -26,6 +26,7 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "@ava/typescript": "^4.1.0",
     "@napi-rs/cli": "^2.16.2",
     "@types/node": "^20.6.4",
     "ava": "^6.0.1",
@@ -37,13 +38,12 @@
   },
   "ava": {
     "timeout": "3m",
-    "extensions": {
-      "ts": "module"
-    },
-    "nodeArguments": [
-      "--no-warnings",
-      "--loader=tsx"
-    ]
+    "typescript": {
+      "rewritePaths": {
+        "__test__/": "dist/"
+      },
+      "compile": false
+    }
   },
   "engines": {
     "node": ">= 10"
@@ -61,10 +61,11 @@
     "build": "napi build --platform --release --js native.js --dts native.d.ts",
     "build:debug": "napi build --platform --js native.js --dts native.d.ts",
     "postbuild": "tsc",
-    "pretest": "npm run build",
+    "pretest": "npm run build && npm run testCompile",
     "prepublishOnly": "napi prepublish -t npm && npm run updateVersions",
     "updateVersions": "tsx scripts/prepublish.ts",
-    "test": "cross-env NODE_OPTIONS=\"--loader=tsx --no-warnings\" ava",
+    "testCompile": "tsc -p tsconfig.test.json",
+    "test": "ava",
     "universal": "napi universal",
     "version": "napi version",
     "format": "prettier --write .",

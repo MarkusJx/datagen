@@ -480,7 +480,7 @@ test('serialize data with throwing plugin (async)', async (t) => {
 test('generate data with imported plugin', async (t) => {
   const generated = await generateRandomData({
     type: 'plugin',
-    pluginName: `node:${__dirname}/testPlugin.ts`,
+    pluginName: `node:${__dirname}/testPlugin.js`,
   });
 
   t.deepEqual(JSON.parse(generated), {
