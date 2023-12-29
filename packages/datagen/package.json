@@ -28,11 +28,11 @@
   "devDependencies": {
     "@napi-rs/cli": "^2.16.2",
     "@types/node": "^20.6.4",
-    "ava": "^5.1.1",
+    "ava": "^6.0.1",
     "cross-env": "^7.0.3",
     "datagen-rs-types": "file:../types",
     "prettier": "^3.0.3",
-    "tsx": "^3.12.9",
+    "tsx": "^4.7.0",
     "typescript": "^5.2.2"
   },
   "ava": {
