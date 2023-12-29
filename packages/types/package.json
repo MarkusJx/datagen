@@ -25,7 +25,7 @@
   },
   "homepage": "https://github.com/MarkusJx/datagen#readme",
   "devDependencies": {
-    "datagen-wasm": "file:../../crates/datagen-wasm/node-pkg",
+    "datagen-rs-wasm": "file:../../crates/datagen-wasm/node-pkg",
     "json-schema-to-typescript": "^13.1.1",
     "prettier": "^3.0.3",
     "tsx": "^3.12.10",
@@ -38,8 +38,5 @@
     "singleQuote": true,
     "tabWidth": 2,
     "trailingComma": "es5"
-  },
-  "dependencies": {
-    "datagen-rs-wasm": "file:../../crates/datagen-wasm/node-pkg"
   }
 }

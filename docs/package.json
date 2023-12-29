@@ -35,7 +35,6 @@
     "arch": "^2.2.0",
     "datagen-rs-types": "file:../packages/types",
     "datagen-rs-wasm": "file:../crates/datagen-wasm/web-pkg",
-    "datagen-wasm": "file:../crates/datagen-wasm/web-pkg",
     "next": "^14.0.3",
     "nextra": "^2.13.2",
     "nextra-theme-docs": "^2.13.2",
