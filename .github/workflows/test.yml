@@ -62,6 +62,11 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2.2.1
+      - name: Build wasm package
+        run: |
+          npm i -g wasm-pack
+          wasm-pack build -t nodejs -d node-pkg --release --features schema
+        working-directory: crates/datagen-wasm
       - name: Install types dependencies
         run: npm ci
         working-directory: packages/types
