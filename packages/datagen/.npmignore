@@ -11,3 +11,6 @@ yarn.lock
 .yarn
 __test__
 renovate.json
+dist/test*
+dist/*.spec.*
+dist/tsconfig.tsbuildinfo

@@ -1,6 +1,6 @@
 [package]
 name = "datagen-rs-progress-plugin"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 description = "A progress plugin for datagen-rs"
 repository = "https://github.com/MarkusJx/datagen"
@@ -10,7 +10,7 @@ license = "MIT"
 crate-type = ["dylib", "rlib"]
 
 [dependencies]
-datagen-rs = { path = "../../crates/datagen-rs", features = ["generate"], version = "0.1.0" }
+datagen-rs = { path = "../../crates/datagen-rs", features = ["generate"], version = "0.2.0" }
 serde_json = { version = "1.0", features = ["preserve_order"] }
 rand = "0.8"
 anyhow = "1"

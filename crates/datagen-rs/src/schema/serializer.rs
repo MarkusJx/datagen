@@ -115,5 +115,24 @@ pub mod generate {
                     .serialize(&generated, args.clone().unwrap_or_default()),
             }
         }
+
+        pub fn serialize_generated_with_progress(
+            &self,
+            generated: Arc<GeneratedSchema>,
+            plugins: Option<Arc<PluginList>>,
+            callback: &dyn Fn(usize, usize),
+        ) -> anyhow::Result<String> {
+            match self {
+                Serializer::Plugin { plugin_name, args } => plugins
+                    .ok_or(anyhow!("A plugin serializer is not allowed at this point"))?
+                    .get(plugin_name)?
+                    .serialize_with_progress(
+                        &generated,
+                        args.clone().unwrap_or_default(),
+                        callback,
+                    ),
+                _ => self.serialize_generated(generated, plugins),
+            }
+        }
     }
 }

@@ -1,4 +1,4 @@
-import init, { GenerateProgress, generateRandomData } from 'datagen-wasm';
+import init, { GenerateProgress, generateRandomData } from 'datagen-rs-wasm';
 import { expose } from 'threads/worker';
 import { Observable, SubscriptionObserver } from 'observable-fns';
 

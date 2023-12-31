@@ -45,6 +45,26 @@ const handler: YargsHandler<Args> = async ({ schema, output }) => {
       }
 
       bar.update(progress.current);
+    },
+    (progress) => {
+      if (bar) {
+        bar.stop();
+        bar = null;
+      }
+
+      if (!bar) {
+        console.log(`Serializing ${chalk.cyanBright(progress.total)} records`);
+        bar = new SingleBar(
+          {
+            format:
+              'Serializing records [{duration_formatted}] |{bar}| {percentage}% || {value}/{total}',
+          },
+          Presets.shades_classic
+        );
+        bar.start(progress.total, progress.current);
+      }
+
+      bar.update(progress.current);
     }
   );
 

@@ -1,6 +1,6 @@
 {
   "name": "datagen-rs-node",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "napi": {
@@ -26,23 +26,24 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "@ava/typescript": "^4.1.0",
     "@napi-rs/cli": "^2.16.2",
     "@types/node": "^20.6.4",
-    "ava": "^5.1.1",
+    "ava": "^6.0.1",
+    "cross-env": "^7.0.3",
     "datagen-rs-types": "file:../types",
     "prettier": "^3.0.3",
-    "tsx": "^3.12.9",
+    "tsx": "^4.7.0",
     "typescript": "^5.2.2"
   },
   "ava": {
     "timeout": "3m",
-    "extensions": {
-      "ts": "module"
-    },
-    "nodeArguments": [
-      "--no-warnings",
-      "--loader=tsx"
-    ]
+    "typescript": {
+      "rewritePaths": {
+        "__test__/": "dist/"
+      },
+      "compile": false
+    }
   },
   "engines": {
     "node": ">= 10"
@@ -60,9 +61,10 @@
     "build": "napi build --platform --release --js native.js --dts native.d.ts",
     "build:debug": "napi build --platform --js native.js --dts native.d.ts",
     "postbuild": "tsc",
-    "pretest": "npm run build",
+    "pretest": "npm run build && npm run testCompile",
     "prepublishOnly": "napi prepublish -t npm && npm run updateVersions",
     "updateVersions": "tsx scripts/prepublish.ts",
+    "testCompile": "tsc -p tsconfig.test.json",
     "test": "ava",
     "universal": "napi universal",
     "version": "napi version",

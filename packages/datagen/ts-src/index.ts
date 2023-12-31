@@ -13,21 +13,56 @@ export { CurrentSchema, GenerateProgress } from '../native';
  * and returns the serialized result.
  *
  * @param schema the schema to generate data from
- * @param callback a callback to receive progress updates
+ * @param generateCallback a callback to receive generate progress updates
+ * @param serializeCallback a callback to receive serialize progress updates
  * @param extraPlugins additional plugins to use
  */
 export async function generateRandomData(
   schema: Schema,
-  callback?: ((progress: GenerateProgress) => void) | null,
+  generateCallback?: ((progress: GenerateProgress) => void) | null,
+  serializeCallback?: ((progress: GenerateProgress) => void) | null,
   extraPlugins: Record<string, DatagenPlugin> = {}
 ): Promise<string> {
-  if (callback && typeof callback !== 'function') {
-    throw new Error('callback must be a function');
+  if (generateCallback && typeof generateCallback !== 'function') {
+    throw new Error('generate callback must be a function');
+  } else if (serializeCallback && typeof serializeCallback !== 'function') {
+    throw new Error('serialize callback must be a function');
+  }
+
+  let generateCallbackInternal = null;
+  if (generateCallback) {
+    generateCallbackInternal = (
+      error: Error | null,
+      progress: GenerateProgress
+    ): void => {
+      if (error) {
+        // Should never happen
+        throw error;
+      }
+
+      generateCallback(progress);
+    };
+  }
+
+  let serializeCallbackInternal = null;
+  if (serializeCallback) {
+    serializeCallbackInternal = (
+      error: Error | null,
+      progress: GenerateProgress
+    ): void => {
+      if (error) {
+        // Should never happen
+        throw error;
+      }
+
+      serializeCallback(progress);
+    };
   }
 
   return generateRandomDataInternal(
     schema,
-    callback,
+    generateCallbackInternal,
+    serializeCallbackInternal,
     await findPlugins(schema, extraPlugins)
   );
 }

@@ -1,4 +1,4 @@
-import { getSchema } from 'datagen-wasm';
+import { getSchema } from 'datagen-rs-wasm';
 import { compile, JSONSchema } from 'json-schema-to-typescript';
 import { existsSync } from 'fs';
 import { rm, writeFile } from 'fs/promises';

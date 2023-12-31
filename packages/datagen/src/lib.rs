@@ -5,13 +5,14 @@ mod util;
 #[macro_use]
 extern crate napi_derive;
 
+use crate::util::helpers::{generate_random_data_with_progress, EnvExt};
 use datagen_rs::schema::schema_definition::Schema;
-use datagen_rs::util::helpers::{generate_random_data, get_schema_value};
+use datagen_rs::util::helpers::get_schema_value;
 use datagen_rs_node_runner::classes::node_plugin::NodePlugin;
 use datagen_rs_node_runner::util::traits::IntoNapiResult;
 use datagen_rs_progress_plugin::{PluginWithSchemaResult, ProgressPlugin};
-use napi::threadsafe_function::ThreadsafeFunction;
-use napi::threadsafe_function::{ErrorStrategy, ThreadsafeFunctionCallMode};
+use napi::threadsafe_function::ThreadsafeFunctionCallMode;
+use napi::{Env, JsFunction, JsObject};
 use serde_json::Value;
 use std::collections::HashMap;
 
@@ -35,38 +36,72 @@ pub struct GenerateProgress {
     pub total: u32,
 }
 
-#[napi]
-pub async fn generate_random_data_internal(
+#[napi(ts_return_type = "Promise<string>")]
+pub fn generate_random_data_internal(
+    env: Env,
     schema: Value,
-    #[napi(ts_arg_type = "((progress: GenerateProgress) => void) | null | undefined")]
-    callback: Option<ThreadsafeFunction<GenerateProgress, ErrorStrategy::Fatal>>,
+    #[napi(
+        ts_arg_type = "((err: Error | null, value: GenerateProgress) => void) | null | undefined"
+    )]
+    generate_progress: Option<JsFunction>,
+    #[napi(
+        ts_arg_type = "((err: Error | null, value: GenerateProgress) => void) | null | undefined"
+    )]
+    serialize_progress: Option<JsFunction>,
     additional_plugins: HashMap<String, &NodePlugin>,
-) -> napi::Result<String> {
-    let (schema, mut plugins) = if let Some(callback) = callback {
-        let PluginWithSchemaResult { schema, plugins } =
-            ProgressPlugin::with_schema(parse_schema(schema)?, move |current, total| {
-                callback.call(
-                    GenerateProgress {
-                        current: current as _,
-                        total: total as _,
-                    },
-                    ThreadsafeFunctionCallMode::NonBlocking,
-                );
-            })
-            .into_napi()?;
+) -> napi::Result<JsObject> {
+    let generate_progress = env.create_tsfn(generate_progress)?;
+    let serialize_progress = env.create_tsfn(serialize_progress)?;
 
-        (schema, Some(plugins))
-    } else {
-        (parse_schema(schema)?, None)
-    };
+    let additional_plugins = additional_plugins
+        .into_iter()
+        .map(|(name, plugin)| (name, plugin.clone()))
+        .collect::<HashMap<_, _>>();
 
-    if !additional_plugins.is_empty() {
-        let plugins = plugins.get_or_insert_with(HashMap::new);
+    env.execute_tokio_future(
+        async move {
+            let (schema, mut plugins) = if let Some(callback) = generate_progress {
+                let PluginWithSchemaResult { schema, plugins } =
+                    ProgressPlugin::with_schema(parse_schema(schema)?, move |current, total| {
+                        callback.call(
+                            Ok(GenerateProgress {
+                                current: current as _,
+                                total: total as _,
+                            }),
+                            ThreadsafeFunctionCallMode::NonBlocking,
+                        );
+                    })
+                    .into_napi()?;
+                (schema, Some(plugins))
+            } else {
+                (parse_schema(schema)?, None)
+            };
 
-        for (name, plugin) in additional_plugins {
-            plugins.insert(name, Box::new(plugin.clone()));
-        }
-    }
+            if !additional_plugins.is_empty() {
+                let plugins = plugins.get_or_insert_with(HashMap::new);
 
-    generate_random_data(schema, plugins).into_napi()
+                for (name, plugin) in additional_plugins {
+                    plugins.insert(name, Box::new(plugin.clone()));
+                }
+            }
+
+            generate_random_data_with_progress(
+                schema,
+                serialize_progress.map(|func| {
+                    move |current, total| {
+                        func.call(
+                            Ok(GenerateProgress {
+                                current: current as _,
+                                total: total as _,
+                            }),
+                            ThreadsafeFunctionCallMode::NonBlocking,
+                        );
+                    }
+                }),
+                plugins,
+            )
+            .into_napi()
+        },
+        |env, result| env.create_string_from_std(result),
+    )
 }
