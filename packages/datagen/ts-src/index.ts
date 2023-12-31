@@ -29,10 +29,40 @@ export async function generateRandomData(
     throw new Error('serialize callback must be a function');
   }
 
+  let generateCallbackInternal = null;
+  if (generateCallback) {
+    generateCallbackInternal = (
+      error: Error | null,
+      progress: GenerateProgress
+    ): void => {
+      if (error) {
+        // Should never happen
+        throw error;
+      }
+
+      generateCallback(progress);
+    };
+  }
+
+  let serializeCallbackInternal = null;
+  if (serializeCallback) {
+    serializeCallbackInternal = (
+      error: Error | null,
+      progress: GenerateProgress
+    ): void => {
+      if (error) {
+        // Should never happen
+        throw error;
+      }
+
+      serializeCallback(progress);
+    };
+  }
+
   return generateRandomDataInternal(
     schema,
-    generateCallback,
-    serializeCallback,
+    generateCallbackInternal,
+    serializeCallbackInternal,
     await findPlugins(schema, extraPlugins)
   );
 }

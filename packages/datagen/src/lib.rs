@@ -39,20 +39,24 @@ pub struct GenerateProgress {
 #[napi]
 pub async fn generate_random_data_internal(
     schema: Value,
-    #[napi(ts_arg_type = "((progress: GenerateProgress) => void) | null | undefined")]
-    generate_progress: Option<ThreadsafeFunction<GenerateProgress, ErrorStrategy::Fatal>>,
-    #[napi(ts_arg_type = "((progress: GenerateProgress) => void) | null | undefined")]
-    serialize_progress: Option<ThreadsafeFunction<GenerateProgress, ErrorStrategy::Fatal>>,
+    #[napi(
+        ts_arg_type = "((err: Error | null, value: GenerateProgress) => void) | null | undefined"
+    )]
+    generate_progress: Option<ThreadsafeFunction<GenerateProgress>>,
+    #[napi(
+        ts_arg_type = "((err: Error | null, value: GenerateProgress) => void) | null | undefined"
+    )]
+    serialize_progress: Option<ThreadsafeFunction<GenerateProgress>>,
     additional_plugins: HashMap<String, &NodePlugin>,
 ) -> napi::Result<String> {
     let (schema, mut plugins) = if let Some(callback) = generate_progress {
         let PluginWithSchemaResult { schema, plugins } =
             ProgressPlugin::with_schema(parse_schema(schema)?, move |current, total| {
                 callback.call(
-                    GenerateProgress {
+                    Ok(GenerateProgress {
                         current: current as _,
                         total: total as _,
-                    },
+                    }),
                     ThreadsafeFunctionCallMode::NonBlocking,
                 );
             })
@@ -76,10 +80,10 @@ pub async fn generate_random_data_internal(
         serialize_progress.map(|p| {
             move |current, total| {
                 p.call(
-                    GenerateProgress {
+                    Ok(GenerateProgress {
                         current: current as _,
                         total: total as _,
-                    },
+                    }),
                     ThreadsafeFunctionCallMode::NonBlocking,
                 );
             }

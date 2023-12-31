@@ -18,7 +18,7 @@
     "resolveJsonModule": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "outDir": "./dist",
+    "outDir": "./dist"
   },
   "exclude": ["node_modules", "dist"],
   "include": ["./__test__/**/*"]
