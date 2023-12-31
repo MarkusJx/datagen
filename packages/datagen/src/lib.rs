@@ -5,7 +5,7 @@ mod util;
 #[macro_use]
 extern crate napi_derive;
 
-use crate::util::helpers::generate_random_data_with_progress;
+use crate::util::helpers::{generate_random_data_with_progress, EnvExt};
 use datagen_rs::schema::schema_definition::Schema;
 use datagen_rs::util::helpers::get_schema_value;
 use datagen_rs_node_runner::classes::node_plugin::NodePlugin;
@@ -50,12 +50,8 @@ pub fn generate_random_data_internal(
     serialize_progress: Option<JsFunction>,
     additional_plugins: HashMap<String, &NodePlugin>,
 ) -> napi::Result<JsObject> {
-    let generate_progress = generate_progress
-        .map(|f| env.create_threadsafe_function(&f, 0, |ctx| Ok(vec![ctx.value])))
-        .map_or(Ok(None), |f| f.map(Some))?;
-    let serialize_progress = serialize_progress
-        .map(|f| env.create_threadsafe_function(&f, 0, |ctx| Ok(vec![ctx.value])))
-        .map_or(Ok(None), |f| f.map(Some))?;
+    let generate_progress = env.create_tsfn(generate_progress)?;
+    let serialize_progress = env.create_tsfn(serialize_progress)?;
 
     let additional_plugins = additional_plugins
         .into_iter()
@@ -67,18 +63,15 @@ pub fn generate_random_data_internal(
             let (schema, mut plugins) = if let Some(callback) = generate_progress {
                 let PluginWithSchemaResult { schema, plugins } =
                     ProgressPlugin::with_schema(parse_schema(schema)?, move |current, total| {
-                        let status = callback.call(
+                        callback.call(
                             Ok(GenerateProgress {
                                 current: current as _,
                                 total: total as _,
                             }),
                             ThreadsafeFunctionCallMode::NonBlocking,
                         );
-
-                        println!("status: {:?}", status);
                     })
                     .into_napi()?;
-
                 (schema, Some(plugins))
             } else {
                 (parse_schema(schema)?, None)
