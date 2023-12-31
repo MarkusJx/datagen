@@ -11,8 +11,7 @@ use datagen_rs::util::helpers::get_schema_value;
 use datagen_rs_node_runner::classes::node_plugin::NodePlugin;
 use datagen_rs_node_runner::util::traits::IntoNapiResult;
 use datagen_rs_progress_plugin::{PluginWithSchemaResult, ProgressPlugin};
-use napi::threadsafe_function::ThreadsafeFunction;
-use napi::threadsafe_function::{ErrorStrategy, ThreadsafeFunctionCallMode};
+use napi::threadsafe_function::{ThreadsafeFunction, ThreadsafeFunctionCallMode};
 use serde_json::Value;
 use std::collections::HashMap;
 
@@ -52,13 +51,15 @@ pub async fn generate_random_data_internal(
     let (schema, mut plugins) = if let Some(callback) = generate_progress {
         let PluginWithSchemaResult { schema, plugins } =
             ProgressPlugin::with_schema(parse_schema(schema)?, move |current, total| {
-                callback.call(
+                let status = callback.call(
                     Ok(GenerateProgress {
                         current: current as _,
                         total: total as _,
                     }),
                     ThreadsafeFunctionCallMode::NonBlocking,
                 );
+
+                println!("status: {:?}", status);
             })
             .into_napi()?;
 
