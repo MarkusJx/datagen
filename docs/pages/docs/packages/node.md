@@ -41,7 +41,8 @@ serialization, you can pass a serializer into the
 ### Generate random data with progress
 
 If you want to get progress updates while generating data, you can
-pass a progress callback to the `generateRandomData` function:
+pass a generate and a serialize progress callback to the
+`generateRandomData` function:
 
 ```ts
 import { generateRandomData } from 'datagen-rs-node';
@@ -55,6 +56,9 @@ const generated = await generateRandomData(
   },
   ({ current, total }) => {
     console.log(`Generated ${current}/${total} items`);
+  },
+  ({ current, total }) => {
+    console.log(`Serialized ${current}/${total} items`);
   }
 );
 ```
@@ -90,6 +94,7 @@ const generated = await generateRandomData(
       name: 'test',
     },
   },
+  null,
   null,
   {
     myPlugin: {

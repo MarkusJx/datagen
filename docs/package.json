@@ -1,6 +1,6 @@
 {
   "name": "@datagen/docs",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Docs for datagen",
   "scripts": {
@@ -34,7 +34,7 @@
     "@octokit/rest": "^20.0.2",
     "arch": "^2.2.0",
     "datagen-rs-types": "file:../packages/types",
-    "datagen-wasm": "file:../crates/datagen-wasm/web-pkg",
+    "datagen-rs-wasm": "file:../crates/datagen-wasm/web-pkg",
     "next": "^14.0.3",
     "nextra": "^2.13.2",
     "nextra-theme-docs": "^2.13.2",

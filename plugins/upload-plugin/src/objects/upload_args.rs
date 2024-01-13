@@ -98,6 +98,14 @@ impl RequestCreator {
 }
 
 impl UploadArgs {
+    fn array_len(schema: &Arc<GeneratedSchema>) -> usize {
+        if let GeneratedSchema::Array(arr) = schema.as_ref() {
+            arr.len()
+        } else {
+            1
+        }
+    }
+
     fn get_headers(&self) -> anyhow::Result<HeaderMap> {
         let mut map = HeaderMap::new();
 
@@ -143,12 +151,18 @@ impl UploadArgs {
             .serialize_generated(value.clone(), None)
     }
 
-    pub(crate) fn upload_data(&self, value: &Arc<GeneratedSchema>) -> anyhow::Result<()> {
+    pub(crate) fn upload_data(
+        &self,
+        value: &Arc<GeneratedSchema>,
+        progress_callback: &dyn Fn(usize, usize),
+    ) -> anyhow::Result<()> {
         let headers = self.get_headers()?;
         let split = self.split(value);
         let creator = RequestCreator::from(self);
         let serializer = self.serializer.clone().unwrap_or_default();
         let upload_in = self.upload_in.unwrap_or_default();
+
+        let num_splits = split.len();
 
         Builder::new_multi_thread()
             .enable_all()
@@ -161,6 +175,7 @@ impl UploadArgs {
                         let creator = &creator;
                         let serializer = &serializer;
                         let upload_in = &upload_in;
+                        let array_len = Self::array_len(&d);
 
                         async move {
                             creator
@@ -173,6 +188,10 @@ impl UploadArgs {
                                 .map_err(|e| anyhow!(e.to_string()))?
                                 .error_for_status()
                                 .map_err(|e| anyhow!(e.to_string()))
+                                .map(|res| {
+                                    progress_callback(array_len, num_splits);
+                                    res
+                                })
                         }
                     })
                     .buffered(creator.num_parallel_requests)

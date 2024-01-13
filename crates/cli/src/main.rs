@@ -39,18 +39,27 @@ enum Commands {
 fn generate_random_data(
     schema: Schema,
     additional_plugins: Option<HashMap<String, Box<dyn Plugin>>>,
+    progress_bar: CliProgressRef,
 ) -> anyhow::Result<(String, Arc<PluginList>)> {
     let plugins = PluginList::from_schema(&schema, additional_plugins)?;
     let options = Arc::new(schema.options.unwrap_or_default());
     let root = CurrentSchema::root(options.clone(), plugins.clone());
     let generated = schema.value.into_random(root)?;
 
+    progress_bar.set_message("Serializing data");
+
     Ok((
         options
             .serializer
             .as_ref()
             .unwrap_or_default()
-            .serialize_generated(generated, Some(plugins.clone()))?,
+            .serialize_generated_with_progress(
+                generated,
+                Some(plugins.clone()),
+                &|current, total| {
+                    progress_bar.increase(current, total);
+                },
+            )?,
         plugins,
     ))
 }
@@ -73,7 +82,7 @@ fn generate_data(
     let (_runner, node_plugins) = NodeRunner::init(&schema)?;
     #[cfg(feature = "node")]
     plugins.extend(node_plugins);
-    let (generated, _plugins) = generate_random_data(schema, Some(plugins))?;
+    let (generated, _plugins) = generate_random_data(schema, Some(plugins), progress_bar.clone())?;
 
     if let Some(out_file) = out_file {
         progress_bar.set_message("Writing results to file");
