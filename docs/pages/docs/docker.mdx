@@ -9,8 +9,8 @@ In addition to the base tags, there are also tags for each version of `datagen` 
 ## `datagen:latest`
 
 An image based on [`debian:bookworm-slim`](https://hub.docker.com/_/debian)
-containing `datagen`, the [`openaddresses-plugin`](./plugins/default/openaddresses)
-and the [`upload-plugin`](./plugins/default/upload).
+containing `datagen`, the [`openaddresses-plugin`](plugins/default/openaddresses.md)
+and the [`upload-plugin`](plugins/default/upload.md).
 
 Install from command line:
 
@@ -27,9 +27,9 @@ FROM ghcr.io/markusjx/datagen:latest
 ## `datagen:alpine`
 
 An image based on [`alpine:3.14`](https://hub.docker.com/_/alpine)
-containing `datagen` without [node.js plugin support](./plugins/node),
-the [`openaddresses-plugin`](./plugins/default/openaddresses)
-and the [`upload-plugin`](./plugins/default/upload).
+containing `datagen` without [node.js plugin support](plugins/node),
+the [`openaddresses-plugin`](plugins/default/openaddresses.md)
+and the [`upload-plugin`](plugins/default/upload.md).
 
 Install from command line:
 
@@ -46,7 +46,7 @@ FROM ghcr.io/markusjx/datagen:alpine
 ## `datagen:slim`
 
 An image based on [`alpine:3.14`](https://hub.docker.com/_/alpine)
-only containing `datagen` without [node.js plugin support](./plugins/node).
+only containing `datagen` without [node.js plugin support](plugins/node).
 
 Install from command line:
 
@@ -63,7 +63,7 @@ FROM ghcr.io/markusjx/datagen:slim
 ## `datagen:debian-slim`
 
 An image based on [`debian:bookworm-slim`](https://hub.docker.com/_/debian)
-only containing `datagen` without [node.js plugin support](./plugins/node).
+only containing `datagen` without [node.js plugin support](plugins/node).
 
 Install from command line:
 
