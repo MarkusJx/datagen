@@ -49,6 +49,3 @@ jobs:
           fi
           docker tag $IMAGE_NAME $IMAGE_ID:$TAG
           docker push $IMAGE_ID:$TAG
-      - name: Push latest image
-        if: ${{ github.event.inputs.latest == 'true' }}
-        run: docker push ghcr.io/datagen:latest
