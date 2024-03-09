@@ -11,8 +11,12 @@ RUN cargo build -p datagen-rs-upload-plugin -r
 
 FROM alpine:3.14
 
+RUN apk update && apk add --no-cache libgcc
+
 COPY --from=builder /app/target/release/datagen /usr/local/bin/datagen
 COPY --from=builder /app/target/release/libopenaddresses_plugin.so /usr/local/lib/libopenaddresses_plugin.so
 COPY --from=builder /app/target/release/libupload_plugin.so /usr/local/lib/libupload_plugin.so
 
 ENV DATAGEN_PLUGIN_DIR=/usr/local/lib
+
+ENTRYPOINT ["/usr/local/bin/datagen"]

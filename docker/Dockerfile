@@ -15,3 +15,5 @@ COPY --from=builder /app/target/release/libopenaddresses_plugin.so /usr/local/li
 COPY --from=builder /app/target/release/libupload_plugin.so /usr/local/lib/libupload_plugin.so
 
 ENV DATAGEN_PLUGIN_DIR=/usr/local/lib
+
+ENTRYPOINT ["/usr/local/bin/datagen"]

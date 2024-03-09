@@ -8,4 +8,8 @@ RUN cargo build -p datagen-rs-cli -r --no-default-features
 
 FROM alpine:3.14
 
+RUN apk update && apk add --no-cache libgcc
+
 COPY --from=builder /app/target/release/datagen /usr/local/bin/datagen
+
+ENTRYPOINT ["/usr/local/bin/datagen"]
