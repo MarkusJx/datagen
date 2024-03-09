@@ -41,11 +41,13 @@ jobs:
             export TAG=latest
           else
             if [ "${{ github.event.inputs.latest }}" == "true" ]; then
+              docker tag $IMAGE_NAME $IMAGE_ID:latest
               docker push $IMAGE_ID:latest
             fi
           
             export TAG=${{ github.event.inputs.tag }}
           fi
+          docker tag $IMAGE_NAME $IMAGE_ID:$TAG
           docker push $IMAGE_ID:$TAG
       - name: Push latest image
         if: ${{ github.event.inputs.latest == 'true' }}

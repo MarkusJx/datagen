@@ -13,6 +13,7 @@ use std::any::Any;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+#[cfg(feature = "log")]
 use std::time::Instant;
 
 #[derive(Debug)]
