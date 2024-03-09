@@ -82,7 +82,9 @@ impl SQLiteBackend {
             "select feature from {table_name} order by random() limit ?1"
         ))?;
 
+        #[cfg(feature = "log")]
         let start = Instant::now();
+
         let data = self.data_cache.get_mut(table_name).unwrap();
         data.extend(
             stmt.query_map([self.num_cached], |row| {

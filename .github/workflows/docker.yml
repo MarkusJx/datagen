@@ -12,6 +12,10 @@ on:
         type: boolean
         required: false
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: datagen
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -25,26 +29,24 @@ jobs:
           else
             export TAG=${{ github.event.inputs.tag }}
           fi
-          docker build . --file docker/Dockerfile --tag ghcr.io/datagen:$TAG
-      - name: Tag image
-        if: ${{ github.event.inputs.latest == 'true' }}
-        run: |
-          if [ -z "${{ github.event.inputs.tag }}" ]; then
-            export TAG=latest
-          else
-            export TAG=${{ github.event.inputs.tag }}
-          fi
-          docker tag ghcr.io/datagen:$TAG ghcr.io/datagen:latest
+          docker build . --file docker/Dockerfile --tag $IMAGE_NAME
       - name: Login to GitHub Container Registry
-        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
       - name: Push image
         run: |
+          IMAGE_ID=$REGISTRY/${{ github.repository }}
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')/$IMAGE_NAME
+          
           if [ -z "${{ github.event.inputs.tag }}" ]; then
             export TAG=latest
           else
+            if [ "${{ github.event.inputs.latest }}" == "true" ]; then
+              docker push $IMAGE_ID:latest
+            fi
+          
             export TAG=${{ github.event.inputs.tag }}
           fi
-          docker push ghcr.io/datagen:$TAG
+          docker push $IMAGE_ID:$TAG
       - name: Push latest image
         if: ${{ github.event.inputs.latest == 'true' }}
         run: docker push ghcr.io/datagen:latest
