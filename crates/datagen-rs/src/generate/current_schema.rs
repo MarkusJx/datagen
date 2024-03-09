@@ -83,7 +83,7 @@ impl CurrentSchema {
     fn get_all_schemas(props: &SchemaProperties, path: &str) -> ResolvedReference {
         if let Some(props) = props.get(path) {
             if props.len() == 1 {
-                ResolvedReference::Single(props.get(0).unwrap().clone())
+                ResolvedReference::Single(props.front().unwrap().clone())
             } else {
                 ResolvedReference::multiple(props.clone().into())
             }
