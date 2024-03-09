@@ -31,8 +31,8 @@ const SourceCode: React.FC<Props> = ({ children }) => {
       setGenerated(workerError);
     } else {
       setGenerated('Generating...');
-      generateRandomData(code, setGenerating, setGenerated, true).catch(
-        console.error
+      generateRandomData(code, setGenerating, setGenerated, true).catch((e) =>
+        console.error('Failed to generate data', e)
       );
     }
   };

@@ -50,7 +50,7 @@ const useDemoWorker = (): DemoWorker => {
       };
 
       load().catch((e) => {
-        console.error(e);
+        console.error('Error initializing worker', e);
         setError(e);
       });
     } else {
@@ -98,7 +98,7 @@ const useDemoWorker = (): DemoWorker => {
               setGenerating(false);
             },
             error(e) {
-              console.error(e);
+              console.error('Failed to generate data', e);
               setGenerated('Error: ' + e.message);
               setGenerating(false);
             },
@@ -111,7 +111,7 @@ const useDemoWorker = (): DemoWorker => {
           }
         }
       } catch (e: any) {
-        console.error(e);
+        console.error('Failed to generate data', e);
         setGenerated('Error: ' + e.message);
         setGenerating(false);
       }
