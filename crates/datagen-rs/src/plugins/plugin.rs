@@ -5,6 +5,10 @@ use serde_json::Value;
 use std::fmt::Debug;
 use std::sync::Arc;
 
+/// The version of the plugin API.
+/// All loaded plugins must match this version.
+pub const SUPPORTED_PLUGIN_VERSION: &str = "1.1.0";
+
 /// A plugin initialization result.
 #[repr(C)]
 pub enum PluginInitResult {
@@ -272,7 +276,9 @@ macro_rules! declare_plugin {
 
         #[no_mangle]
         pub extern "C" fn _plugin_version() -> *mut std::ffi::c_char {
-            std::ffi::CString::new("1.1.0").unwrap().into_raw()
+            std::ffi::CString::new(datagen_rs::plugins::plugin::SUPPORTED_PLUGIN_VERSION)
+                .unwrap()
+                .into_raw()
         }
     };
 }

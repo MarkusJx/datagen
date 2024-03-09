@@ -7,14 +7,44 @@ on:
         description: 'Tag'
         type: string
         required: false
+      latest:
+        description: 'Latest'
+        type: boolean
+        required: false
 
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+      - uses: actions/checkout@v3
+      - name: Build Docker image
+        run: |
+          if [ -z "${{ github.event.inputs.tag }}" ]; then
+            export TAG=latest
+          else
+            export TAG=${{ github.event.inputs.tag }}
+          fi
+          docker build . --file docker/Dockerfile --tag ghcr.io/datagen:$TAG
+      - name: Tag image
+        if: ${{ github.event.inputs.latest == 'true' }}
+        run: |
+          if [ -z "${{ github.event.inputs.tag }}" ]; then
+            export TAG=latest
+          else
+            export TAG=${{ github.event.inputs.tag }}
+          fi
+          docker tag ghcr.io/datagen:$TAG ghcr.io/datagen:latest
+      - name: Login to GitHub Container Registry
+        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+      - name: Push image
+        run: |
+          if [ -z "${{ github.event.inputs.tag }}" ]; then
+            export TAG=latest
+          else
+            export TAG=${{ github.event.inputs.tag }}
+          fi
+          docker push ghcr.io/datagen:$TAG
+      - name: Push latest image
+        if: ${{ github.event.inputs.latest == 'true' }}
+        run: docker push ghcr.io/datagen:latest
