@@ -1,0 +1,78 @@
+# Docker containers
+
+`datagen` is available as a Docker container. The images are available on the
+[GitHub Container Registry](https://github.com/MarkusJx/datagen/pkgs/container/datagen).
+
+Currently, there are four different base tags available: `latest`, `alpine`, `slim` and `debian-slim`.
+In addition to the base tags, there are also tags for each version of `datagen` available.
+
+## `datagen:latest`
+
+An image based on [`debian:bookworm-slim`](https://hub.docker.com/_/debian)
+containing `datagen`, the [`openaddresses-plugin`](./plugins/default/openaddresses)
+and the [`upload-plugin`](./plugins/default/upload).
+
+Install from command line:
+
+```sh
+docker pull ghcr.io/markusjx/datagen:latest
+```
+
+Use it in a `Dockerfile`:
+
+```dockerfile
+FROM ghcr.io/markusjx/datagen:latest
+```
+
+## `datagen:alpine`
+
+An image based on [`alpine:3.14`](https://hub.docker.com/_/alpine)
+containing `datagen` without [node.js plugin support](./plugins/node),
+the [`openaddresses-plugin`](./plugins/default/openaddresses)
+and the [`upload-plugin`](./plugins/default/upload).
+
+Install from command line:
+
+```sh
+docker pull ghcr.io/markusjx/datagen:alpine
+```
+
+Use it in a `Dockerfile`:
+
+```dockerfile
+FROM ghcr.io/markusjx/datagen:alpine
+```
+
+## `datagen:slim`
+
+An image based on [`alpine:3.14`](https://hub.docker.com/_/alpine)
+only containing `datagen` without [node.js plugin support](./plugins/node).
+
+Install from command line:
+
+```sh
+docker pull ghcr.io/markusjx/datagen:slim
+```
+
+Use it in a `Dockerfile`:
+
+```dockerfile
+FROM ghcr.io/markusjx/datagen:slim
+```
+
+## `datagen:debian-slim`
+
+An image based on [`debian:bookworm-slim`](https://hub.docker.com/_/debian)
+only containing `datagen` without [node.js plugin support](./plugins/node).
+
+Install from command line:
+
+```sh
+docker pull ghcr.io/markusjx/datagen:debian-slim
+```
+
+Use it in a `Dockerfile`:
+
+```dockerfile
+FROM ghcr.io/markusjx/datagen:debian-slim
+```

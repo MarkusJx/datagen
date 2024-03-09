@@ -10,3 +10,4 @@ crates/datagen-wasm/*-pkg/
 .code/
 .config/
 docker/
+!docker/docker-entrypoint.sh

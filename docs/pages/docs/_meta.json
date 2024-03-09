@@ -4,5 +4,6 @@
   "plugins": "Plugins",
   "transformers": "Transformers",
   "packages": "Packages",
+  "docker": "Docker",
   "options": "Options"
 }

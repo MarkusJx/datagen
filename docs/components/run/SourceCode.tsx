@@ -42,8 +42,9 @@ const SourceCode: React.FC<Props> = ({ children }) => {
       return;
     }
 
-    const parent = ref.current?.querySelectorAll('button')?.item(0)
-      ?.parentElement;
+    const parent = ref.current
+      ?.querySelectorAll('button')
+      ?.item(0)?.parentElement;
     if (!parent) {
       return;
     }

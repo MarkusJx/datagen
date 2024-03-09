@@ -17,8 +17,22 @@ but features more complex references and a plugin system.
 
 ## Usage
 
-Simply grab a [binary built during a workflow run](https://github.com/MarkusJx/datagen/actions/workflows/build.yml?query=branch%3Amain)
+Simply grab
+a [binary built during a workflow run](https://github.com/MarkusJx/datagen/actions/workflows/build.yml?query=branch%3Amain)
 or build it yourself using `cargo build -p cli --release`.
+
+### Docker
+
+You can also use the Docker image `ghcr.io/markusjx/datagen` to run `datagen` in a
+container.
+
+```sh
+docker run -v $(pwd):/data ghcr.io/markusjx/datagen generate /data/schema.json /data/output.json
+```
+
+Check out
+the [docker image documentation](https://markusjx.github.io/datagen/docs/docker/)
+for more information.
 
 ### Command-line interface
 
@@ -30,7 +44,8 @@ The Rust CLI is the main CLI and is the most feature-rich CLI. It is also the fa
 
 ##### Installation
 
-You can download a binary from the [releases page](https://github.com/MarkusJx/datagen/releases)
+You can download a binary from
+the [releases page](https://github.com/MarkusJx/datagen/releases)
 or build it yourself using `cargo build -p cli --release`.
 The node CLI can be installed using `npm install -g @datagen/cli`.
 
@@ -61,16 +76,26 @@ Then run `datagen generate schema.json` to generate data.
 Generators are used to generate random data. The generators are defined in the
 schema file as JSON objects. The following generators are available:
 
-- [`integer`](https://markusjx.github.io/datagen/docs/generators/integer/): Generates random integers.
-- [`number`](https://markusjx.github.io/datagen/docs/generators/number/): Generates random floating point numbers.
-- [`string`](https://markusjx.github.io/datagen/docs/generators/string/): Generates random strings.
-- [`bool`](https://markusjx.github.io/datagen/docs/generators/bool/): Generates random booleans.
-- [`array`](https://markusjx.github.io/datagen/docs/generators/array/): Generates random arrays.
-- [`object`](https://markusjx.github.io/datagen/docs/generators/object/): Generates random objects.
-- [`reference`](https://markusjx.github.io/datagen/docs/generators/reference/): Used to reference (or copy) other data.
-- [`anyOf`](https://markusjx.github.io/datagen/docs/generators/anyof/): Chooses random data from a list of data.
-- [`flatten`](https://markusjx.github.io/datagen/docs/generators/flatten/): Flattens an array or object.
-- [`plugin`](https://markusjx.github.io/datagen/docs/generators/plugin/): Generates data using [plugins](https://markusjx.github.io/datagen/docs/plugins/).
+- [`integer`](https://markusjx.github.io/datagen/docs/generators/integer/): Generates
+  random integers.
+- [`number`](https://markusjx.github.io/datagen/docs/generators/number/): Generates random
+  floating point numbers.
+- [`string`](https://markusjx.github.io/datagen/docs/generators/string/): Generates random
+  strings.
+- [`bool`](https://markusjx.github.io/datagen/docs/generators/bool/): Generates random
+  booleans.
+- [`array`](https://markusjx.github.io/datagen/docs/generators/array/): Generates random
+  arrays.
+- [`object`](https://markusjx.github.io/datagen/docs/generators/object/): Generates random
+  objects.
+- [`reference`](https://markusjx.github.io/datagen/docs/generators/reference/): Used to
+  reference (or copy) other data.
+- [`anyOf`](https://markusjx.github.io/datagen/docs/generators/anyof/): Chooses random
+  data from a list of data.
+- [`flatten`](https://markusjx.github.io/datagen/docs/generators/flatten/): Flattens an
+  array or object.
+- [`plugin`](https://markusjx.github.io/datagen/docs/generators/plugin/): Generates data
+  using [plugins](https://markusjx.github.io/datagen/docs/plugins/).
 
 ### JSON schema
 
