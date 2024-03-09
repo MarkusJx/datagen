@@ -1,19 +1,22 @@
-use crate::auth::authentication::{AnyAuth, Authentication, NoAuth};
-use crate::objects::auth_args::AuthArgs;
-use crate::objects::http_method::HttpMethod;
-use crate::objects::upload_in::{AddData, UploadIn};
+use std::sync::Arc;
+use std::time;
+use time::Duration;
+
 use anyhow::anyhow;
-use datagen_rs::generate::generated_schema::GeneratedSchema;
-use datagen_rs::schema::serializer::Serializer;
 use futures::{stream, StreamExt};
 use indexmap::IndexMap;
 use reqwest::header::{HeaderMap, HeaderName};
 use reqwest::{Client, RequestBuilder};
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
-use std::time;
-use time::Duration;
 use tokio::runtime::Builder;
+
+use datagen_rs::generate::generated_schema::GeneratedSchema;
+use datagen_rs::schema::serializer::Serializer;
+
+use crate::auth::authentication::{AnyAuth, Authentication, NoAuth};
+use crate::objects::auth_args::AuthArgs;
+use crate::objects::http_method::HttpMethod;
+use crate::objects::upload_in::{AddData, UploadIn};
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
