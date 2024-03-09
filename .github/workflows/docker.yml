@@ -17,35 +17,51 @@ env:
   IMAGE_NAME: datagen
 
 jobs:
-  build:
+  build-and-push:
+    strategy:
+      matrix:
+        include:
+          - tag_suffix: ''
+            dockerfile: Dockerfile
+          - tag_suffix: alpine
+            dockerfile: Dockerfile.alpine
+          - tag_suffix: slim
+            dockerfile: Dockerfile.slim
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
       - name: Build Docker image
-        run: |
-          if [ -z "${{ github.event.inputs.tag }}" ]; then
-            export TAG=latest
-          else
-            export TAG=${{ github.event.inputs.tag }}
-          fi
-          docker build . --file docker/Dockerfile --tag $IMAGE_NAME
+        run: docker build . --file docker/${{ matrix.dockerfile }} --tag $IMAGE_NAME
       - name: Login to GitHub Container Registry
         run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
       - name: Push image
         run: |
           IMAGE_ID=$REGISTRY/${{ github.repository }}
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')/$IMAGE_NAME
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
           
           if [ -z "${{ github.event.inputs.tag }}" ]; then
-            export TAG=latest
+            if [ -z "${{ matrix.tag_suffix }}" ]; then
+              TAG=latest
+            else
+              TAG=${{ matrix.tag_suffix }}
+            fi
           else
             if [ "${{ github.event.inputs.latest }}" == "true" ]; then
-              docker tag $IMAGE_NAME $IMAGE_ID:latest
-              docker push $IMAGE_ID:latest
+              if [ -z "${{ matrix.tag_suffix }}" ]; then
+                docker tag $IMAGE_NAME $IMAGE_ID:latest
+                docker push $IMAGE_ID:latest
+              else
+                docker tag $IMAGE_NAME $IMAGE_ID:{{ matrix.tag_suffix }}
+                docker push $IMAGE_ID:{{ matrix.tag_suffix }}
+              fi
             fi
           
-            export TAG=${{ github.event.inputs.tag }}
+            if [ -z "${{ matrix.tag_suffix }}" ]; then
+              TAG=${{ github.event.inputs.tag }}
+            else
+              TAG=${{ github.event.inputs.tag }}-${{ matrix.tag_suffix }}
+            fi
           fi
           docker tag $IMAGE_NAME $IMAGE_ID:$TAG
           docker push $IMAGE_ID:$TAG

@@ -1,0 +1,11 @@
+FROM rust:1-alpine as builder
+
+ADD . /app
+WORKDIR /app
+
+RUN apk update && apk add --no-cache musl-dev build-base
+RUN cargo build -p datagen-rs-cli -r --no-default-features
+
+FROM alpine:3.14
+
+COPY --from=builder /app/target/release/datagen /usr/local/bin/datagen
