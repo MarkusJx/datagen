@@ -1,4 +1,4 @@
-use crate::auth::keycloak_auth::{KeycloakAuth, KeycloakAuthArgs};
+use crate::auth::oidc::oidc_auth::OidcAuth;
 use crate::objects::auth_args::AuthArgs;
 use async_trait::async_trait;
 use reqwest::RequestBuilder;
@@ -30,19 +30,7 @@ pub(crate) trait Authentication: Send + Sync {
                 Box::new(BasicAuth { username, password })
             }
             Some(AuthArgs::Bearer { token }) => Box::new(BearerAuth { token }),
-            Some(AuthArgs::Keycloak {
-                realm,
-                username,
-                password,
-                client_id,
-                host,
-            }) => Box::new(KeycloakAuth::new(KeycloakAuthArgs {
-                realm,
-                username,
-                password,
-                client_id,
-                host,
-            })),
+            Some(AuthArgs::Oidc(args)) => Box::new(OidcAuth::new(args)),
             None => Box::new(NoAuth),
         }
     }

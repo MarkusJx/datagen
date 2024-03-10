@@ -6,7 +6,6 @@ use serde_json::{from_str, from_value, json, Value};
 
 mod basic_auth;
 mod bearer_auth;
-mod keycloak_auth;
 mod no_auth;
 
 fn create_schema(plugin_args: Value) -> anyhow::Result<String> {

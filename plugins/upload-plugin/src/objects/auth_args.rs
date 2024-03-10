@@ -1,3 +1,4 @@
+use crate::auth::oidc::objects::OidcAuthArgs;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -10,12 +11,5 @@ pub(crate) enum AuthArgs {
     Bearer {
         token: String,
     },
-    #[serde(rename_all = "camelCase")]
-    Keycloak {
-        realm: String,
-        username: String,
-        password: String,
-        client_id: String,
-        host: String,
-    },
+    Oidc(OidcAuthArgs),
 }
