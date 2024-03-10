@@ -1,6 +1,6 @@
 use crate::generate::current_schema::CurrentSchemaRef;
 use crate::generate::generated_schema::GeneratedSchema;
-use crate::plugins::plugin::{Plugin, PluginInitResult};
+use crate::plugins::plugin::{Plugin, PluginInitResult, SUPPORTED_PLUGIN_VERSION};
 use crate::util::plugin_error::native::MapPluginError;
 use anyhow::anyhow;
 use libloading::{Library, Symbol};
@@ -43,8 +43,10 @@ impl ImportedPlugin {
         let version = unsafe { CString::from_raw(version_fn()) };
         let version_str = version.to_str()?;
 
-        if version_str != "1.0.0" {
-            Err(anyhow!("Unsupported plugin version: {version_str}"))
+        if version_str != SUPPORTED_PLUGIN_VERSION {
+            Err(anyhow!(
+                "Unsupported plugin version {version_str}, expected {SUPPORTED_PLUGIN_VERSION}"
+            ))
         } else {
             let args_raw = Box::into_raw(Box::new(args));
             match unsafe { constructor(args_raw) } {

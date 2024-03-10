@@ -31,8 +31,8 @@ const SourceCode: React.FC<Props> = ({ children }) => {
       setGenerated(workerError);
     } else {
       setGenerated('Generating...');
-      generateRandomData(code, setGenerating, setGenerated, true).catch(
-        console.error
+      generateRandomData(code, setGenerating, setGenerated, true).catch((e) =>
+        console.error('Failed to generate data', e)
       );
     }
   };
@@ -42,8 +42,9 @@ const SourceCode: React.FC<Props> = ({ children }) => {
       return;
     }
 
-    const parent = ref.current?.querySelectorAll('button')?.item(0)
-      ?.parentElement;
+    const parent = ref.current
+      ?.querySelectorAll('button')
+      ?.item(0)?.parentElement;
     if (!parent) {
       return;
     }

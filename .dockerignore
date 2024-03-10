@@ -6,3 +6,8 @@ docs/.next/
 packages/*/dist/
 packages/datagen/*.node
 crates/datagen-wasm/*-pkg/
+.idea/
+.code/
+.config/
+docker/
+!docker/docker-entrypoint.sh

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import Generated from './Generated';
 import SourceCode from './SourceCode';
-import { getHighlighter, Highlighter } from 'shiki';
+import { getHighlighter, Highlighter, setCDN } from 'shiki';
 
 interface CodeContext {
   generated: string | null;
@@ -23,6 +23,7 @@ interface Props {
   children: React.ReactNode;
 }
 
+setCDN('https://unpkg.com/shiki@0.14.7/');
 const highlighterPromise = getHighlighter({
   theme: 'css-variables',
   langs: ['json'],
@@ -34,7 +35,9 @@ const RunCode: React.FC<Props> = ({ children }) => {
   const [highlighter, setHighlighter] = useState<Highlighter | null>(null);
 
   useEffect(() => {
-    highlighterPromise.then(setHighlighter).catch(console.error);
+    highlighterPromise
+      .then(setHighlighter)
+      .catch((e) => console.error('Failed to initialize highlighter', e));
   }, []);
 
   return (

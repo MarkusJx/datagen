@@ -13,6 +13,8 @@ use std::any::Any;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+#[cfg(feature = "log")]
+use std::time::Instant;
 
 #[derive(Debug)]
 pub(crate) struct SQLiteBackend {
@@ -81,6 +83,9 @@ impl SQLiteBackend {
             "select feature from {table_name} order by random() limit ?1"
         ))?;
 
+        #[cfg(feature = "log")]
+        let start = Instant::now();
+
         let data = self.data_cache.get_mut(table_name).unwrap();
         data.extend(
             stmt.query_map([self.num_cached], |row| {
@@ -96,6 +101,9 @@ impl SQLiteBackend {
             "Re-filled cache for table '{table_name}' with {} items",
             data.len()
         );
+
+        #[cfg(feature = "log")]
+        log::debug!("Filling cache took {:?}", start.elapsed());
 
         Ok(data)
     }
