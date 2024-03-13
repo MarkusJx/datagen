@@ -2,6 +2,7 @@ use crate::auth::authentication::Authentication;
 use crate::auth::oidc::objects::OidcAuthArgs;
 use crate::auth::oidc::oidc_token::OidcToken;
 use async_trait::async_trait;
+use oauth2::AuthType;
 use openidconnect::core::CoreProviderMetadata;
 use openidconnect::reqwest::async_http_client;
 use openidconnect::{ClientId, ClientSecret, IssuerUrl};
@@ -31,6 +32,13 @@ impl OidcAuth {
             metadata,
             ClientId::new(self.args.client_id.clone()),
             self.args.client_secret.clone().map(ClientSecret::new),
+        )
+        .set_auth_type(
+            self.args
+                .auth_type
+                .clone()
+                .map(Into::into)
+                .unwrap_or(AuthType::RequestBody),
         );
 
         let (token, client) = self.args.method.get_token(client, &self.args).await?;
