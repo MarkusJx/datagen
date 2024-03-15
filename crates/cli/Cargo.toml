@@ -24,4 +24,3 @@ anyhow = "1"
 [features]
 node = ["datagen-rs-node-runner"]
 default = ["node"]
-

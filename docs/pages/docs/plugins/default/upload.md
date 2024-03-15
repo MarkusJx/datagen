@@ -1,7 +1,9 @@
 # upload-plugin
 
-The `datagen-rs-upload-plugin` is a plugin for [`datagen-rs`](https://markusjx.github.io/datagen/)
-providing the ability to upload generated data to a server. The plugin provides a serialization
+The `datagen-rs-upload-plugin` is a plugin
+for [`datagen-rs`](https://markusjx.github.io/datagen/)
+providing the ability to upload generated data to a server. The plugin provides a
+serialization
 interface to serialize the generated data to a string and upload it to a server.
 
 ## Parameters
@@ -11,7 +13,7 @@ The plugin has the following parameters:
 | Name                  | Type                                                                        | Description                                                                                                                                                | Default    |
 | --------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
 | `url`                 | `String`                                                                    | The URL to upload the data to.                                                                                                                             | unset      |
-| `method`              | [`HttpMethod`](#HttpMethod)                                                 | The HTTP method to use.                                                                                                                                    | `post`     |
+| `method`              | [`HttpMethod`](#httpmethod)                                                 | The HTTP method to use.                                                                                                                                    | `post`     |
 | `serializer`          | [`serializer`](https://markusjx.github.io/datagen/docs/options/#serializer) | The serializer to use.                                                                                                                                     | `json`     |
 | `returnNull`          | `bool`                                                                      | Whether to discard the serialized value. If set to `true`, an empty string will be returned by `datagen`                                                   | `false`    |
 | `headers`             | `Map<String, String>`                                                       | A map containing headers to send with the request.                                                                                                         | `{}`       |
@@ -19,8 +21,8 @@ The plugin has the following parameters:
 | `numParallelRequests` | `usize`                                                                     | The number of parallel requests to send.                                                                                                                   | `1`        |
 | `expectedStatus`      | `u16`                                                                       | The expected status code. If the status code of the response is not equal to this value, an error will be returned.                                        | `200`      |
 | `timeout`             | `u64`                                                                       | The timeout in milliseconds.                                                                                                                               | `infinite` |
-| `auth`                | [`AuthArgs`](#AuthArgs)                                                     | The authentication method to use.                                                                                                                          | `none`     |
-| `uploadIn`            | [`UploadIn`](#UploadIn)                                                     | The data to upload.                                                                                                                                        | `body`     |
+| `auth`                | [`AuthArgs`](#authargs)                                                     | The authentication method to use.                                                                                                                          | `none`     |
+| `uploadIn`            | [`UploadIn`](#uploadin)                                                     | The data to upload.                                                                                                                                        | `body`     |
 
 ### `HttpMethod`
 
@@ -57,19 +59,88 @@ The `bearer` authentication method is used to send a bearer token to the server.
 | `type`  | `'bearer'` | The authentication type. Must be `'bearer'`. |         |
 | `token` | `String`   | The token to use.                            | unset   |
 
-#### `keycloak`
+#### `oidc`
 
-The `keycloak` authentication method is used to send a bearer token to the server
-using a [Keycloak](https://www.keycloak.org/) instance for authentication.
+The `oidc` authentication method is used to send a bearer token to the server
+using
+the [OpenID Connect Protocol](https://auth0.com/docs/authenticate/protocols/openid-connect-protocol)
+for retrieving the token.
 
-| Name       | Type         | Description                                    | Default |
-| ---------- | ------------ | ---------------------------------------------- | ------- |
-| `type`     | `'keycloak'` | The authentication type. Must be `'keycloak'`. |         |
-| `host`     | `String`     | The host of the Keycloak instance.             | unset   |
-| `realm`    | `String`     | The realm to use.                              | unset   |
-| `username` | `String`     | The username to use.                           | unset   |
-| `password` | `String`     | The password to use.                           | unset   |
-| `clientId` | `String`     | The client ID to use.                          | unset   |
+| Name           | Type                                  | Description                                | Default             |
+| -------------- | ------------------------------------- | ------------------------------------------ | ------------------- | --- |
+| `type`         | `'oidc'`                              | The authentication type. Must be `'oidc'`. |                     |
+| `clientId`     | `String`                              | The client ID to use.                      | unset               |
+| `clientSecret` | `String`                              | The client secret to use. Optional.        | none                |
+| `discoveryUrl` | `String`                              | The OIDC endpoint discovery URL.           | unset               |
+| `scopes`       | `String[]`                            | The scopes to use.                         | `[]`                |
+| `authFlow`     | [`OidcAuthFlow`](#oidcauthflow)       | The authentication flow to use.            | `authorizationCode` |
+| `authType`     | [`OidcAuthType`](#oidcauthtype)       | The authentication type to use.            | `requestBody`       |
+| `method`       | [`OidcLoginMethod`](#oidcloginmethod) | The method to use for logging in.          | unset               |     |
+
+##### `OidcAuthFlow`
+
+The `OidcAuthFlow` enum is used to specify the authentication flow to use.
+The following values are available:
+
+- `authorizationCode`: This enables the
+  [authorization code flow](https://auth0.com/docs/get-started/authentication-and-authorization-flow/authorization-code-flow).
+  This flow is recommended for production use.
+- `implicit`: This enables
+  the [implicit flow](https://auth0.com/docs/get-started/authentication-and-authorization-flow/implicit-flow-with-form-post).
+  This flow is not recommended for production use.
+
+##### `OidcAuthType`
+
+The `OidcAuthType` enum is used to specify where the credentials will be sent to the oidc
+provider.
+The following values are available:
+
+- `requestBody`: The credentials will be sent in the request body.
+- `basicAuth`: The credentials will be sent as basic auth.
+
+##### `OidcLoginMethod`
+
+The `OidcLoginMethod` object is used to specify the method to use for logging in.
+Currently, there are three methods available:
+
+- [`clientCredentials`](#clientcredentials)
+- [`password`](#password)
+- [`deviceCode`](#devicecode)
+
+###### `clientCredentials`
+
+The `clientCredentials` method is used to authorize the client using the
+[client credentials flow](https://auth0.com/docs/authenticate/login/oidc-conformant-authentication/oidc-adoption-client-credentials-flow).
+This method only has a `type` field, which must be set to `'clientCredentials'`.
+The client credentials flow will use the `clientId` and `clientSecret` fields
+from the [`oidc`](#oidc) object to authorize the client. The `clientSecret` field
+must not be unset.
+
+| Name   | Type                  | Description                                      | Default |
+| ------ | --------------------- | ------------------------------------------------ | ------- |
+| `type` | `'clientCredentials'` | The login method. Must be `'clientCredentials'`. | unset   |
+
+###### `password`
+
+The `password` method is used to authorize the client with the users username and
+password using
+the [Client Credentials Flow](https://auth0.com/docs/get-started/authentication-and-authorization-flow/client-credentials-flow).
+
+| Name       | Type         | Description                             | Default |
+| ---------- | ------------ | --------------------------------------- | ------- |
+| `type`     | `'password'` | The login method. Must be `'password'`. | unset   |
+| `username` | `String`     | The username to use.                    | unset   |
+| `password` | `String`     | The password to use.                    | unset   |
+
+###### `deviceCode`
+
+The `deviceCode` method is used to authorize the client using the
+[Device Authorization Flow](https://auth0.com/docs/get-started/authentication-and-authorization-flow/device-authorization-flow).
+
+| Name                     | Type           | Description                               | Default |
+| ------------------------ | -------------- | ----------------------------------------- | ------- |
+| `type`                   | `'deviceCode'` | The login method. Must be `'deviceCode'`. | unset   |
+| `deviceAuthorizationUrl` | `String`       | The URL to use for device authorization   | unset   |
 
 ### `UploadIn`
 
@@ -107,7 +178,7 @@ The following values are available:
 }
 ```
 
-### Upload data with keycloak auth
+### Upload data with oidc using a Keycloak instance as the oidc provider
 
 ```json
 {
@@ -120,12 +191,15 @@ The following values are available:
       "args": {
         "url": "http://localhost:8080/upload",
         "auth": {
-          "type": "keycloak",
-          "host": "http://localhost:8080/auth",
-          "realm": "my-realm",
-          "username": "my-username",
-          "password": "my-password",
-          "clientId": "my-client-id"
+          "type": "oidc",
+          "clientId": "my-client-id",
+          "clientSecret": "my-client-secret",
+          "discoveryUrl": "http://localhost:8080/realms/my-realm",
+          "scopes": ["openid", "profile", "email"],
+          "method": {
+            "type": "deviceCode",
+            "deviceAuthorizationUrl": "http://localhost:8080/realms/my-realm/protocol/openid-connect/auth/device"
+          }
         }
       }
     }
