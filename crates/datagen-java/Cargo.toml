@@ -1,0 +1,17 @@
+[package]
+name = "datagen-java"
+version = "0.2.0"
+edition = "2021"
+repository = "https://github.com/MarkusJx/datagen"
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+serde_json = "1.0.114"
+datagen-rs = { path = "../datagen-rs", features = ["all"] }
+datagen-rs-progress-plugin = { path = "../../plugins/progress-plugin" }
+jni-bindgen = { git = "https://github.com/MarkusJx/jni-bindgen" }
+jni = "0.21.1"
+anyhow = "1.0.80"
