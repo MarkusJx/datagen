@@ -29,11 +29,8 @@ public class DatagenTest {
             }""";
     private static final AnySchema<?> SCHEMA =
             new ObjectSchema()
-                    .property(
-                            "id",
-                            new GenericSchema(DatagenType.STRING)
-                                    .generator(new StringGenerator("uuid")))
-                    .property("number", new GenericSchema(DatagenType.INTEGER).min(0).max(100));
+                    .property("id", GenericSchema.string(new StringGenerator("uuid")))
+                    .property("number", GenericSchema.integer(0, 100));
     private static final Gson gson = new Gson();
 
     @Test
