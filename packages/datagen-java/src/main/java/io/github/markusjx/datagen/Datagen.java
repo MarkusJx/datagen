@@ -38,12 +38,12 @@ public class Datagen {
     }
 
     public @NotNull String generateAsString(
-            @NotNull AnySchema<?> schema, @Nullable GenerateCallback callback)
+            @Nullable AnySchema<?> schema, @Nullable GenerateCallback callback)
             throws NativeExecutionException {
         return DatagenImpl.generateRandomData(gson.toJson(schema), callback);
     }
 
-    public @NotNull String generateAsString(@NotNull AnySchema<?> schema)
+    public @NotNull String generateAsString(@Nullable AnySchema<?> schema)
             throws NativeExecutionException {
         return generateAsString(schema, null);
     }
@@ -60,14 +60,14 @@ public class Datagen {
     }
 
     public <T> @NotNull T generate(
-            @NotNull AnySchema<?> schema,
+            @Nullable AnySchema<?> schema,
             @NotNull Class<T> clazz,
             @Nullable GenerateCallback callback)
             throws NativeExecutionException {
         return gson.fromJson(generateAsString(schema, callback), clazz);
     }
 
-    public <T> @NotNull T generate(@NotNull AnySchema<?> schema, @NotNull Class<T> clazz)
+    public <T> @NotNull T generate(@Nullable AnySchema<?> schema, @NotNull Class<T> clazz)
             throws NativeExecutionException {
         return generate(schema, clazz, null);
     }

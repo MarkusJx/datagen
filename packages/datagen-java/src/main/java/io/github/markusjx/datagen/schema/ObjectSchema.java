@@ -1,5 +1,7 @@
 package io.github.markusjx.datagen.schema;
 
+import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,12 +12,12 @@ public class ObjectSchema extends AnySchema<ObjectSchema> {
         super(DatagenType.OBJECT);
     }
 
-    public ObjectSchema properties(Map<String, AnySchema<?>> properties) {
+    public @NotNull ObjectSchema properties(@NotNull Map<String, AnySchema<?>> properties) {
         this.properties = new HashMap<>(properties);
         return this;
     }
 
-    public ObjectSchema property(String name, AnySchema<?> schema) {
+    public @NotNull ObjectSchema property(@NotNull String name, @Nullable AnySchema<?> schema) {
         if (this.properties == null) {
             this.properties = new HashMap<>();
         }
