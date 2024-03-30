@@ -10,8 +10,8 @@ members = [
     "./plugins/openaddresses-plugin",
     "./plugins/progress-plugin",
     "./plugins/upload-plugin",
-    "./packages/datagen"
-]
+    "./packages/datagen",
+    "crates/datagen-java"]
 
 [profile.release]
 lto = true
