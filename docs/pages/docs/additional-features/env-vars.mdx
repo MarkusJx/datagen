@@ -1,0 +1,66 @@
+# Reading properties from environment variables
+
+`datagen` can read (string) properties from environment variables.
+This allows you to configure the schema using shell-like expansions in strings.
+This is especially useful when using `datagen` in a containerized environment and
+when passing secrets to the schema, as any (string) value inside the schema, including
+plugin configurations, can be read from environment variables.
+
+To read a property from an environment variable, use the `${ENV_VAR_NAME}` or `$ENV_VAR_NAME}` syntax.
+Internally, `datagen` uses the [`shellexpand`](https://docs.rs/shellexpand/latest/shellexpand) crate
+for expanding environment variables. This means, default values can be used in the syntax, e.g. `${ENV_VAR_NAME:-default}`.
+
+## Examples
+
+### Reading a property from an environment variable
+
+```json
+{
+  "type": "string",
+  "value": "${MY_ENV_VAR}"
+}
+```
+
+Assuming the environment variable `MY_ENV_VAR` is set to `my-value`, the above schema will generate the following value:
+
+```json
+"my-value"
+```
+
+### Reading a property from an environment variable with a default value
+
+```json
+{
+  "type": "string",
+  "value": "${MY_ENV_VAR:-default}"
+}
+```
+
+Assuming the environment variable `MY_ENV_VAR` is not set, the above schema will generate the following value:
+
+```json
+"default"
+```
+
+### Configure the [`upload-plugin`](../plugins/default/upload.md) using environment variables
+
+```json
+{
+  "options": {
+    "serializer": {
+      "type": "plugin",
+      "pluginName": "upload_plugin",
+      "args": {
+        "url": "${UPLOAD_URL}",
+        "auth": {
+          "type": "basic",
+          "username": "${UPLOAD_USERNAME}",
+          "password": "${UPLOAD_PASSWORD}"
+        }
+      }
+    }
+  },
+  "type": "string",
+  "value": "my-value"
+}
+```

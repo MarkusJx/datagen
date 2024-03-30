@@ -132,7 +132,7 @@ fn test_format_serialized_invalid_key() {
     assert!(generated.is_err());
     assert_eq!(
         generated.unwrap_err().to_string(),
-        "Error rendering \"template\" line 1, col 15: Variable \"b\" not found in strict mode."
+        "Error rendering \"template\" line 1, col 15: Failed to access variable in strict mode Some(\"b\")"
             .to_string()
     );
 }
