@@ -1,4 +1,4 @@
-package io.github.markusjx.datagen.schema;
+package com.github.markusjx.datagen.schema;
 
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;

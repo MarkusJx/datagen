@@ -38,4 +38,4 @@ bin/
 ### Mac OS ###
 .DS_Store
 
-src/main/java/io/github/markusjx/datagen/generated/
+src/main/java/com/github/markusjx/datagen/generated/
