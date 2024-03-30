@@ -1,12 +1,13 @@
-package io.github.markusjx.datagen;
+package com.github.markusjx.datagen;
 
+import com.github.markusjx.datagen.generated.DatagenImpl;
+import com.github.markusjx.datagen.generated.GenerateCallback;
+import com.github.markusjx.datagen.schema.AnySchema;
 import com.github.markusjx.jnibindgen.NativeExecutionException;
 import com.google.gson.Gson;
-import io.github.markusjx.datagen.generated.DatagenImpl;
-import io.github.markusjx.datagen.generated.GenerateCallback;
-import io.github.markusjx.datagen.schema.AnySchema;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
+import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Datagen {
@@ -79,7 +80,11 @@ public class Datagen {
     private static void loadLibrary(@Nullable String path) {
         synchronized (LIBRARY_LOADED) {
             if (!LIBRARY_LOADED.get()) {
-                System.loadLibrary(path == null ? "datagen_java" : path);
+                if (path != null && path.contains(File.separator)) {
+                    System.load(path);
+                } else {
+                    System.loadLibrary(path == null ? "datagen_java" : path);
+                }
                 LIBRARY_LOADED.set(true);
             }
         }

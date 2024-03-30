@@ -1,7 +1,10 @@
-package io.github.markusjx.datagen;
+package com.github.markusjx.datagen;
 
+import com.github.markusjx.datagen.schema.AnySchema;
+import com.github.markusjx.datagen.schema.GenericSchema;
+import com.github.markusjx.datagen.schema.ObjectSchema;
+import com.github.markusjx.datagen.schema.StringGenerator;
 import com.google.gson.Gson;
-import io.github.markusjx.datagen.schema.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;

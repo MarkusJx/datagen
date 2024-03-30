@@ -1,4 +1,4 @@
-package io.github.markusjx.datagen.schema;
+package com.github.markusjx.datagen.schema;
 
 import com.google.gson.annotations.SerializedName;
 

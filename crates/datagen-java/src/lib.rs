@@ -3,7 +3,7 @@ use jni::JNIEnv;
 use jni_bindgen::jni;
 use jni_bindgen::objects::traits::{FromJNI, ObjectFromJNI};
 
-#[jni(package = "io.github.markusjx.datagen.generated")]
+#[jni(package = "com.github.markusjx.datagen.generated")]
 trait GenerateCallback: Send + Sync {
     fn progress(&self, env: &mut JNIEnv, current: i32, total: i32) -> jni_bindgen::Result<()>;
 }
@@ -11,7 +11,7 @@ trait GenerateCallback: Send + Sync {
 struct DatagenImpl;
 
 #[jni(
-    package = "io.github.markusjx.datagen.generated",
+    package = "com.github.markusjx.datagen.generated",
     not_null_annotation = "jakarta.validation.constraints.NotNull",
     nullable_annotation = "jakarta.annotation.Nullable"
 )]

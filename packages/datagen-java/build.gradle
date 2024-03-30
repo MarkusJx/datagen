@@ -1,15 +1,22 @@
+import java.util.regex.Pattern
+
 plugins {
     id 'java'
     id "com.diffplug.spotless" version "6.22.0"
     id "com.adarshr.test-logger" version "4.0.0"
+    id 'maven-publish'
 }
 
-group = 'io.github.markusjx.datagen'
+group = 'com.github.markusjx'
 version = '1.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
     maven { url 'https://jitpack.io' }
+    maven {
+        url 'http://localhost:8081/repository/maven-snapshots/'
+        allowInsecureProtocol = true
+    }
 }
 
 spotless {
@@ -26,11 +33,17 @@ spotless {
     }
 }
 
-test {
-    systemProperty(
-            "java.library.path",
-            "${projectDir}/../../target/debug"
-    )
+tasks.register('assembleArtifact', Copy) {
+    from fileTree("${project.projectDir}/../../target").matching {
+        include '**/*-*-**/release/datagen_java.dll', '**/*-*-**/release/datagen_java.so', '**/*-*-**/release/datagen_java.dylib'
+    }.files
+    into file("${layout.buildDirectory.get()}/libs/")
+    filesMatching("*") {
+        def matcher = Pattern.compile(".+[/\\\\](.+-.+-.+)[/\\\\]release[/\\\\]datagen_java\\.(dll|so|dylib)").matcher(it.getFile().path)
+        if (matcher.find()) {
+            it.path = "datagen_java-${matcher.group(1)}.${matcher.group(2)}"
+        }
+    }
 }
 
 dependencies {
@@ -45,5 +58,93 @@ dependencies {
 }
 
 test {
+    systemProperty(
+            "java.library.path",
+            "${projectDir}/../../target/debug"
+    )
     useJUnitPlatform()
 }
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = 'datagen'
+            from components.java
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
+            }
+            pom {
+                name = 'datagen'
+                description = 'A random data generator'
+                url = 'https://markusjx.github.io/datagen/'
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://opensource.org/license/mit'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'MarkusJx'
+                    }
+                }
+            }
+        }
+
+        fileTree("${layout.buildDirectory.get()}/libs/").matching {
+            include '**/*.dll', '**/*.so', '**/*.dylib'
+        }.files.stream().map { File f ->
+            mavenJava(MavenPublication) {
+                def matcher = Pattern.compile("datagen_java-(.+-.+-.+)\\.(dll|so|dylib)").matcher(f.name)
+                if (!matcher.find()) {
+                    throw new IllegalArgumentException("Invalid file name: ${f.name}")
+                }
+
+                artifact source: f.path, classifier: matcher.group(1)
+                versionMapping {
+                    usage('java-api') {
+                        fromResolutionOf('runtimeClasspath')
+                    }
+                    usage('java-runtime') {
+                        fromResolutionResult()
+                    }
+                }
+                pom {
+                    name = 'datagen'
+                    description = 'A random data generator'
+                    url = 'https://markusjx.github.io/datagen/'
+                    licenses {
+                        license {
+                            name = 'MIT License'
+                            url = 'https://opensource.org/license/mit'
+                        }
+                    }
+                    developers {
+                        developer {
+                            id = 'MarkusJx'
+                        }
+                    }
+                }
+            }
+        }.toList()
+    }
+    repositories {
+        maven {
+            allowInsecureProtocol = true
+            url = 'http://localhost:8081/repository/maven-snapshots/'
+            credentials {
+                username 'admin'
+                password 'admin'
+            }
+        }
+    }
+}
+
+
+assemble.dependsOn assembleArtifact
+build.dependsOn assemble
