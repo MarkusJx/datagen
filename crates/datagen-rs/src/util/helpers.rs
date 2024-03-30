@@ -64,7 +64,7 @@ pub fn write_json_schema<P: AsRef<Path>>(path: P) -> anyhow::Result<()> {
 /// ```
 pub fn read_schema<P: AsRef<Path>>(path: P) -> anyhow::Result<Schema> {
     let file = File::open(path)?;
-    let schema: Schema = serde_json::from_reader(file)?;
+    let schema: Schema = crate::util::json_deserialize::from_reader(file)?;
 
     Ok(schema)
 }

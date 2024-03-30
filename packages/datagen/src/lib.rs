@@ -27,7 +27,8 @@ pub async fn get_schema_async() -> napi::Result<Value> {
 }
 
 fn parse_schema(schema: Value) -> napi::Result<Schema> {
-    serde_json::from_value(schema).map_err(|e| napi::Error::from_reason(e.to_string()))
+    datagen_rs::util::json_deserialize::from_value(schema)
+        .map_err(|e| napi::Error::from_reason(e.to_string()))
 }
 
 #[napi(object)]
