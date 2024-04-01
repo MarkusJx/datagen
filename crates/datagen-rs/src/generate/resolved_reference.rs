@@ -3,6 +3,7 @@ use anyhow::anyhow;
 use rand::prelude::SliceRandom;
 use std::sync::Arc;
 
+#[derive(Clone)]
 pub enum ResolvedReference {
     Single(Arc<GeneratedSchema>),
     Multiple(Vec<Arc<GeneratedSchema>>),

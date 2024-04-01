@@ -41,7 +41,7 @@ impl DatagenPlugin {
                 this_schema
                     .get_plugin(&name)
                     .into_napi()?
-                    .generate(schema.inner(), args)
+                    .generate(Box::new(schema.inner()), args)
                     .into_napi()
             }),
             |env, res| env.to_js_value(&res),
@@ -68,7 +68,7 @@ impl DatagenPlugin {
                 this_schema
                     .get_plugin(&name)
                     .into_napi()?
-                    .transform(schema.inner(), value, args)
+                    .transform(Box::new(schema.inner()), value, args)
                     .into_napi()
             }),
             |env, res| env.to_js_value(&res),

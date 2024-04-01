@@ -20,6 +20,7 @@ pub mod generate {
     use crate::generate::current_schema::CurrentSchemaRef;
     use crate::generate::generated_schema::generate::IntoGeneratedArc;
     use crate::generate::generated_schema::GeneratedSchema;
+    use crate::plugins::abi_impl::IntoCurrentSchemaAbi;
     use crate::schema::plugin::Plugin;
     use crate::schema::transform::Transform;
     use std::sync::Arc;
@@ -29,9 +30,10 @@ pub mod generate {
             self,
             schema: CurrentSchemaRef,
         ) -> anyhow::Result<Arc<GeneratedSchema>> {
-            schema
-                .get_plugin(&self.plugin_name)?
-                .generate(schema.clone(), self.args.unwrap_or_default())
+            schema.get_plugin(&self.plugin_name)?.generate(
+                schema.as_current_schema_abi(),
+                self.args.unwrap_or_default(),
+            )
         }
 
         fn get_transform(&self) -> Option<Vec<Transform>> {

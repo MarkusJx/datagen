@@ -1,24 +1,18 @@
-use crate::generate::current_schema::CurrentSchemaRef;
 use crate::generate::generated_schema::GeneratedSchema;
-use crate::plugins::plugin::{Plugin, PluginInitResult, SUPPORTED_PLUGIN_VERSION};
-use crate::util::plugin_error::native::MapPluginError;
-use anyhow::anyhow;
-use libloading::{Library, Symbol};
+use crate::plugins::abi::{IntoAnyhow, PluginAbiBox};
+use crate::plugins::plugin::{ICurrentSchema, Plugin, PluginLibRef};
+use abi_stable::library::RootModule;
+use anyhow::{anyhow, Context};
 use serde_json::Value;
 use std::env;
-use std::ffi::{c_char, CString, OsStr};
-use std::fmt::Display;
+use std::ffi::OsStr;
+use std::fmt::{Debug, Display};
 use std::path::Path;
 use std::sync::Arc;
 
-#[allow(improper_ctypes_definitions)]
-type InitFn = unsafe extern "C" fn(args: *mut Value) -> PluginInitResult;
-type VersionFn = unsafe extern "C" fn() -> *mut c_char;
-
-#[derive(Debug)]
 pub(crate) struct PluginData {
-    plugin: Box<dyn Plugin>,
-    _lib: Library,
+    plugin: PluginAbiBox,
+    _lib: PluginLibRef,
 }
 
 unsafe impl Send for PluginData {}
@@ -31,44 +25,29 @@ const LIB_EXTENSION: &str = ".so";
 #[cfg(target_os = "macos")]
 const LIB_EXTENSION: &str = ".dylib";
 
-#[derive(Debug)]
 pub struct ImportedPlugin(Arc<PluginData>);
+
+impl Debug for ImportedPlugin {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ImportedPlugin")
+            .field("name", &self.0.plugin.name())
+            .finish()
+    }
+}
 
 impl ImportedPlugin {
     pub fn load<T: AsRef<OsStr> + Display + Clone>(path: T, args: Value) -> anyhow::Result<Self> {
         let lib = Self::try_load(path.to_string())?;
-        let constructor: Symbol<InitFn> = unsafe { lib.get(b"_plugin_create\0") }?;
-        let version_fn: Symbol<VersionFn> = unsafe { lib.get(b"_plugin_version\0") }?;
-
-        let version = unsafe { CString::from_raw(version_fn()) };
-        let version_str = version.to_str()?;
-
-        if version_str != SUPPORTED_PLUGIN_VERSION {
-            Err(anyhow!(
-                "Unsupported plugin version {version_str}, expected {SUPPORTED_PLUGIN_VERSION}"
-            ))
-        } else {
-            let args_raw = Box::into_raw(Box::new(args));
-            match unsafe { constructor(args_raw) } {
-                PluginInitResult::Ok(new_res) => {
-                    let plugin = unsafe { Box::from_raw(new_res) };
-                    Ok(Self(Arc::new(PluginData { plugin, _lib: lib })))
-                }
-                PluginInitResult::Err(err) => {
-                    let err = unsafe { CString::from_raw(err) };
-                    Err(anyhow!("Failed to initialize plugin '{path}'")
-                        .context(anyhow!(err.to_str()?.to_string())))
-                }
-            }
-        }
+        let plugin = lib.new_plugin()(&mut args.into()).into_anyhow()?;
+        Ok(Self(PluginData { plugin, _lib: lib }.into()))
     }
 
     pub(crate) fn get_data(&self) -> Arc<PluginData> {
         self.0.clone()
     }
 
-    fn try_load(path: String) -> anyhow::Result<Library> {
-        let err = match unsafe { Library::new(&path) } {
+    fn try_load(path: String) -> anyhow::Result<PluginLibRef> {
+        let err = match PluginLibRef::load_from_file(Path::new(&path)) {
             Ok(lib) => return Ok(lib),
             Err(err) => err,
         };
@@ -105,10 +84,10 @@ impl ImportedPlugin {
         prefix: Option<String>,
         mut path: String,
         tried_paths: &mut Vec<String>,
-    ) -> anyhow::Result<Library> {
+    ) -> anyhow::Result<PluginLibRef> {
         if let Some(prefix) = prefix {
             path = format!("{}/{}", prefix, path);
-            if let Ok(lib) = unsafe { Library::new(&path) } {
+            if let Ok(lib) = PluginLibRef::load_from_file(Path::new(&path)) {
                 return Ok(lib);
             }
 
@@ -119,7 +98,7 @@ impl ImportedPlugin {
             path = format!("{}{}", path, LIB_EXTENSION);
         }
 
-        if let Ok(lib) = unsafe { Library::new(&path) } {
+        if let Ok(lib) = PluginLibRef::load_from_file(Path::new(&path)) {
             return Ok(lib);
         }
 
@@ -148,42 +127,57 @@ impl ImportedPlugin {
         }
 
         tried_paths.push(path.clone());
-        unsafe { Library::new(path) }.map_err(Into::into)
+        PluginLibRef::load_from_file(Path::new(&path)).map_err(Into::into)
     }
 }
 
 impl Plugin for ImportedPlugin {
     fn name(&self) -> String {
-        self.0.plugin.name()
+        self.0.plugin.name().to_string()
     }
 
     fn generate(
         &self,
-        schema: CurrentSchemaRef,
+        schema: Box<dyn ICurrentSchema>,
         args: Value,
     ) -> anyhow::Result<Arc<GeneratedSchema>> {
         self.0
             .plugin
-            .generate(schema, args)
-            .map_plugin_error(self, "generate")
+            .generate(schema.into(), args.into())
+            .map(Into::into)
+            .into_anyhow()
+            .context(format!(
+                "Failed to call method 'generate' in plugin '{}'",
+                self.name()
+            ))
     }
 
     fn transform(
         &self,
-        schema: CurrentSchemaRef,
+        schema: Box<dyn ICurrentSchema>,
         value: Arc<GeneratedSchema>,
         args: Value,
     ) -> anyhow::Result<Arc<GeneratedSchema>> {
         self.0
             .plugin
-            .transform(schema, value, args)
-            .map_plugin_error(self, "transform")
+            .transform(schema.into(), value.into(), args.into())
+            .map(Into::into)
+            .into_anyhow()
+            .context(format!(
+                "Failed to call method 'transform' in plugin '{}'",
+                self.name()
+            ))
     }
 
     fn serialize(&self, value: &Arc<GeneratedSchema>, args: Value) -> anyhow::Result<String> {
         self.0
             .plugin
-            .serialize(value, args)
-            .map_plugin_error(self, "serialize")
+            .serialize(value.into(), args.into())
+            .map(Into::into)
+            .into_anyhow()
+            .context(format!(
+                "Failed to call method 'transform' in plugin '{}'",
+                self.name()
+            ))
     }
 }

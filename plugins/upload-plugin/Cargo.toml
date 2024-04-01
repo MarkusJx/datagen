@@ -12,7 +12,7 @@ crate-type = ["dylib"]
 
 [dependencies]
 datagen-rs = { path = "../../crates/datagen-rs", version = "0.2.0", features = ["generate"] }
-reqwest = { version = "0.11", features = ["blocking", "json"] }
+reqwest = { version = "0.12", features = ["blocking", "json"] }
 serde_json = { version = "1.0", features = ["indexmap", "preserve_order"] }
 serde = { version = "1.0.188", features = ["derive"] }
 futures = "0.3"
@@ -23,6 +23,7 @@ indexmap = { version = "2", features = ["serde"] }
 anyhow = "1"
 openidconnect = "3.5.0"
 oauth2 = "4.4.2"
+abi_stable = "0.11.3"
 
 [dev-dependencies]
 mockito = "1"

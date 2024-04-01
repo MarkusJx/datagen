@@ -1,29 +1,66 @@
-use crate::generate::current_schema::CurrentSchemaRef;
 use crate::generate::generated_schema::GeneratedSchema;
+use crate::generate::resolved_reference::ResolvedReference;
+use crate::plugins::abi::{
+    CurrentSchemaAbiBox, GeneratedSchemaAbi, IntoAnyhow, IntoPluginResult, JsonValue, PluginAbi,
+    PluginAbiBox, PluginResult,
+};
+use abi_stable::library::RootModule;
+use abi_stable::sabi_types::VersionStrings;
+use abi_stable::std_types::RString;
+use abi_stable::{package_version_strings, StableAbi};
 use anyhow::anyhow;
 use serde_json::Value;
+use std::any::Any;
 use std::fmt::Debug;
 use std::sync::Arc;
 
-/// The version of the plugin API.
-/// All loaded plugins must match this version.
-pub const SUPPORTED_PLUGIN_VERSION: &str = "1.1.0";
+pub trait ICurrentSchema {
+    fn child(
+        &self,
+        sibling: Option<Box<dyn ICurrentSchema>>,
+        path: &str,
+    ) -> anyhow::Result<Box<dyn ICurrentSchema>> {
+        self._inner_abi()
+            .child(sibling.map(|s| s._inner_abi().clone()).into(), path.into())
+            .map(|s| Box::new(s) as Box<dyn ICurrentSchema>)
+            .into_anyhow()
+    }
 
-/// A plugin initialization result.
-#[repr(C)]
-pub enum PluginInitResult {
-    Ok(*mut dyn Plugin),
-    Err(*mut std::ffi::c_char),
+    fn resolve_ref(&self, reference: &str) -> anyhow::Result<ResolvedReference> {
+        self._inner_abi()
+            .resolve_ref(reference.into())
+            .map(Into::into)
+            .into_anyhow()
+    }
+
+    fn finalize(&self, schema: Arc<GeneratedSchema>) -> Arc<GeneratedSchema> {
+        self._inner_abi().finalize(schema.into()).into()
+    }
+
+    fn path(&self) -> String {
+        self._inner_abi().path().into()
+    }
+
+    fn _inner_abi(&self) -> &CurrentSchemaAbiBox;
+
+    fn as_any(&self) -> &dyn Any;
+
+    fn original_type_id(&self) -> std::any::TypeId;
+
+    fn original_type_name(&self) -> &'static str {
+        std::any::type_name::<Self>()
+    }
 }
 
-impl<T: Plugin + 'static> From<anyhow::Result<T>> for PluginInitResult {
-    fn from(result: anyhow::Result<T>) -> Self {
-        match result {
-            Ok(value) => PluginInitResult::Ok(Box::into_raw(Box::new(value))),
-            Err(err) => {
-                PluginInitResult::Err(std::ffi::CString::new(err.to_string()).unwrap().into_raw())
-            }
-        }
+impl From<Box<dyn ICurrentSchema>> for CurrentSchemaAbiBox {
+    fn from(schema: Box<dyn ICurrentSchema>) -> Self {
+        schema._inner_abi().clone()
+    }
+}
+
+impl From<CurrentSchemaAbiBox> for Box<dyn ICurrentSchema> {
+    fn from(schema: CurrentSchemaAbiBox) -> Self {
+        Box::new(schema)
     }
 }
 
@@ -37,8 +74,7 @@ impl<T: Plugin + 'static> From<anyhow::Result<T>> for PluginInitResult {
 ///
 /// # Example
 /// ```
-/// use datagen_rs::plugins::plugin::Plugin;
-/// use datagen_rs::generate::current_schema::CurrentSchemaRef;
+/// use datagen_rs::plugins::plugin::{ICurrentSchema, Plugin};
 /// use datagen_rs::generate::generated_schema::GeneratedSchema;
 /// use serde_json::Value;
 /// use std::sync::Arc;
@@ -55,7 +91,7 @@ impl<T: Plugin + 'static> From<anyhow::Result<T>> for PluginInitResult {
 ///     // if the plugin provides a generator.
 ///     fn generate(
 ///         &self,
-///         schema: CurrentSchemaRef,
+///         schema: Box<dyn ICurrentSchema>,
 ///         args: Value
 ///     ) -> anyhow::Result<Arc<GeneratedSchema>> {
 ///         // ...
@@ -66,7 +102,7 @@ impl<T: Plugin + 'static> From<anyhow::Result<T>> for PluginInitResult {
 ///     // if the plugin provides a transformer.
 ///     fn transform(
 ///         &self,
-///         schema: CurrentSchemaRef,
+///         schema: Box<dyn ICurrentSchema>,
 ///         value: Arc<GeneratedSchema>,
 ///         args: Value,
 ///     ) -> anyhow::Result<Arc<GeneratedSchema>> {
@@ -106,7 +142,7 @@ pub trait Plugin: Debug + Send + Sync {
     #[allow(unused_variables)]
     fn generate(
         &self,
-        schema: CurrentSchemaRef,
+        schema: Box<dyn ICurrentSchema>,
         args: Value,
     ) -> anyhow::Result<Arc<GeneratedSchema>> {
         Err(anyhow!("Operation 'generate' is not supported"))
@@ -127,7 +163,7 @@ pub trait Plugin: Debug + Send + Sync {
     #[allow(unused_variables)]
     fn transform(
         &self,
-        schema: CurrentSchemaRef,
+        schema: Box<dyn ICurrentSchema>,
         value: Arc<GeneratedSchema>,
         args: Value,
     ) -> anyhow::Result<Arc<GeneratedSchema>> {
@@ -169,6 +205,71 @@ pub trait Plugin: Debug + Send + Sync {
         callback: &dyn Fn(usize, usize),
     ) -> anyhow::Result<String> {
         self.serialize(value, args)
+    }
+}
+
+#[repr(C)]
+#[derive(StableAbi)]
+#[sabi(kind(Prefix(prefix_ref = PluginLibRef)))]
+#[sabi(missing_field(option))]
+pub struct PluginLib {
+    #[sabi(last_prefix_field)]
+    pub new_plugin: extern "C" fn(&mut JsonValue) -> PluginResult<PluginAbiBox>,
+}
+
+impl RootModule for PluginLibRef {
+    abi_stable::declare_root_module_statics! {PluginLibRef}
+
+    const BASE_NAME: &'static str = "datagen_plugin";
+    const NAME: &'static str = "datagen_plugin";
+    const VERSION_STRINGS: VersionStrings = package_version_strings!();
+}
+
+pub struct PluginContainer {
+    plugin: Box<dyn Plugin>,
+}
+
+impl PluginContainer {
+    pub fn new<T: Plugin + 'static>(plugin: T) -> Self {
+        Self {
+            plugin: Box::new(plugin),
+        }
+    }
+}
+
+impl PluginAbi for PluginContainer {
+    fn name(&self) -> RString {
+        self.plugin.name().into()
+    }
+
+    fn generate(
+        &self,
+        schema: CurrentSchemaAbiBox,
+        args: JsonValue,
+    ) -> PluginResult<GeneratedSchemaAbi> {
+        self.plugin
+            .generate(schema.into(), args.into())
+            .map(|s| s.into())
+            .into_plugin_result()
+    }
+
+    fn transform(
+        &self,
+        schema: CurrentSchemaAbiBox,
+        value: GeneratedSchemaAbi,
+        args: JsonValue,
+    ) -> PluginResult<GeneratedSchemaAbi> {
+        self.plugin
+            .transform(schema.into(), value.into(), args.into())
+            .map(|s| s.into())
+            .into_plugin_result()
+    }
+
+    fn serialize(&self, value: GeneratedSchemaAbi, args: JsonValue) -> PluginResult<RString> {
+        self.plugin
+            .serialize(&value.into(), args.into())
+            .map(|s| s.into())
+            .into_plugin_result()
     }
 }
 
@@ -252,7 +353,7 @@ pub trait PluginConstructor: Plugin + Sized {
 macro_rules! declare_plugin {
     ($plugin_type:ty, $constructor: path) => {
         impl datagen_rs::plugins::plugin::PluginConstructor for $plugin_type {
-            fn new(args: serde_json::Value) -> anyhow::Result<Self> {
+            fn new(_args: serde_json::Value) -> anyhow::Result<Self> {
                 Ok($constructor())
             }
         }
@@ -260,25 +361,28 @@ macro_rules! declare_plugin {
         declare_plugin!($plugin_type);
     };
     ($plugin_type:ty) => {
-        #[no_mangle]
-        pub unsafe extern "C" fn _plugin_create(
-            args: *mut serde_json::Value,
-        ) -> datagen_rs::plugins::plugin::PluginInitResult {
-            use datagen_rs::plugins::plugin::PluginConstructor;
+        #[abi_stable::export_root_module]
+        pub fn get_library() -> datagen_rs::plugins::plugin::PluginLibRef {
+            use abi_stable::prefix_type::PrefixTypeTrait;
 
-            // make sure the constructor is the correct type.
-            let constructor: fn(args: serde_json::Value) -> anyhow::Result<$plugin_type> =
-                <$plugin_type>::new;
-
-            let args = Box::from_raw(args);
-            constructor(*args).into()
+            datagen_rs::plugins::plugin::PluginLib { new_plugin }.leak_into_prefix()
         }
 
-        #[no_mangle]
-        pub extern "C" fn _plugin_version() -> *mut std::ffi::c_char {
-            std::ffi::CString::new(datagen_rs::plugins::plugin::SUPPORTED_PLUGIN_VERSION)
-                .unwrap()
-                .into_raw()
+        #[abi_stable::sabi_extern_fn]
+        pub fn new_plugin(
+            value: &mut datagen_rs::plugins::abi::JsonValue,
+        ) -> datagen_rs::plugins::abi::PluginResult<datagen_rs::plugins::abi::PluginAbiBox> {
+            use datagen_rs::plugins::abi::WrapResult;
+            use datagen_rs::plugins::plugin::PluginConstructor;
+
+            datagen_rs::plugins::abi::PluginResult::wrap(|| {
+                Ok(datagen_rs::plugins::abi::PluginAbi_TO::from_value(
+                    datagen_rs::plugins::plugin::PluginContainer::new(<$plugin_type>::new(
+                        value.as_value(),
+                    )?),
+                    abi_stable::sabi_trait::TD_Opaque,
+                ))
+            })
         }
     };
 }

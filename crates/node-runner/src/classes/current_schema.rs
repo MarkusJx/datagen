@@ -14,8 +14,12 @@ pub struct CurrentSchema(CurrentSchemaRef);
 
 #[napi]
 impl CurrentSchema {
-    pub fn from_ref(inner: CurrentSchemaRef) -> Self {
-        Self(inner)
+    pub fn from_ref(
+        inner: Box<dyn datagen_rs::plugins::plugin::ICurrentSchema>,
+    ) -> anyhow::Result<Self> {
+        Ok(Self(
+            datagen_rs::generate::current_schema::CurrentSchema::from_boxed(inner)?,
+        ))
     }
 
     pub fn inner(&self) -> CurrentSchemaRef {

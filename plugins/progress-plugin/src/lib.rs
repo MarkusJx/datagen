@@ -4,13 +4,13 @@ use anyhow::anyhow;
 /// the total number of elements.
 #[cfg(feature = "plugin")]
 use datagen_rs::declare_plugin;
-use datagen_rs::generate::current_schema::CurrentSchemaRef;
+use datagen_rs::generate::current_schema::{CurrentSchema, CurrentSchemaRef};
 use datagen_rs::generate::generated_schema::GeneratedSchema;
 use datagen_rs::generate::generated_schema::IntoRandom;
 use datagen_rs::generate::schema_mapper::MapSchema;
-use datagen_rs::plugins::plugin::Plugin;
 #[cfg(feature = "plugin")]
 use datagen_rs::plugins::plugin::PluginConstructor;
+use datagen_rs::plugins::plugin::{ICurrentSchema, Plugin};
 use datagen_rs::schema::any::Any;
 use datagen_rs::schema::any_of::AnyOf;
 use datagen_rs::schema::any_value::AnyValue;
@@ -365,7 +365,7 @@ impl<F: Fn(usize, usize) + Send + Sync> Plugin for ProgressPlugin<F> {
 
     fn generate(
         &self,
-        schema: CurrentSchemaRef,
+        schema: Box<dyn ICurrentSchema>,
         args: Value,
     ) -> anyhow::Result<Arc<GeneratedSchema>> {
         let mut val: AnyValue = serde_json::from_value(args)?;
@@ -373,7 +373,7 @@ impl<F: Fn(usize, usize) + Send + Sync> Plugin for ProgressPlugin<F> {
         self.total_elements
             .store(self.map_any(&mut val), Ordering::SeqCst);
 
-        let res = self.convert_any_value(schema, val)?;
+        let res = self.convert_any_value(CurrentSchema::from_boxed(schema)?, val)?;
         // Increase the progress by one to account for the root element
         self.increase_count();
 

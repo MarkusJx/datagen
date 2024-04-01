@@ -7,11 +7,15 @@ use crate::generate::schema_path::SchemaPath;
 #[cfg(feature = "map-schema")]
 use crate::generate::schema_value::SchemaProperties;
 use crate::generate::schema_value::SchemaValue;
-use crate::plugins::plugin::Plugin;
+use crate::plugins::abi::CurrentSchemaAbiBox;
+use crate::plugins::abi_impl::CurrentSchemaAbiImpl;
+use crate::plugins::plugin::{ICurrentSchema, Plugin};
 use crate::plugins::plugin_list::PluginList;
 use crate::schema::schema_definition::SchemaOptions;
 #[cfg(feature = "map-schema")]
 use anyhow::anyhow;
+use anyhow::bail;
+use std::any::{Any, TypeId};
 #[cfg(feature = "generate")]
 use std::collections::BTreeMap;
 use std::sync::atomic::AtomicBool;
@@ -19,7 +23,6 @@ use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering;
 use std::sync::{Arc, Mutex};
 
-#[derive(Debug)]
 #[cfg_attr(not(feature = "generate"), allow(dead_code))]
 pub struct CurrentSchema {
     parent: Option<CurrentSchemaRef>,
@@ -35,6 +38,27 @@ unsafe impl Sync for CurrentSchema {}
 pub type CurrentSchemaRef = Arc<CurrentSchema>;
 
 impl CurrentSchema {
+    pub fn from_boxed(inner: Box<dyn ICurrentSchema>) -> anyhow::Result<CurrentSchemaRef> {
+        if inner.original_type_id() == TypeId::of::<CurrentSchemaRef>() {
+            inner
+                .as_any()
+                .downcast_ref::<CurrentSchemaRef>()
+                .ok_or(anyhow!("Failed to downcast"))
+                .map(|r| r.clone())
+        } else if inner.original_type_id() == TypeId::of::<CurrentSchemaAbiBox>() {
+            inner
+                .as_any()
+                .downcast_ref::<CurrentSchemaAbiBox>()
+                .ok_or(anyhow!("Failed to downcast"))?
+                .obj
+                .downcast_as::<CurrentSchemaAbiImpl>()
+                .map_err(|e| anyhow!("{}", e))
+                .map(|c| c.inner().clone())
+        } else {
+            bail!("Unknown type: {}", inner.original_type_name())
+        }
+    }
+
     #[cfg(feature = "generate")]
     pub fn root(options: Arc<SchemaOptions>, plugins: Arc<PluginList>) -> CurrentSchemaRef {
         Self {
@@ -179,5 +203,39 @@ impl CurrentSchema {
 
     pub fn options(&self) -> &Arc<SchemaOptions> {
         &self.options
+    }
+}
+
+impl ICurrentSchema for CurrentSchemaRef {
+    fn child(
+        &self,
+        _sibling: Option<Box<dyn ICurrentSchema>>,
+        _path: &str,
+    ) -> anyhow::Result<Box<dyn ICurrentSchema>> {
+        unimplemented!("child")
+    }
+
+    fn resolve_ref(&self, _reference: &str) -> anyhow::Result<ResolvedReference> {
+        unimplemented!("resolve_ref")
+    }
+
+    fn finalize(&self, _schema: Arc<GeneratedSchema>) -> Arc<GeneratedSchema> {
+        unimplemented!("finalize")
+    }
+
+    fn path(&self) -> String {
+        unimplemented!("path")
+    }
+
+    fn _inner_abi(&self) -> &CurrentSchemaAbiBox {
+        unreachable!("inner")
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    fn original_type_id(&self) -> TypeId {
+        TypeId::of::<CurrentSchemaRef>()
     }
 }

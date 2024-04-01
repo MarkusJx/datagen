@@ -19,6 +19,7 @@ pub struct PluginTransform {
 pub mod generate {
     use crate::generate::current_schema::CurrentSchemaRef;
     use crate::generate::generated_schema::GeneratedSchema;
+    use crate::plugins::abi_impl::IntoCurrentSchemaAbi;
     use crate::transform::plugin_transform::PluginTransform;
     use crate::util::traits::generate::TransformTrait;
     use std::sync::Arc;
@@ -30,7 +31,7 @@ pub mod generate {
             value: Arc<GeneratedSchema>,
         ) -> anyhow::Result<Arc<GeneratedSchema>> {
             schema.get_plugin(&self.name)?.transform(
-                schema.clone(),
+                schema.as_current_schema_abi(),
                 value,
                 self.args.unwrap_or_default(),
             )
