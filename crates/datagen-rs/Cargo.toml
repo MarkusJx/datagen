@@ -24,6 +24,7 @@ handlebars = { version = "5", optional = true }
 regex = { version = "1.9", optional = true }
 shellexpand = { version = "3", optional = true }
 abi_stable = "0.11.3"
+dyn-clone = "1"
 
 [dev-dependencies]
 envmnt = "0"

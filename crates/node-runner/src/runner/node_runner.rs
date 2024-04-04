@@ -11,7 +11,6 @@ use napi::threadsafe_function::{
     ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode,
 };
 use napi::{CallContext, Env, JsError, JsFunction, JsObject, JsUnknown, Ref, ValueType};
-use std::collections::HashMap;
 use std::sync::mpsc::{channel, Sender};
 use std::sync::{Arc, Mutex};
 
@@ -179,11 +178,11 @@ impl NodeRunner {
                 Ok((
                     plugin.name.clone(),
                     NodePlugin::new(plugin.name.clone(), generate, transform, serialize, env)
-                        .map(|p| Box::new(p) as Box<dyn Plugin>)
+                        .map(|p| Arc::new(p) as Arc<dyn Plugin>)
                         .context(anyhow!("Failed to create plugin '{}'", plugin.name))?,
                 ))
             })
-            .collect::<anyhow::Result<HashMap<_, _>>>()
+            .collect::<anyhow::Result<_>>()
     }
 
     fn create_plugin_closure(

@@ -12,9 +12,9 @@ use crate::objects::call_args::CallArgs;
 #[cfg(not(feature = "sqlite"))]
 use anyhow::anyhow;
 use datagen_rs::declare_plugin;
-use datagen_rs::generate::current_schema::CurrentSchema;
+use datagen_rs::generate::datagen_context::DatagenContextRef;
 use datagen_rs::generate::generated_schema::GeneratedSchema;
-use datagen_rs::plugins::plugin::{ICurrentSchema, Plugin, PluginConstructor};
+use datagen_rs::plugins::plugin::{Plugin, PluginConstructor};
 #[cfg(feature = "log")]
 use log::LevelFilter;
 #[cfg(feature = "log")]
@@ -64,13 +64,13 @@ impl Plugin for OpenAddressesPlugin {
 
     fn generate(
         &self,
-        schema: Box<dyn ICurrentSchema>,
+        schema: DatagenContextRef,
         args: Value,
     ) -> anyhow::Result<Arc<GeneratedSchema>> {
         let args: CallArgs = serde_json::from_value(args)?;
         let feature = self.backend.lock().unwrap().get_random_feature()?;
 
-        args.into_generated(&CurrentSchema::from_boxed(schema)?, &feature)
+        args.into_generated(&schema, &feature)
     }
 }
 

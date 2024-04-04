@@ -4,8 +4,9 @@ use crate::classes::node_plugin_args::{
     TransformCall,
 };
 use anyhow::{anyhow, Context};
+use datagen_rs::generate::datagen_context::DatagenContextRef;
 use datagen_rs::generate::generated_schema::GeneratedSchema;
-use datagen_rs::plugins::plugin::{ICurrentSchema, Plugin};
+use datagen_rs::plugins::plugin::Plugin;
 use napi::threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction};
 use napi::{Env, JsFunction};
 use serde_json::Value;
@@ -77,7 +78,7 @@ impl Plugin for NodePlugin {
 
     fn generate(
         &self,
-        schema: Box<dyn datagen_rs::plugins::plugin::ICurrentSchema>,
+        schema: DatagenContextRef,
         args: Value,
     ) -> anyhow::Result<Arc<GeneratedSchema>> {
         let res: Value = PluginCall::call(
@@ -101,7 +102,7 @@ impl Plugin for NodePlugin {
 
     fn transform(
         &self,
-        schema: Box<dyn ICurrentSchema>,
+        schema: DatagenContextRef,
         value: Arc<GeneratedSchema>,
         args: Value,
     ) -> anyhow::Result<Arc<GeneratedSchema>> {

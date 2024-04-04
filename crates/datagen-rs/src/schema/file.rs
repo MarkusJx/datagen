@@ -26,7 +26,7 @@ pub enum FileMode {
 
 #[cfg(feature = "generate")]
 pub mod generate {
-    use crate::generate::current_schema::CurrentSchemaRef;
+    use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::generate::IntoGenerated;
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::schema::file::{File, FileMode};
@@ -42,7 +42,7 @@ pub mod generate {
         Lazy::new(|| Mutex::new(HashMap::new()));
 
     impl IntoGenerated for File {
-        fn into_generated(self, _: CurrentSchemaRef) -> anyhow::Result<GeneratedSchema> {
+        fn into_generated(self, _: DatagenContextRef) -> anyhow::Result<GeneratedSchema> {
             let mut lock = FILES.lock().unwrap();
             let data = match lock.get_mut(&self.path) {
                 Some(val) => val,

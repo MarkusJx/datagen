@@ -4,7 +4,7 @@ use std::collections::VecDeque;
 use std::fmt::Display;
 
 #[derive(Clone, Debug)]
-pub struct SchemaPath(VecDeque<String>);
+pub struct SchemaPath(pub VecDeque<String>);
 
 impl SchemaPath {
     #[cfg(feature = "generate")]
@@ -13,9 +13,9 @@ impl SchemaPath {
     }
 
     #[cfg(feature = "map-schema")]
-    pub fn append(&self, path: String) -> SchemaPath {
+    pub fn append<S: ToString>(&self, path: S) -> SchemaPath {
         let mut res = self.0.clone();
-        res.push_back(path);
+        res.push_back(path.to_string());
         Self(res)
     }
 

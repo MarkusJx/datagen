@@ -1,13 +1,9 @@
-use crate::generate::generated_schema::GeneratedSchema;
 use crate::generate::resolved_reference::ResolvedReference;
-use crate::plugins::abi_impl::{GeneratedSchemaMapAbiImpl, GeneratedSchemaVecAbiImpl};
+use crate::plugins::abi_impl::GeneratedSchemaVecAbiImpl;
 use abi_stable::pmr::{ROption, RResult};
-use abi_stable::std_types::vec::IntoIter;
 use abi_stable::std_types::{RBox, RString, RVec};
 use abi_stable::{sabi_trait, StableAbi};
-use anyhow::anyhow;
-use serde_json::Value;
-use std::sync::Arc;
+use serde::{Deserialize, Serialize};
 
 #[repr(C)]
 #[derive(StableAbi)]
@@ -67,42 +63,21 @@ pub struct JsonValue {
 }
 
 impl JsonValue {
-    pub fn into_value(self) -> Value {
-        serde_json::from_slice(&self.value)
-            .map_err(|e| anyhow!("{}", e))
-            .unwrap()
-    }
-
-    pub fn from_value(value: Value) -> Self {
+    pub fn read_from<T: Serialize>(value: T) -> anyhow::Result<Self> {
         serde_json::to_vec(&value)
             .map(|value| Self {
                 value: value.into(),
             })
-            .map_err(|e| anyhow!("{}", e))
-            .unwrap()
+            .map_err(anyhow::Error::from)
     }
 
-    pub fn as_value(&self) -> Value {
-        serde_json::from_slice(&self.value)
-            .map_err(|e| anyhow!("{}", e))
-            .unwrap()
-    }
-}
-
-impl From<Value> for JsonValue {
-    fn from(value: Value) -> Self {
-        Self::from_value(value)
-    }
-}
-
-impl From<JsonValue> for Value {
-    fn from(value: JsonValue) -> Self {
-        value.into_value()
+    pub fn parse_into<'a, T: Deserialize<'a>>(&'a self) -> anyhow::Result<T> {
+        serde_json::from_slice(&self.value).map_err(anyhow::Error::from)
     }
 }
 
 #[sabi_trait]
-pub trait PluginAbi {
+pub trait PluginAbi: Send + Sync {
     fn name(&self) -> RString;
 
     fn generate(
@@ -125,16 +100,22 @@ pub trait PluginAbi {
         &self,
         value: GeneratedSchemaAbi,
         args: JsonValue,
-        //callback: Fn,
+        _callback: SerializeCallback,
     ) -> PluginResult<RString> {
         self.serialize(value, args)
     }
 }
 
+#[derive(StableAbi)]
+#[repr(transparent)]
+pub struct SerializeCallback {
+    pub func: extern "C" fn(usize, usize),
+}
+
 pub type PluginAbiBox = PluginAbi_TO<'static, RBox<()>>;
 
 #[sabi_trait]
-pub trait CurrentSchemaAbi: Clone {
+pub trait CurrentSchemaAbi: Clone + Send + Sync {
     fn child(
         &self,
         sibling: ROption<CurrentSchemaAbiBox>,
@@ -143,12 +124,37 @@ pub trait CurrentSchemaAbi: Clone {
 
     fn resolve_ref(&self, reference: RString) -> PluginResult<ResolvedReferenceAbi>;
 
-    fn finalize(&self, schema: GeneratedSchemaAbi) -> GeneratedSchemaAbi;
+    fn finalize(&self, schema: GeneratedSchemaAbi) -> PluginResult<GeneratedSchemaAbi>;
 
-    fn path(&self) -> RString;
+    fn path(&self) -> PluginResult<SchemaPathAbiBox>;
+
+    fn get_plugin(&self, key: RString) -> PluginResult<PluginAbiBox>;
+
+    fn plugin_exists(&self, key: RString) -> PluginResult<bool>;
+
+    fn options(&self) -> PluginResult<JsonValue>;
+
+    fn schema_value_properties(&self) -> PluginResult<JsonValue>;
 }
 
 pub type CurrentSchemaAbiBox = CurrentSchemaAbi_TO<'static, RBox<()>>;
+
+#[sabi_trait]
+pub trait SchemaPathAbi {
+    fn append(&self, path: RString) -> SchemaPathAbiBox;
+
+    fn len(&self) -> usize;
+
+    fn is_empty(&self) -> bool;
+
+    fn pop(&self, num: i32) -> SchemaPathAbiBox;
+
+    fn as_normalized_path(&self) -> RString;
+
+    fn parts(&self) -> RVec<RString>;
+}
+
+pub type SchemaPathAbiBox = SchemaPathAbi_TO<'static, RBox<()>>;
 
 #[repr(C)]
 #[derive(StableAbi, Clone)]
@@ -167,24 +173,7 @@ pub enum GeneratedSchemaAbi {
 pub trait GeneratedSchemaVecAbi: Clone {
     fn push(&mut self, value: GeneratedSchemaAbi);
 
-    fn insert(&mut self, index: usize, value: GeneratedSchemaAbi);
-
-    fn pop(&mut self) -> ROption<GeneratedSchemaAbi>;
-
-    fn len(&self) -> usize;
-
-    fn is_empty(&self) -> bool;
-
-    fn into_vec(self) -> RVec<GeneratedSchemaAbi>;
-}
-
-impl IntoIterator for GeneratedSchemaVecAbiBox {
-    type Item = GeneratedSchemaAbi;
-    type IntoIter = IntoIter<GeneratedSchemaAbi>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.into_vec().into_iter()
-    }
+    fn into_vec(self) -> PluginResult<RVec<GeneratedSchemaAbi>>;
 }
 
 impl FromIterator<GeneratedSchemaAbi> for GeneratedSchemaVecAbiBox {
@@ -197,9 +186,11 @@ impl FromIterator<GeneratedSchemaAbi> for GeneratedSchemaVecAbiBox {
     }
 }
 
-impl From<GeneratedSchemaVecAbiBox> for Vec<GeneratedSchemaAbi> {
-    fn from(value: GeneratedSchemaVecAbiBox) -> Self {
-        value.into_vec().into()
+impl TryFrom<GeneratedSchemaVecAbiBox> for Vec<GeneratedSchemaAbi> {
+    type Error = anyhow::Error;
+
+    fn try_from(value: GeneratedSchemaVecAbiBox) -> anyhow::Result<Self> {
+        value.into_vec().into_anyhow().map(Into::into)
     }
 }
 
@@ -207,56 +198,9 @@ pub type GeneratedSchemaVecAbiBox = GeneratedSchemaVecAbi_TO<'static, RBox<()>>;
 
 #[sabi_trait]
 pub trait GeneratedSchemaMapAbi: Clone {
-    fn get(&self, key: RString) -> ROption<GeneratedSchemaAbi>;
-
-    fn insert(&mut self, key: RString, value: GeneratedSchemaAbi);
-
-    fn remove(&mut self, key: RString) -> ROption<GeneratedSchemaAbi>;
-
-    fn len(&self) -> usize;
-
-    fn is_empty(&self) -> bool;
-
     fn keys(&self) -> RVec<RString>;
 
-    fn values(&self) -> RVec<GeneratedSchemaAbi>;
-}
-
-impl IntoIterator for GeneratedSchemaMapAbiBox {
-    type Item = (RString, GeneratedSchemaAbi);
-    type IntoIter = IntoIter<Self::Item>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.keys()
-            .into_iter()
-            .zip(self.values())
-            .collect::<RVec<_>>()
-            .into_iter()
-    }
-}
-
-impl FromIterator<(String, GeneratedSchemaAbi)> for GeneratedSchemaMapAbiBox {
-    fn from_iter<I: IntoIterator<Item = (String, GeneratedSchemaAbi)>>(iter: I) -> Self {
-        GeneratedSchemaMapAbiBox::from_iter(iter.into_iter().map(|(k, v)| (RString::from(k), v)))
-    }
-}
-
-impl FromIterator<(RString, GeneratedSchemaAbi)> for GeneratedSchemaMapAbiBox {
-    fn from_iter<I: IntoIterator<Item = (RString, GeneratedSchemaAbi)>>(iter: I) -> Self {
-        let mut map = GeneratedSchemaMapAbiImpl::new_boxed();
-        for (key, value) in iter {
-            map.insert(key, value);
-        }
-        map
-    }
-}
-
-impl FromIterator<(String, Arc<GeneratedSchema>)> for GeneratedSchemaMapAbiBox {
-    fn from_iter<I: IntoIterator<Item = (String, Arc<GeneratedSchema>)>>(iter: I) -> Self {
-        GeneratedSchemaMapAbiBox::from_iter(
-            iter.into_iter().map(|(k, v)| (RString::from(k), v.into())),
-        )
-    }
+    fn values(&self) -> PluginResult<RVec<GeneratedSchemaAbi>>;
 }
 
 pub type GeneratedSchemaMapAbiBox = GeneratedSchemaMapAbi_TO<'static, RBox<()>>;
@@ -269,14 +213,21 @@ pub enum ResolvedReferenceAbi {
     None,
 }
 
-impl From<ResolvedReferenceAbi> for ResolvedReference {
-    fn from(value: ResolvedReferenceAbi) -> Self {
-        match value {
-            ResolvedReferenceAbi::Single(schema) => ResolvedReference::Single(schema.into()),
-            ResolvedReferenceAbi::Multiple(schemas) => {
-                ResolvedReference::multiple(schemas.into_iter().map(Into::into).collect())
-            }
+impl TryFrom<ResolvedReferenceAbi> for ResolvedReference {
+    type Error = anyhow::Error;
+
+    fn try_from(value: ResolvedReferenceAbi) -> anyhow::Result<Self> {
+        Ok(match value {
+            ResolvedReferenceAbi::Single(schema) => ResolvedReference::Single(schema.try_into()?),
+            ResolvedReferenceAbi::Multiple(schemas) => ResolvedReference::multiple(
+                schemas
+                    .into_vec()
+                    .into_anyhow()?
+                    .into_iter()
+                    .map(TryInto::try_into)
+                    .collect::<anyhow::Result<_>>()?,
+            ),
             ResolvedReferenceAbi::None => ResolvedReference::none(),
-        }
+        })
     }
 }

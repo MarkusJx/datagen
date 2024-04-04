@@ -36,7 +36,7 @@ pub enum FlattenableValue {
 
 #[cfg(feature = "generate")]
 pub mod generate {
-    use crate::generate::current_schema::CurrentSchemaRef;
+    use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::generate::{IntoGenerated, IntoGeneratedArc};
     use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
     use crate::schema::flatten::{Flatten, FlattenableValue};
@@ -49,7 +49,7 @@ pub mod generate {
     impl IntoGeneratedArc for FlattenableValue {
         fn into_generated_arc(
             self,
-            schema: CurrentSchemaRef,
+            schema: DatagenContextRef,
         ) -> anyhow::Result<Arc<GeneratedSchema>> {
             match self {
                 FlattenableValue::Object(object) => object.into_random(schema),
@@ -65,7 +65,7 @@ pub mod generate {
     }
 
     impl IntoGenerated for Flatten {
-        fn into_generated(self, schema: CurrentSchemaRef) -> anyhow::Result<GeneratedSchema> {
+        fn into_generated(self, schema: DatagenContextRef) -> anyhow::Result<GeneratedSchema> {
             let generated = self
                 .values
                 .into_iter()

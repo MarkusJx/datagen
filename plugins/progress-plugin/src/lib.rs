@@ -4,13 +4,13 @@ use anyhow::anyhow;
 /// the total number of elements.
 #[cfg(feature = "plugin")]
 use datagen_rs::declare_plugin;
-use datagen_rs::generate::current_schema::{CurrentSchema, CurrentSchemaRef};
+use datagen_rs::generate::datagen_context::DatagenContextRef;
 use datagen_rs::generate::generated_schema::GeneratedSchema;
 use datagen_rs::generate::generated_schema::IntoRandom;
 use datagen_rs::generate::schema_mapper::MapSchema;
+use datagen_rs::plugins::plugin::Plugin;
 #[cfg(feature = "plugin")]
 use datagen_rs::plugins::plugin::PluginConstructor;
-use datagen_rs::plugins::plugin::{ICurrentSchema, Plugin};
 use datagen_rs::schema::any::Any;
 use datagen_rs::schema::any_of::AnyOf;
 use datagen_rs::schema::any_value::AnyValue;
@@ -67,7 +67,7 @@ pub struct PluginWithSchemaResult {
     /// The schema with the progress plugin.
     pub schema: Schema,
     /// The plugin map with the progress plugin.
-    pub plugins: HashMap<String, Box<dyn Plugin>>,
+    pub plugins: HashMap<String, Arc<dyn Plugin>>,
 }
 
 impl<F: Fn(usize, usize) + Send + Sync> ProgressPlugin<F> {
@@ -103,7 +103,7 @@ impl<F: Fn(usize, usize) + Send + Sync> ProgressPlugin<F> {
     where
         F: Fn(usize, usize) + 'static,
     {
-        let progress: Box<dyn Plugin> = Box::new(ProgressPlugin::new(callback));
+        let progress: Arc<dyn Plugin> = Arc::new(ProgressPlugin::new(callback));
 
         schema.value = AnyValue::Any(Any::Plugin(datagen_rs::schema::plugin::Plugin {
             plugin_name: "progress".into(),
@@ -169,7 +169,7 @@ impl<F: Fn(usize, usize) + Send + Sync> ProgressPlugin<F> {
 
     fn convert_any_value(
         &self,
-        schema: CurrentSchemaRef,
+        schema: DatagenContextRef,
         val: AnyValue,
     ) -> anyhow::Result<Arc<GeneratedSchema>> {
         match val {
@@ -199,7 +199,7 @@ impl<F: Fn(usize, usize) + Send + Sync> ProgressPlugin<F> {
 
     fn convert_array(
         &self,
-        schema: CurrentSchemaRef,
+        schema: DatagenContextRef,
         array: Array,
     ) -> anyhow::Result<Arc<GeneratedSchema>> {
         match array {
@@ -234,7 +234,7 @@ impl<F: Fn(usize, usize) + Send + Sync> ProgressPlugin<F> {
 
     fn convert_object(
         &self,
-        schema: CurrentSchemaRef,
+        schema: DatagenContextRef,
         object: Object,
     ) -> anyhow::Result<Arc<GeneratedSchema>> {
         schema.map_index_map(object.properties, object.transform, true, |cur, value| {
@@ -246,7 +246,7 @@ impl<F: Fn(usize, usize) + Send + Sync> ProgressPlugin<F> {
 
     fn convert_any_of(
         &self,
-        schema: CurrentSchemaRef,
+        schema: DatagenContextRef,
         any_of: AnyOf,
     ) -> anyhow::Result<Arc<GeneratedSchema>> {
         let values = any_of
@@ -267,7 +267,7 @@ impl<F: Fn(usize, usize) + Send + Sync> ProgressPlugin<F> {
             res = transform.transform(schema.clone(), res)?;
         }
 
-        Ok(schema.finalize(res))
+        schema.finalize(res)
     }
 
     fn map_any(&self, val: &mut AnyValue) -> usize {
@@ -365,7 +365,7 @@ impl<F: Fn(usize, usize) + Send + Sync> Plugin for ProgressPlugin<F> {
 
     fn generate(
         &self,
-        schema: Box<dyn ICurrentSchema>,
+        schema: DatagenContextRef,
         args: Value,
     ) -> anyhow::Result<Arc<GeneratedSchema>> {
         let mut val: AnyValue = serde_json::from_value(args)?;
@@ -373,7 +373,7 @@ impl<F: Fn(usize, usize) + Send + Sync> Plugin for ProgressPlugin<F> {
         self.total_elements
             .store(self.map_any(&mut val), Ordering::SeqCst);
 
-        let res = self.convert_any_value(CurrentSchema::from_boxed(schema)?, val)?;
+        let res = self.convert_any_value(schema, val)?;
         // Increase the progress by one to account for the root element
         self.increase_count();
 

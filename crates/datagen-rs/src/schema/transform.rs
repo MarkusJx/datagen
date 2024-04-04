@@ -42,7 +42,7 @@ pub enum ReferenceOrString {
 
 #[cfg(feature = "map-schema")]
 pub mod generate {
-    use crate::generate::current_schema::CurrentSchemaRef;
+    use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::generate::IntoGeneratedArc;
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::schema::transform::{ReferenceOrString, Transform};
@@ -52,7 +52,7 @@ pub mod generate {
     use std::sync::Arc;
 
     impl ResolveRef for ReferenceOrString {
-        fn resolve_ref(self, schema: &CurrentSchemaRef) -> anyhow::Result<Arc<GeneratedSchema>> {
+        fn resolve_ref(self, schema: &DatagenContextRef) -> anyhow::Result<Arc<GeneratedSchema>> {
             match self {
                 ReferenceOrString::Reference(reference) => {
                     reference.into_generated_arc(schema.clone())
@@ -65,7 +65,7 @@ pub mod generate {
     impl TransformTrait for Transform {
         fn transform(
             self,
-            schema: CurrentSchemaRef,
+            schema: DatagenContextRef,
             value: Arc<GeneratedSchema>,
         ) -> anyhow::Result<Arc<GeneratedSchema>> {
             match self {

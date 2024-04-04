@@ -1,11 +1,12 @@
-use crate::generate::current_schema::{CurrentSchema, CurrentSchemaRef};
+use crate::generate::current_schema::CurrentSchema;
+use crate::generate::datagen_context::DatagenContextRef;
 use crate::plugins::plugin_list::PluginList;
 use crate::schema::schema_definition::SchemaOptions;
 
 #[cfg(feature = "env-schema")]
 mod json_deserialize;
 
-pub(in crate::tests) fn root_schema() -> CurrentSchemaRef {
+pub(in crate::tests) fn root_schema() -> DatagenContextRef {
     CurrentSchema::root(
         SchemaOptions {
             plugins: None,
@@ -17,6 +18,7 @@ pub(in crate::tests) fn root_schema() -> CurrentSchemaRef {
         .into(),
         PluginList::empty().into(),
     )
+    .into()
 }
 
 #[macro_export]

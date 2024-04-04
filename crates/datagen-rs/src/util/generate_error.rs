@@ -1,4 +1,5 @@
-use crate::generate::current_schema::CurrentSchemaRef;
+use crate::generate::datagen_context::DatagenContextRef;
+use crate::generate::schema_path::SchemaPath;
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 
@@ -9,9 +10,12 @@ pub struct GenerateError {
 }
 
 impl GenerateError {
-    pub fn new(schema: &CurrentSchemaRef, message: &str) -> Self {
+    pub fn new(schema: &DatagenContextRef, message: &str) -> Self {
         Self {
-            path: schema.path().to_normalized_path(),
+            path: schema.path().as_ref().map_or_else(
+                |e| format!("Failed to get schema path: {e}"),
+                SchemaPath::to_normalized_path,
+            ),
             message: message.to_string(),
         }
     }

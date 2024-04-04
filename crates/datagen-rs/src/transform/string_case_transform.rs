@@ -37,7 +37,7 @@ pub struct ToLowerCase {
 
 #[cfg(feature = "map-schema")]
 pub mod generate {
-    use crate::generate::current_schema::CurrentSchemaRef;
+    use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::transform::string_case_transform::{ToLowerCase, ToUpperCase};
     use crate::util::traits::generate::TransformTrait;
@@ -49,7 +49,7 @@ pub mod generate {
         upper_case: bool,
         serialize_non_strings: bool,
         recursive: bool,
-        schema: CurrentSchemaRef,
+        schema: DatagenContextRef,
         value: Arc<GeneratedSchema>,
     ) -> anyhow::Result<Arc<GeneratedSchema>> {
         let str = match value.as_ref() {
@@ -120,13 +120,13 @@ pub mod generate {
     impl TransformTrait for ToUpperCase {
         fn transform(
             self,
-            schema: CurrentSchemaRef,
+            schema: DatagenContextRef,
             value: Arc<GeneratedSchema>,
         ) -> anyhow::Result<Arc<GeneratedSchema>> {
             transform_value(
                 true,
                 self.serialize_non_strings
-                    .or(schema.options().serialize_non_strings)
+                    .or(schema.options()?.serialize_non_strings)
                     .unwrap_or(false),
                 self.recursive.unwrap_or(false),
                 schema,
@@ -138,13 +138,13 @@ pub mod generate {
     impl TransformTrait for ToLowerCase {
         fn transform(
             self,
-            schema: CurrentSchemaRef,
+            schema: DatagenContextRef,
             value: Arc<GeneratedSchema>,
         ) -> anyhow::Result<Arc<GeneratedSchema>> {
             transform_value(
                 false,
                 self.serialize_non_strings
-                    .or(schema.options().serialize_non_strings)
+                    .or(schema.options()?.serialize_non_strings)
                     .unwrap_or(false),
                 self.recursive.unwrap_or(false),
                 schema,

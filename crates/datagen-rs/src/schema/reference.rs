@@ -26,7 +26,7 @@ pub enum StringOrNumber {
 
 #[cfg(feature = "map-schema")]
 pub mod generate {
-    use crate::generate::current_schema::CurrentSchemaRef;
+    use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::generate::IntoGeneratedArc;
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::schema::reference::{Reference, StringOrNumber};
@@ -37,14 +37,14 @@ pub mod generate {
     impl IntoGeneratedArc for Reference {
         fn into_generated_arc(
             self,
-            schema: CurrentSchemaRef,
+            schema: DatagenContextRef,
         ) -> anyhow::Result<Arc<GeneratedSchema>> {
             let mut reference = self.reference;
             if !reference.starts_with("ref:") {
                 reference = format!("ref:{reference}");
             }
 
-            let resolved = schema.resolve_ref(reference)?;
+            let resolved = schema.resolve_ref(&reference)?;
             let Some(except) = self.except else {
                 return resolved.into_random();
             };
@@ -57,7 +57,7 @@ pub mod generate {
                 .into_iter()
                 .map(|x| match x {
                     StringOrNumber::String(string) => {
-                        Ok(schema.resolve_ref(string)?.into_vec().unwrap_or(vec![]))
+                        Ok(schema.resolve_ref(&string)?.into_vec().unwrap_or(vec![]))
                     }
                     StringOrNumber::Number(number) => {
                         Ok(vec![Arc::new(GeneratedSchema::Number(number.into()))])

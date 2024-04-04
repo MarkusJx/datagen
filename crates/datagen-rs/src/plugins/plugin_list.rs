@@ -27,14 +27,12 @@ use anyhow::Context;
 #[cfg(feature = "plugin")]
 use serde_json::Value;
 use std::collections::HashMap;
-#[cfg(feature = "plugin")]
 use std::sync::Arc;
 
-pub type PluginMap = HashMap<String, Box<dyn Plugin>>;
+pub type PluginMap = HashMap<String, Arc<dyn Plugin>>;
 
-#[derive(Debug)]
 pub struct PluginList {
-    plugins: HashMap<String, Box<dyn Plugin>>,
+    plugins: PluginMap,
 }
 
 impl PluginList {
@@ -145,10 +143,10 @@ impl PluginList {
         name: String,
         args: Value,
         path: String,
-    ) -> anyhow::Result<Option<(String, Box<dyn Plugin>)>> {
+    ) -> anyhow::Result<Option<(String, Arc<dyn Plugin>)>> {
         Ok(Some((
             name.clone(),
-            Box::new(
+            Arc::new(
                 ImportedPlugin::load(path, args)
                     .context(format!("Failed to load plugin '{name}'"))?,
             ),
@@ -160,7 +158,7 @@ impl PluginList {
         _name: String,
         _args: Value,
         _path: String,
-    ) -> anyhow::Result<Option<(String, Box<dyn Plugin>)>> {
+    ) -> anyhow::Result<Option<(String, Arc<dyn Plugin>)>> {
         Err(anyhow!("Native plugin support is not enabled"))
     }
 
@@ -295,12 +293,10 @@ impl PluginList {
         }
     }
 
-    pub fn get<'a>(&'a self, key: &String) -> anyhow::Result<&'a dyn Plugin> {
-        Ok(self
-            .plugins
+    pub fn get<'a>(&'a self, key: &String) -> anyhow::Result<&'a Arc<dyn Plugin>> {
+        self.plugins
             .get(key)
-            .ok_or(anyhow!("Plugin with name '{key}' is not loaded"))?
-            .as_ref())
+            .ok_or(anyhow!("Plugin with name '{key}' is not loaded"))
     }
 
     pub fn exists(&self, key: &String) -> bool {

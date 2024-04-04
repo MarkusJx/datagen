@@ -69,7 +69,7 @@ pub enum StringSchema {
 
 #[cfg(feature = "generate")]
 pub mod generate {
-    use crate::generate::current_schema::CurrentSchemaRef;
+    use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::generate::{IntoGenerated, IntoGeneratedArc};
     use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
     use crate::schema::string::{FormatArg, StringGenerator, StringSchema};
@@ -90,10 +90,10 @@ pub mod generate {
     impl IntoGeneratedArc for StringSchema {
         fn into_generated_arc(
             self,
-            schema: CurrentSchemaRef,
+            schema: DatagenContextRef,
         ) -> anyhow::Result<Arc<GeneratedSchema>> {
             match self {
-                StringSchema::Constant { value, .. } => schema.resolve_ref(value)?.into_random(),
+                StringSchema::Constant { value, .. } => schema.resolve_ref(&value)?.into_random(),
                 StringSchema::Generated { generator, .. } => generator.into_random(schema),
             }
         }
@@ -107,7 +107,7 @@ pub mod generate {
     }
 
     impl IntoGenerated for StringGenerator {
-        fn into_generated(self, schema: CurrentSchemaRef) -> anyhow::Result<GeneratedSchema> {
+        fn into_generated(self, schema: DatagenContextRef) -> anyhow::Result<GeneratedSchema> {
             Ok(match self {
                 StringGenerator::Uuid => GeneratedSchema::String(UUIDv4.fake()),
                 StringGenerator::Email => GeneratedSchema::String(FreeEmail().fake()),
@@ -150,7 +150,7 @@ pub mod generate {
                                             GeneratedSchema::String(num.to_string()).into()
                                         }
                                         FormatArg::String(str) => {
-                                            schema.resolve_ref(str)?.into_random()?
+                                            schema.resolve_ref(&str)?.into_random()?
                                         }
                                         FormatArg::StringSchema(str) => {
                                             let res = str.into_generated_arc(schema.clone())?;
@@ -177,7 +177,7 @@ pub mod generate {
                             if let GeneratedSchema::String(str) = arg.as_ref() {
                                 Ok((name, str.clone()))
                             } else if serialize_non_strings
-                                .or(schema.options().serialize_non_strings)
+                                .or(schema.options()?.serialize_non_strings)
                                 .unwrap_or(false)
                             {
                                 Ok((name, serde_json::to_string(&arg)?))

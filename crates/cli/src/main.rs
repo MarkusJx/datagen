@@ -38,12 +38,12 @@ enum Commands {
 
 fn generate_random_data(
     schema: Schema,
-    additional_plugins: Option<HashMap<String, Box<dyn Plugin>>>,
+    additional_plugins: Option<HashMap<String, Arc<dyn Plugin>>>,
     progress_bar: CliProgressRef,
 ) -> anyhow::Result<(String, Arc<PluginList>)> {
     let plugins = PluginList::from_schema(&schema, additional_plugins)?;
     let options = Arc::new(schema.options.unwrap_or_default());
-    let root = CurrentSchema::root(options.clone(), plugins.clone());
+    let root = CurrentSchema::root(options.clone(), plugins.clone()).into();
     let generated = schema.value.into_random(root)?;
 
     progress_bar.set_message("Serializing data");

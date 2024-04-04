@@ -1,6 +1,7 @@
+use crate::generate::datagen_context::DatagenContextRef;
 use crate::generate::generated_schema::GeneratedSchema;
-use crate::plugins::abi::{IntoAnyhow, PluginAbiBox};
-use crate::plugins::plugin::{ICurrentSchema, Plugin, PluginLibRef};
+use crate::plugins::abi::{IntoAnyhow, JsonValue, PluginAbiBox};
+use crate::plugins::plugin::{Plugin, PluginLibRef};
 use abi_stable::library::RootModule;
 use anyhow::{anyhow, Context};
 use serde_json::Value;
@@ -38,7 +39,7 @@ impl Debug for ImportedPlugin {
 impl ImportedPlugin {
     pub fn load<T: AsRef<OsStr> + Display + Clone>(path: T, args: Value) -> anyhow::Result<Self> {
         let lib = Self::try_load(path.to_string())?;
-        let plugin = lib.new_plugin()(&mut args.into()).into_anyhow()?;
+        let plugin = lib.new_plugin()(&mut JsonValue::read_from(args)?).into_anyhow()?;
         Ok(Self(PluginData { plugin, _lib: lib }.into()))
     }
 
@@ -138,14 +139,14 @@ impl Plugin for ImportedPlugin {
 
     fn generate(
         &self,
-        schema: Box<dyn ICurrentSchema>,
+        schema: DatagenContextRef,
         args: Value,
     ) -> anyhow::Result<Arc<GeneratedSchema>> {
         self.0
             .plugin
-            .generate(schema.into(), args.into())
-            .map(Into::into)
+            .generate(schema.into(), JsonValue::read_from(args)?)
             .into_anyhow()
+            .and_then(TryInto::try_into)
             .context(format!(
                 "Failed to call method 'generate' in plugin '{}'",
                 self.name()
@@ -154,15 +155,19 @@ impl Plugin for ImportedPlugin {
 
     fn transform(
         &self,
-        schema: Box<dyn ICurrentSchema>,
+        schema: DatagenContextRef,
         value: Arc<GeneratedSchema>,
         args: Value,
     ) -> anyhow::Result<Arc<GeneratedSchema>> {
         self.0
             .plugin
-            .transform(schema.into(), value.into(), args.into())
-            .map(Into::into)
+            .transform(
+                schema.into(),
+                value.try_into()?,
+                JsonValue::read_from(args)?,
+            )
             .into_anyhow()
+            .and_then(TryInto::try_into)
             .context(format!(
                 "Failed to call method 'transform' in plugin '{}'",
                 self.name()
@@ -172,7 +177,7 @@ impl Plugin for ImportedPlugin {
     fn serialize(&self, value: &Arc<GeneratedSchema>, args: Value) -> anyhow::Result<String> {
         self.0
             .plugin
-            .serialize(value.into(), args.into())
+            .serialize(value.try_into()?, JsonValue::read_from(args)?)
             .map(Into::into)
             .into_anyhow()
             .context(format!(

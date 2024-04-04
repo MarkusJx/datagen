@@ -27,7 +27,7 @@ use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "generate")]
 pub mod generate {
-    use crate::generate::current_schema::CurrentSchemaRef;
+    use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::generate::IntoGenerated;
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::schema::number::Number;
@@ -35,7 +35,7 @@ pub mod generate {
     use rand::Rng;
 
     impl IntoGenerated for Number {
-        fn into_generated(self, _: CurrentSchemaRef) -> anyhow::Result<GeneratedSchema> {
+        fn into_generated(self, _: DatagenContextRef) -> anyhow::Result<GeneratedSchema> {
             Ok(match self {
                 Number::Constant { value, .. } => GeneratedSchema::Number(value.into()),
                 Number::Random {

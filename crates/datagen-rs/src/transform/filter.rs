@@ -35,7 +35,7 @@ pub enum FilterTransformOp {
 
 #[cfg(feature = "map-schema")]
 pub mod generate {
-    use crate::generate::current_schema::CurrentSchemaRef;
+    use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::transform::filter::{FilterTransform, FilterTransformOp};
     use crate::util::traits::generate::{ResolveRef, TransformTrait};
@@ -45,7 +45,7 @@ pub mod generate {
     impl TransformTrait for FilterTransform {
         fn transform(
             self,
-            schema: CurrentSchemaRef,
+            schema: DatagenContextRef,
             value: Arc<GeneratedSchema>,
         ) -> anyhow::Result<Arc<GeneratedSchema>> {
             if let Some(current) = self

@@ -1,4 +1,4 @@
-use crate::generate::current_schema::CurrentSchemaRef;
+use crate::generate::datagen_context::DatagenContextRef;
 use indexmap::IndexMap;
 use ordered_float::OrderedFloat;
 #[cfg(feature = "schema")]
@@ -39,19 +39,19 @@ impl GeneratedSchema {
 }
 
 pub trait IntoRandom {
-    fn into_random(self, schema: CurrentSchemaRef) -> anyhow::Result<Arc<GeneratedSchema>>;
+    fn into_random(self, schema: DatagenContextRef) -> anyhow::Result<Arc<GeneratedSchema>>;
 }
 
 #[cfg(feature = "map-schema")]
 pub mod generate {
-    use crate::generate::current_schema::CurrentSchemaRef;
+    use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
     use crate::schema::transform::Transform;
     use crate::util::traits::generate::TransformTrait;
     use std::sync::Arc;
 
     pub(crate) trait IntoGenerated: Sized {
-        fn into_generated(self, schema: CurrentSchemaRef) -> anyhow::Result<GeneratedSchema>;
+        fn into_generated(self, schema: DatagenContextRef) -> anyhow::Result<GeneratedSchema>;
 
         fn get_transform(&self) -> Option<Vec<Transform>>;
 
@@ -63,7 +63,7 @@ pub mod generate {
     pub(crate) trait IntoGeneratedArc: Sized {
         fn into_generated_arc(
             self,
-            schema: CurrentSchemaRef,
+            schema: DatagenContextRef,
         ) -> anyhow::Result<Arc<GeneratedSchema>>;
 
         fn get_transform(&self) -> Option<Vec<Transform>>;
@@ -79,7 +79,7 @@ pub mod generate {
     {
         fn into_generated_arc(
             self,
-            schema: CurrentSchemaRef,
+            schema: DatagenContextRef,
         ) -> anyhow::Result<Arc<GeneratedSchema>> {
             Ok(Arc::new(self.into_generated(schema)?))
         }
@@ -97,7 +97,7 @@ pub mod generate {
     where
         T: IntoGeneratedArc,
     {
-        fn into_random(self, schema: CurrentSchemaRef) -> anyhow::Result<Arc<GeneratedSchema>> {
+        fn into_random(self, schema: DatagenContextRef) -> anyhow::Result<Arc<GeneratedSchema>> {
             let transform = self.get_transform();
             let should_finalize = self.should_finalize();
 
@@ -107,7 +107,7 @@ pub mod generate {
             }
 
             Ok(if should_finalize {
-                schema.finalize(res)
+                schema.finalize(res)?
             } else {
                 res
             })

@@ -20,7 +20,7 @@ pub struct Counter {
 
 #[cfg(feature = "generate")]
 pub mod generate {
-    use crate::generate::current_schema::CurrentSchemaRef;
+    use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::generate::IntoGenerated;
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::schema::counter::Counter;
@@ -54,10 +54,10 @@ pub mod generate {
     }
 
     impl IntoGenerated for Counter {
-        fn into_generated(self, schema: CurrentSchemaRef) -> anyhow::Result<GeneratedSchema> {
+        fn into_generated(self, schema: DatagenContextRef) -> anyhow::Result<GeneratedSchema> {
             let value = if self.path_specific.unwrap_or(false) {
                 fetch_inc_path_specific_counter(
-                    &schema.path().to_normalized_path(),
+                    &schema.path()?.to_normalized_path(),
                     self.start.unwrap_or(0),
                     self.step.unwrap_or(1),
                 )

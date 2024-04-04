@@ -1,3 +1,4 @@
+use crate::generate::datagen_context::{DatagenContext, DatagenContextRef};
 #[cfg(feature = "map-schema")]
 use crate::generate::generated_schema::GeneratedSchema;
 #[cfg(feature = "map-schema")]
@@ -7,15 +8,11 @@ use crate::generate::schema_path::SchemaPath;
 #[cfg(feature = "map-schema")]
 use crate::generate::schema_value::SchemaProperties;
 use crate::generate::schema_value::SchemaValue;
-use crate::plugins::abi::CurrentSchemaAbiBox;
-use crate::plugins::abi_impl::CurrentSchemaAbiImpl;
-use crate::plugins::plugin::{ICurrentSchema, Plugin};
+use crate::plugins::plugin::Plugin;
 use crate::plugins::plugin_list::PluginList;
 use crate::schema::schema_definition::SchemaOptions;
 #[cfg(feature = "map-schema")]
 use anyhow::anyhow;
-use anyhow::bail;
-use std::any::{Any, TypeId};
 #[cfg(feature = "generate")]
 use std::collections::BTreeMap;
 use std::sync::atomic::AtomicBool;
@@ -38,27 +35,6 @@ unsafe impl Sync for CurrentSchema {}
 pub type CurrentSchemaRef = Arc<CurrentSchema>;
 
 impl CurrentSchema {
-    pub fn from_boxed(inner: Box<dyn ICurrentSchema>) -> anyhow::Result<CurrentSchemaRef> {
-        if inner.original_type_id() == TypeId::of::<CurrentSchemaRef>() {
-            inner
-                .as_any()
-                .downcast_ref::<CurrentSchemaRef>()
-                .ok_or(anyhow!("Failed to downcast"))
-                .map(|r| r.clone())
-        } else if inner.original_type_id() == TypeId::of::<CurrentSchemaAbiBox>() {
-            inner
-                .as_any()
-                .downcast_ref::<CurrentSchemaAbiBox>()
-                .ok_or(anyhow!("Failed to downcast"))?
-                .obj
-                .downcast_as::<CurrentSchemaAbiImpl>()
-                .map_err(|e| anyhow!("{}", e))
-                .map(|c| c.inner().clone())
-        } else {
-            bail!("Unknown type: {}", inner.original_type_name())
-        }
-    }
-
     #[cfg(feature = "generate")]
     pub fn root(options: Arc<SchemaOptions>, plugins: Arc<PluginList>) -> CurrentSchemaRef {
         Self {
@@ -192,7 +168,7 @@ impl CurrentSchema {
         self.value.lock().unwrap().path.clone()
     }
 
-    pub fn get_plugin<'a>(&'a self, key: &String) -> anyhow::Result<&'a dyn Plugin> {
+    pub fn get_plugin<'a>(&'a self, key: &String) -> anyhow::Result<&'a Arc<dyn Plugin>> {
         self.plugins.get(key)
     }
 
@@ -206,36 +182,61 @@ impl CurrentSchema {
     }
 }
 
-impl ICurrentSchema for CurrentSchemaRef {
+impl DatagenContext for CurrentSchemaRef {
     fn child(
         &self,
-        _sibling: Option<Box<dyn ICurrentSchema>>,
-        _path: &str,
-    ) -> anyhow::Result<Box<dyn ICurrentSchema>> {
-        unimplemented!("child")
+        sibling: Option<Box<dyn DatagenContext>>,
+        path: &str,
+    ) -> anyhow::Result<Box<dyn DatagenContext>> {
+        Ok(Box::new(Arc::new(CurrentSchema {
+            parent: Some(self.clone()),
+            value: Arc::new(Mutex::new(SchemaValue {
+                properties: sibling
+                    .map(|s| s.__schema_value_properties())
+                    .map_or(Ok(None), |s| s.map(Some))?
+                    .unwrap_or_default(),
+                path: DatagenContext::path(self)?.append(path),
+            })),
+            options: self.options.clone(),
+            plugins: self.plugins.clone(),
+            finalized: AtomicBool::default(),
+        })))
     }
 
-    fn resolve_ref(&self, _reference: &str) -> anyhow::Result<ResolvedReference> {
-        unimplemented!("resolve_ref")
+    fn resolve_ref(&self, reference: &str) -> anyhow::Result<ResolvedReference> {
+        CurrentSchema::resolve_ref(self.as_ref(), reference.to_string())
     }
 
-    fn finalize(&self, _schema: Arc<GeneratedSchema>) -> Arc<GeneratedSchema> {
-        unimplemented!("finalize")
+    fn finalize(&self, schema: Arc<GeneratedSchema>) -> anyhow::Result<Arc<GeneratedSchema>> {
+        Ok(CurrentSchema::finalize(self.as_ref(), schema))
     }
 
-    fn path(&self) -> String {
-        unimplemented!("path")
+    fn path(&self) -> anyhow::Result<SchemaPath> {
+        Ok(CurrentSchema::path(self.as_ref()))
     }
 
-    fn _inner_abi(&self) -> &CurrentSchemaAbiBox {
-        unreachable!("inner")
+    fn get_plugin<'a>(&self, key: &str) -> anyhow::Result<Arc<dyn Plugin>> {
+        CurrentSchema::get_plugin(self.as_ref(), &key.to_string()).cloned()
     }
 
-    fn as_any(&self) -> &dyn Any {
-        self
+    fn plugin_exists(&self, key: &str) -> anyhow::Result<bool> {
+        Ok(CurrentSchema::plugin_exists(
+            self.as_ref(),
+            &key.to_string(),
+        ))
     }
 
-    fn original_type_id(&self) -> TypeId {
-        TypeId::of::<CurrentSchemaRef>()
+    fn options(&self) -> anyhow::Result<Arc<SchemaOptions>> {
+        Ok(CurrentSchema::options(self.as_ref()).clone())
+    }
+
+    fn __schema_value_properties(&self) -> anyhow::Result<Arc<Mutex<SchemaProperties>>> {
+        Ok(self.value.lock().unwrap().properties.clone())
+    }
+}
+
+impl From<CurrentSchemaRef> for DatagenContextRef {
+    fn from(schema: CurrentSchemaRef) -> DatagenContextRef {
+        Box::new(schema)
     }
 }
