@@ -1,9 +1,10 @@
 use crate::generate::datagen_context::DatagenContextRef;
 use crate::generate::generated_schema::GeneratedSchema;
 use crate::plugins::abi::{IntoAnyhow, JsonValue, PluginAbiBox};
-use crate::plugins::plugin::{Plugin, PluginLibRef};
-use abi_stable::library::RootModule;
+use crate::plugins::plugin::{Plugin, PluginLibRef, PluginOptions};
+use abi_stable::library::lib_header_from_path;
 use anyhow::{anyhow, Context};
+use log::debug;
 use serde_json::Value;
 use std::env;
 use std::ffi::OsStr;
@@ -38,8 +39,16 @@ impl Debug for ImportedPlugin {
 
 impl ImportedPlugin {
     pub fn load<T: AsRef<OsStr> + Display + Clone>(path: T, args: Value) -> anyhow::Result<Self> {
+        debug!("Loading plugin from '{}' with args {}", path, args);
         let lib = Self::try_load(path.to_string())?;
-        let plugin = lib.new_plugin()(&mut JsonValue::read_from(args)?).into_anyhow()?;
+        let plugin = lib.new_plugin()(
+            &mut JsonValue::read_from(args).context("Failed to serialize plugin arguments")?,
+            &mut JsonValue::read_from(PluginOptions::default())?,
+        )
+        .into_anyhow()
+        .context("Failed to initialize plugin")?;
+
+        debug!("Successfully loaded plugin '{}'", plugin.name());
         Ok(Self(PluginData { plugin, _lib: lib }.into()))
     }
 
@@ -47,8 +56,15 @@ impl ImportedPlugin {
         self.0.clone()
     }
 
+    fn load_from_path(path: &str) -> anyhow::Result<PluginLibRef> {
+        lib_header_from_path(Path::new(path))?
+            .init_root_module()
+            .map_err(Into::into)
+    }
+
     fn try_load(path: String) -> anyhow::Result<PluginLibRef> {
-        let err = match PluginLibRef::load_from_file(Path::new(&path)) {
+        debug!("Trying to load plugin from '{}'", path);
+        let err = match Self::load_from_path(&path) {
             Ok(lib) => return Ok(lib),
             Err(err) => err,
         };
@@ -74,7 +90,7 @@ impl ImportedPlugin {
             }
         }
 
-        Err(anyhow::Error::new(err).context(anyhow!(
+        Err(err.context(anyhow!(
             "Failed to load plugin '{}'. Tried paths: {}",
             tried_paths[0],
             tried_paths.join(", ")
@@ -88,7 +104,8 @@ impl ImportedPlugin {
     ) -> anyhow::Result<PluginLibRef> {
         if let Some(prefix) = prefix {
             path = format!("{}/{}", prefix, path);
-            if let Ok(lib) = PluginLibRef::load_from_file(Path::new(&path)) {
+            debug!("Trying to load plugin from '{}'", path);
+            if let Ok(lib) = Self::load_from_path(&path) {
                 return Ok(lib);
             }
 
@@ -99,7 +116,8 @@ impl ImportedPlugin {
             path = format!("{}{}", path, LIB_EXTENSION);
         }
 
-        if let Ok(lib) = PluginLibRef::load_from_file(Path::new(&path)) {
+        debug!("Trying to load plugin from '{}'", path);
+        if let Ok(lib) = Self::load_from_path(&path) {
             return Ok(lib);
         }
 
@@ -128,7 +146,8 @@ impl ImportedPlugin {
         }
 
         tried_paths.push(path.clone());
-        PluginLibRef::load_from_file(Path::new(&path)).map_err(Into::into)
+        debug!("Trying to load plugin from '{}'", path);
+        Self::load_from_path(&path)
     }
 }
 

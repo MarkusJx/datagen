@@ -1,7 +1,6 @@
 pub mod current_schema;
 pub mod datagen_context;
 pub mod generated_schema;
-#[cfg(feature = "map-schema")]
 pub mod resolved_reference;
 #[cfg(feature = "map-schema")]
 pub mod schema_mapper;

@@ -5,6 +5,7 @@ use abi_stable::std_types::{RBox, RString, RVec};
 use abi_stable::{sabi_trait, StableAbi};
 use serde::{Deserialize, Serialize};
 
+/// A C ABI compatible plugin error.
 #[repr(C)]
 #[derive(StableAbi)]
 pub struct PluginError {
@@ -12,17 +13,24 @@ pub struct PluginError {
     call_stack: RVec<RString>,
 }
 
+/// A C ABI compatible plugin result.
 pub type PluginResult<T> = RResult<T, PluginError>;
 
+/// Wraps a function that returns a [`Result`] into a [`PluginResult`].
 pub trait WrapResult<T> {
+    /// Wrap a function that returns a [`Result`] into a [`PluginResult`].
     fn wrap<F: Fn() -> anyhow::Result<T>>(f: F) -> PluginResult<T>;
 }
 
+/// Convert a [`PluginResult`] into an [`anyhow::Result`].
 pub trait IntoAnyhow<T> {
+    /// Convert the result into an [`anyhow::Result`].
     fn into_anyhow(self) -> anyhow::Result<T>;
 }
 
+/// Convert any [`Result`] into a [`PluginResult`].
 pub trait IntoPluginResult<T> {
+    /// Convert the result into a [`PluginResult`].
     fn into_plugin_result(self) -> PluginResult<T>;
 }
 
@@ -56,6 +64,18 @@ impl<T> IntoPluginResult<T> for anyhow::Result<T> {
     }
 }
 
+/// A C ABI compatible JSON value.
+/// This is a wrapper around a JSON value that can be serialized and deserialized.
+/// This is used to pass JSON values between plugins.
+///
+/// # Usage
+/// ```
+/// use datagen_rs::plugins::abi::JsonValue;
+///
+/// let value = JsonValue::read_from(42).unwrap();
+/// let number: i32 = value.parse_into().unwrap();
+/// assert_eq!(number, 42);
+/// ```
 #[repr(C)]
 #[derive(StableAbi, Clone)]
 pub struct JsonValue {
@@ -63,6 +83,7 @@ pub struct JsonValue {
 }
 
 impl JsonValue {
+    /// Convert a [`serde::ser::Serialize`] value into a [`JsonValue`].
     pub fn read_from<T: Serialize>(value: T) -> anyhow::Result<Self> {
         serde_json::to_vec(&value)
             .map(|value| Self {
@@ -71,21 +92,29 @@ impl JsonValue {
             .map_err(anyhow::Error::from)
     }
 
+    /// Convert this [`JsonValue`] into a [`serde::de::Deserialize`] value.
     pub fn parse_into<'a, T: Deserialize<'a>>(&'a self) -> anyhow::Result<T> {
         serde_json::from_slice(&self.value).map_err(anyhow::Error::from)
     }
 }
 
+/// A C ABI compatible plugin.
+/// This trait is meant for internal use and should not be implemented by users.
+///
+/// See the [`crate::plugins::plugin::Plugin`] trait for the public API.
 #[sabi_trait]
 pub trait PluginAbi: Send + Sync {
+    /// Get the name of the plugin.
     fn name(&self) -> RString;
 
+    /// Generate a random value with the given schema and arguments.
     fn generate(
         &self,
         schema: CurrentSchemaAbiBox,
         args: JsonValue,
     ) -> PluginResult<GeneratedSchemaAbi>;
 
+    /// Transform a value with the given schema and arguments.
     fn transform(
         &self,
         schema: CurrentSchemaAbiBox,
@@ -93,8 +122,10 @@ pub trait PluginAbi: Send + Sync {
         args: JsonValue,
     ) -> PluginResult<GeneratedSchemaAbi>;
 
+    /// Serialize a value with the given schema and arguments.
     fn serialize(&self, value: GeneratedSchemaAbi, args: JsonValue) -> PluginResult<RString>;
 
+    /// Serialize a value with the given schema and arguments, with progress.
     #[allow(unused_variables)]
     fn serialize_with_progress(
         &self,

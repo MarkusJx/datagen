@@ -1,11 +1,9 @@
+#[cfg(not(feature = "map-schema"))]
+use crate::bail_unsupported;
 use crate::generate::datagen_context::{DatagenContext, DatagenContextRef};
-#[cfg(feature = "map-schema")]
 use crate::generate::generated_schema::GeneratedSchema;
-#[cfg(feature = "map-schema")]
 use crate::generate::resolved_reference::ResolvedReference;
-#[cfg(feature = "map-schema")]
 use crate::generate::schema_path::SchemaPath;
-#[cfg(feature = "map-schema")]
 use crate::generate::schema_value::SchemaProperties;
 use crate::generate::schema_value::SchemaValue;
 use crate::plugins::plugin::Plugin;
@@ -183,6 +181,7 @@ impl CurrentSchema {
 }
 
 impl DatagenContext for CurrentSchemaRef {
+    #[cfg(feature = "map-schema")]
     fn child(
         &self,
         sibling: Option<Box<dyn DatagenContext>>,
@@ -203,19 +202,46 @@ impl DatagenContext for CurrentSchemaRef {
         })))
     }
 
+    #[cfg(not(feature = "map-schema"))]
+    fn child(
+        &self,
+        _sibling: Option<DatagenContextRef>,
+        _path: &str,
+    ) -> anyhow::Result<DatagenContextRef> {
+        bail_unsupported!("map-schema")
+    }
+
+    #[cfg(feature = "map-schema")]
     fn resolve_ref(&self, reference: &str) -> anyhow::Result<ResolvedReference> {
         CurrentSchema::resolve_ref(self.as_ref(), reference.to_string())
     }
 
+    #[cfg(not(feature = "map-schema"))]
+    fn resolve_ref(&self, _reference: &str) -> anyhow::Result<ResolvedReference> {
+        bail_unsupported!("map-schema")
+    }
+
+    #[cfg(feature = "map-schema")]
     fn finalize(&self, schema: Arc<GeneratedSchema>) -> anyhow::Result<Arc<GeneratedSchema>> {
         Ok(CurrentSchema::finalize(self.as_ref(), schema))
     }
 
+    #[cfg(not(feature = "map-schema"))]
+    fn finalize(&self, _schema: Arc<GeneratedSchema>) -> anyhow::Result<Arc<GeneratedSchema>> {
+        bail_unsupported!("map-schema")
+    }
+
+    #[cfg(feature = "map-schema")]
     fn path(&self) -> anyhow::Result<SchemaPath> {
         Ok(CurrentSchema::path(self.as_ref()))
     }
 
-    fn get_plugin<'a>(&self, key: &str) -> anyhow::Result<Arc<dyn Plugin>> {
+    #[cfg(not(feature = "map-schema"))]
+    fn path(&self) -> anyhow::Result<SchemaPath> {
+        bail_unsupported!("map-schema")
+    }
+
+    fn get_plugin(&self, key: &str) -> anyhow::Result<Arc<dyn Plugin>> {
         CurrentSchema::get_plugin(self.as_ref(), &key.to_string()).cloned()
     }
 

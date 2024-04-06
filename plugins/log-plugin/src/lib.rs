@@ -1,5 +1,5 @@
 use datagen_rs::declare_plugin;
-use datagen_rs::generate::current_schema::CurrentSchemaRef;
+use datagen_rs::generate::datagen_context::DatagenContextRef;
 use datagen_rs::generate::generated_schema::GeneratedSchema;
 use datagen_rs::plugins::plugin::Plugin;
 use serde::{Deserialize, Serialize};
@@ -22,18 +22,18 @@ impl Plugin for LogPlugin {
 
     fn generate(
         &self,
-        schema: CurrentSchemaRef,
+        _schema: DatagenContextRef,
         args: Value,
     ) -> anyhow::Result<Arc<GeneratedSchema>> {
         println!("args: {:?}", args);
         let args: Args = serde_json::from_value(args)?;
-        println!("generate called with {:?} and args {:?}", schema, args);
+        println!("generate called with args {:?}", args);
         Ok(Arc::new(GeneratedSchema::String("logged value".into())))
     }
 
     fn transform(
         &self,
-        _: CurrentSchemaRef,
+        _: DatagenContextRef,
         value: Arc<GeneratedSchema>,
         args: Value,
     ) -> anyhow::Result<Arc<GeneratedSchema>> {

@@ -24,6 +24,8 @@ use crate::schema::transform::Transform;
 use anyhow::anyhow;
 #[cfg(feature = "native-plugin")]
 use anyhow::Context;
+#[cfg(feature = "native-plugin")]
+use log::debug;
 #[cfg(feature = "plugin")]
 use serde_json::Value;
 use std::collections::HashMap;
@@ -69,11 +71,10 @@ impl PluginList {
             .as_ref()
             .and_then(|o| o.plugins.as_ref())
             .map(|p| {
-                p.clone()
-                    .into_iter()
-                    .filter(|(name, _)| !additional.contains_key(name))
+                p.iter()
+                    .filter(|(name, _)| !additional.contains_key(*name))
                     .filter_map(|(name, args)| {
-                        if additional.contains_key(&name) {
+                        if additional.contains_key(name) {
                             return Some(Err(anyhow!(
                                 "A plugin with name '{name}' is already loaded"
                             )));
@@ -81,11 +82,13 @@ impl PluginList {
 
                         match args {
                             PluginInitArgs::Args { path, args } => {
-                                mapper(name, args.clone().unwrap_or_default(), path.clone())
+                                mapper(name.clone(), args.clone().unwrap_or_default(), path.clone())
                                     .map_or_else(|e| Some(Err(e)), |v| v.map(Ok))
                             }
-                            PluginInitArgs::Value(v) => mapper(name.clone(), v, name)
-                                .map_or_else(|e| Some(Err(e)), |v| v.map(Ok)),
+                            PluginInitArgs::Value(v) => {
+                                mapper(name.clone(), v.clone(), name.clone())
+                                    .map_or_else(|e| Some(Err(e)), |v| v.map(Ok))
+                            }
                         }
                     })
                     .collect::<anyhow::Result<HashMap<_, _>>>()
@@ -144,6 +147,7 @@ impl PluginList {
         args: Value,
         path: String,
     ) -> anyhow::Result<Option<(String, Arc<dyn Plugin>)>> {
+        debug!("Loading plugin '{name}' from '{path}'");
         Ok(Some((
             name.clone(),
             Arc::new(

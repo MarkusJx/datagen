@@ -691,6 +691,7 @@ dependencies = [
  "handlebars",
  "indexmap 2.2.5",
  "libloading 0.8.3",
+ "log",
  "once_cell",
  "ordered-float 4.2.0",
  "quick-xml",
@@ -715,6 +716,8 @@ dependencies = [
  "datagen-rs-node-runner",
  "datagen-rs-progress-plugin",
  "indicatif",
+ "log",
+ "log4rs",
  "num-format",
  "serde_json",
 ]
@@ -1756,6 +1759,7 @@ checksum = "a94d21414c1f4a51209ad204c1776a3d0765002c76c6abcb602a6f09f1e881c7"
 name = "log-plugin"
 version = "0.2.0"
 dependencies = [
+ "abi_stable",
  "anyhow",
  "datagen-rs",
  "serde",

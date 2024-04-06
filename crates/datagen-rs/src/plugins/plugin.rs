@@ -1,15 +1,23 @@
 use crate::generate::datagen_context::DatagenContextRef;
 use crate::generate::generated_schema::GeneratedSchema;
+#[cfg(feature = "plugin")]
 use crate::plugins::abi::{
     CurrentSchemaAbiBox, GeneratedSchemaAbi, JsonValue, PluginAbi, PluginAbiBox, PluginResult,
     SerializeCallback, WrapResult,
 };
+#[cfg(feature = "plugin")]
 use abi_stable::library::RootModule;
+#[cfg(feature = "plugin")]
 use abi_stable::sabi_types::VersionStrings;
+#[cfg(feature = "plugin")]
 use abi_stable::std_types::RString;
+#[cfg(feature = "plugin")]
 use abi_stable::{package_version_strings, StableAbi};
 use anyhow::anyhow;
+#[cfg(feature = "plugin")]
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::str::FromStr;
 use std::sync::Arc;
 
 /// A `datagen` plugin.
@@ -161,11 +169,13 @@ pub trait Plugin: Send + Sync {
 #[derive(StableAbi)]
 #[sabi(kind(Prefix(prefix_ref = PluginLibRef)))]
 #[sabi(missing_field(option))]
+#[cfg(feature = "plugin")]
 pub struct PluginLib {
     #[sabi(last_prefix_field)]
-    pub new_plugin: extern "C" fn(&mut JsonValue) -> PluginResult<PluginAbiBox>,
+    pub new_plugin: extern "C" fn(&mut JsonValue, &mut JsonValue) -> PluginResult<PluginAbiBox>,
 }
 
+#[cfg(feature = "plugin")]
 impl RootModule for PluginLibRef {
     abi_stable::declare_root_module_statics! {PluginLibRef}
 
@@ -174,10 +184,12 @@ impl RootModule for PluginLibRef {
     const VERSION_STRINGS: VersionStrings = package_version_strings!();
 }
 
+#[cfg(feature = "plugin")]
 pub struct PluginContainer {
     plugin: Arc<dyn Plugin>,
 }
 
+#[cfg(feature = "plugin")]
 impl PluginContainer {
     pub fn new<T: Plugin + 'static>(plugin: T) -> Self {
         Self {
@@ -190,6 +202,7 @@ impl PluginContainer {
     }
 }
 
+#[cfg(feature = "plugin")]
 impl PluginAbi for PluginContainer {
     fn name(&self) -> RString {
         self.plugin.name().into()
@@ -242,12 +255,34 @@ impl PluginAbi for PluginContainer {
     }
 }
 
+/// Plugin options
+#[cfg_attr(feature = "plugin", derive(Serialize, Deserialize))]
+pub struct PluginOptions {
+    /// The current log level of the application
+    log_level: String,
+}
+
+impl PluginOptions {
+    /// Get the log level of the plugin.
+    pub fn log_level(&self) -> log::LevelFilter {
+        log::LevelFilter::from_str(&self.log_level).expect("Failed to parse log level")
+    }
+}
+
+impl Default for PluginOptions {
+    fn default() -> Self {
+        Self {
+            log_level: log::max_level().to_string(),
+        }
+    }
+}
+
 /// A plugin constructor.
 /// Plugin constructors are used to create a plugin instance.
 ///
 /// # Example
 /// ```
-/// use datagen_rs::plugins::plugin::{Plugin, PluginConstructor};
+/// use datagen_rs::plugins::plugin::{Plugin, PluginConstructor, PluginOptions};
 ///
 /// #[derive(Debug, Default)]
 /// struct MyPlugin;
@@ -259,14 +294,14 @@ impl PluginAbi for PluginContainer {
 /// }
 ///
 /// impl PluginConstructor for MyPlugin {
-///     fn new(args: serde_json::Value) -> anyhow::Result<Self> {
+///     fn new(args: serde_json::Value, options: PluginOptions) -> anyhow::Result<Self> {
 ///         Ok(Self)
 ///     }
 /// }
 /// ```
 pub trait PluginConstructor: Plugin + Sized {
     /// Create a new plugin instance with the given arguments.
-    fn new(args: Value) -> anyhow::Result<Self>;
+    fn new(args: Value, options: PluginOptions) -> anyhow::Result<Self>;
 }
 
 /// Declare a plugin.
@@ -280,7 +315,7 @@ pub trait PluginConstructor: Plugin + Sized {
 /// # Example
 /// ## Plugin with constructor
 /// ```
-/// use datagen_rs::plugins::plugin::{Plugin, PluginConstructor};
+/// use datagen_rs::plugins::plugin::{Plugin, PluginConstructor, PluginOptions};
 /// use serde_json::Value;
 ///
 /// #[derive(Debug, Default)]
@@ -293,7 +328,7 @@ pub trait PluginConstructor: Plugin + Sized {
 /// }
 ///
 /// impl PluginConstructor for MyPlugin {
-///     fn new(args: Value) -> anyhow::Result<Self> {
+///     fn new(args: Value, options: PluginOptions) -> anyhow::Result<Self> {
 ///         Ok(Self)
 ///     }
 /// }
@@ -322,7 +357,10 @@ pub trait PluginConstructor: Plugin + Sized {
 macro_rules! declare_plugin {
     ($plugin_type:ty, $constructor: path) => {
         impl datagen_rs::plugins::plugin::PluginConstructor for $plugin_type {
-            fn new(_args: serde_json::Value) -> anyhow::Result<Self> {
+            fn new(
+                _args: serde_json::Value,
+                _options: datagen_rs::plugins::plugin::PluginOptions,
+            ) -> anyhow::Result<Self> {
                 Ok($constructor())
             }
         }
@@ -340,6 +378,7 @@ macro_rules! declare_plugin {
         #[abi_stable::sabi_extern_fn]
         pub fn new_plugin(
             value: &mut datagen_rs::plugins::abi::JsonValue,
+            options: &mut datagen_rs::plugins::abi::JsonValue,
         ) -> datagen_rs::plugins::abi::PluginResult<datagen_rs::plugins::abi::PluginAbiBox> {
             use datagen_rs::plugins::abi::WrapResult;
             use datagen_rs::plugins::plugin::PluginConstructor;
@@ -348,6 +387,7 @@ macro_rules! declare_plugin {
                 Ok(datagen_rs::plugins::abi::PluginAbi_TO::from_value(
                     datagen_rs::plugins::plugin::PluginContainer::new(<$plugin_type>::new(
                         value.parse_into()?,
+                        options.parse_into()?,
                     )?),
                     abi_stable::sabi_trait::TD_Opaque,
                 ))
