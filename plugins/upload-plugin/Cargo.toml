@@ -11,7 +11,7 @@ name = "upload_plugin"
 crate-type = ["dylib"]
 
 [dependencies]
-datagen-rs = { path = "../../crates/datagen-rs", version = "0.2.0", features = ["generate"] }
+datagen-rs = { path = "../../crates/datagen-rs", version = "0.2.0", features = ["generate", "plugin-abi"] }
 reqwest = { version = "0.12", features = ["blocking", "json"] }
 serde_json = { version = "1.0", features = ["indexmap", "preserve_order"] }
 serde = { version = "1.0.188", features = ["derive"] }

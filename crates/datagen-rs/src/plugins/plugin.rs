@@ -1,17 +1,17 @@
 use crate::generate::datagen_context::DatagenContextRef;
 use crate::generate::generated_schema::GeneratedSchema;
-#[cfg(feature = "native-plugin")]
+#[cfg(feature = "plugin-abi")]
 use crate::plugins::abi::{
     CurrentSchemaAbiBox, GeneratedSchemaAbi, JsonValue, PluginAbi, PluginAbiBox, PluginResult,
     SerializeCallback, WrapResult,
 };
-#[cfg(feature = "native-plugin")]
+#[cfg(feature = "plugin-abi")]
 use abi_stable::library::RootModule;
-#[cfg(feature = "native-plugin")]
+#[cfg(feature = "plugin-abi")]
 use abi_stable::sabi_types::VersionStrings;
-#[cfg(feature = "native-plugin")]
+#[cfg(feature = "plugin-abi")]
 use abi_stable::std_types::RString;
-#[cfg(feature = "native-plugin")]
+#[cfg(feature = "plugin-abi")]
 use abi_stable::{package_version_strings, StableAbi};
 use anyhow::anyhow;
 #[cfg(feature = "plugin")]
@@ -169,13 +169,13 @@ pub trait Plugin: Send + Sync {
 #[derive(StableAbi)]
 #[sabi(kind(Prefix(prefix_ref = PluginLibRef)))]
 #[sabi(missing_field(option))]
-#[cfg(feature = "native-plugin")]
+#[cfg(feature = "plugin-abi")]
 pub struct PluginLib {
     #[sabi(last_prefix_field)]
     pub new_plugin: extern "C" fn(&mut JsonValue, &mut JsonValue) -> PluginResult<PluginAbiBox>,
 }
 
-#[cfg(feature = "native-plugin")]
+#[cfg(feature = "plugin-abi")]
 impl RootModule for PluginLibRef {
     abi_stable::declare_root_module_statics! {PluginLibRef}
 
@@ -184,12 +184,12 @@ impl RootModule for PluginLibRef {
     const VERSION_STRINGS: VersionStrings = package_version_strings!();
 }
 
-#[cfg(feature = "native-plugin")]
+#[cfg(feature = "plugin-abi")]
 pub struct PluginContainer {
     plugin: Arc<dyn Plugin>,
 }
 
-#[cfg(feature = "native-plugin")]
+#[cfg(feature = "plugin-abi")]
 impl PluginContainer {
     pub fn new<T: Plugin + 'static>(plugin: T) -> Self {
         Self {
@@ -202,7 +202,7 @@ impl PluginContainer {
     }
 }
 
-#[cfg(feature = "native-plugin")]
+#[cfg(feature = "plugin-abi")]
 impl PluginAbi for PluginContainer {
     fn name(&self) -> RString {
         self.plugin.name().into()

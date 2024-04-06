@@ -11,7 +11,7 @@ name = "openaddresses_plugin"
 crate-type = ["dylib"]
 
 [dependencies]
-datagen-rs = { path = "../../crates/datagen-rs", features = ["map-schema", "plugin"], version = "0.2.0" }
+datagen-rs = { path = "../../crates/datagen-rs", features = ["map-schema", "plugin", "plugin-abi"], version = "0.2.0" }
 serde_json = { version = "1.0", features = ["preserve_order"] }
 serde = { version = "1.0", features = ["derive"] }
 rand = "0.8"
