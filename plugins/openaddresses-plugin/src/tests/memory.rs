@@ -1,15 +1,18 @@
 use crate::tests::{generate_random, get_by_hash, TestAddress, ADDR_FILE_NAME};
 use crate::OpenAddressesPlugin;
-use datagen_rs::plugins::plugin::PluginConstructor;
+use datagen_rs::plugins::plugin::{PluginConstructor, PluginOptions};
 use serde_json::json;
 
 fn create(file: Option<&str>) -> anyhow::Result<OpenAddressesPlugin> {
-    OpenAddressesPlugin::new(json!({
-        "files": file.unwrap_or(ADDR_FILE_NAME),
-        "backend": {
-            "type": "memory",
-        }
-    }))
+    OpenAddressesPlugin::new(
+        json!({
+            "files": file.unwrap_or(ADDR_FILE_NAME),
+            "backend": {
+                "type": "memory",
+            }
+        }),
+        PluginOptions::default(),
+    )
 }
 
 #[test]

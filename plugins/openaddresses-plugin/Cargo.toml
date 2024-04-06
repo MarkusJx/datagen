@@ -29,7 +29,7 @@ build-vars = { git = "https://github.com/MarkusJx/datagen", optional = true }
 [dev-dependencies]
 datagen-rs = { path = "../../crates/datagen-rs", features = ["generate", "test"], version = "0.2.0" }
 rand = "0.8"
-serial_test = "2"
+serial_test = "3"
 ordered-float = "4"
 
 [features]

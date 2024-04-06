@@ -5,6 +5,7 @@ use datagen_rs::schema::schema_definition::Schema;
 use datagen_rs::util::helpers::generate_random_data;
 use mockito::{Matcher, Mock, ServerGuard};
 use serde_json::{from_value, json, Value};
+use std::sync::Arc;
 use std::vec;
 
 fn create_mock(server: &mut ServerGuard, method: &str, status: usize) -> Mock {
@@ -42,7 +43,7 @@ fn create_object_schema(plugin_args: Value) -> anyhow::Result<String> {
     }))
     .unwrap();
 
-    let plugin: Box<dyn Plugin> = Box::<UploadPlugin>::default();
+    let plugin: Arc<dyn Plugin> = Arc::<UploadPlugin>::default();
     generate_random_data(
         schema,
         Some(vec![("upload-plugin".into(), plugin)].into_iter().collect()),

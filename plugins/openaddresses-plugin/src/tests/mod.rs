@@ -20,7 +20,7 @@ pub(crate) const ADDR_FILE_NAME: &str = "src/tests/addresses.geojson";
 pub(crate) fn generate_random(plugin: &OpenAddressesPlugin) -> TestAddress {
     plugin
         .generate(
-            CurrentSchema::root(SchemaOptions::default().into(), PluginList::empty().into()),
+            CurrentSchema::root(SchemaOptions::default().into(), PluginList::empty().into()).into(),
             json!({
                 "number": "number",
                 "street": "street",

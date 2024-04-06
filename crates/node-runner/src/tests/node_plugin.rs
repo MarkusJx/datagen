@@ -1,14 +1,13 @@
 use crate::json_string;
 use crate::runner::node_runner::NodeRunner;
 use crate::tests::assert_error_eq;
-use datagen_rs::plugins::plugin::Plugin;
+use datagen_rs::plugins::plugin_list::PluginMap;
 use datagen_rs::schema::schema_definition::Schema;
 use datagen_rs::util::helpers::generate_random_data;
 use once_cell::sync::Lazy;
 use serde_json::{json, Value};
-use std::collections::HashMap;
 
-type RunnerPlugins = (NodeRunner, HashMap<String, Box<dyn Plugin>>);
+type RunnerPlugins = (NodeRunner, PluginMap);
 
 static SCHEMA: Lazy<RunnerPlugins> = Lazy::new(|| {
     napi::__private::register_class("CurrentSchema", None, "CurrentSchema\0", vec![]);
