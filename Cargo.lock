@@ -690,7 +690,6 @@ dependencies = [
  "fake",
  "handlebars",
  "indexmap 2.2.5",
- "libloading 0.8.3",
  "log",
  "once_cell",
  "ordered-float 4.2.0",
