@@ -126,6 +126,7 @@ impl<F: Fn(usize, usize) + Send + Sync> ProgressPlugin<F> {
     ///
     /// # Example
     /// ```
+    /// use std::sync::Arc;
     /// use datagen_rs::plugins::plugin::Plugin;
     /// use datagen_rs::schema::any::Any;
     /// use datagen_rs::schema::any_value::AnyValue;
@@ -133,7 +134,7 @@ impl<F: Fn(usize, usize) + Send + Sync> ProgressPlugin<F> {
     /// use datagen_rs::util::helpers::generate_random_data;
     /// use datagen_rs_progress_plugin::ProgressPlugin;
     ///
-    /// let progress: Box<dyn Plugin> = Box::new(ProgressPlugin::new(|current, total| {
+    /// let progress: Arc<dyn Plugin> = Arc::new(ProgressPlugin::new(|current, total| {
     ///     println!("{current} / {total}");
     /// }));
     ///
