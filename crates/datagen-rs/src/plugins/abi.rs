@@ -1,3 +1,4 @@
+#![allow(clippy::unnecessary_cast)]
 use crate::generate::resolved_reference::ResolvedReference;
 use crate::plugins::abi_impl::GeneratedSchemaVecAbiImpl;
 use abi_stable::pmr::{ROption, RResult};

@@ -27,8 +27,7 @@ impl CurrentSchema {
         Ok(Self(
             self.0
                 .child(sibling.map(|s| s.0.clone()), &path)
-                .into_napi()?
-                .into(),
+                .into_napi()?,
         ))
     }
 

@@ -49,9 +49,9 @@ pub mod generate {
 
             for (key, value) in map {
                 current_schema = if let Some(cur) = current_schema {
-                    Some(self.child(Some(cur), &key)?.into())
+                    Some(self.child(Some(cur), &key)?)
                 } else {
-                    Some(self.child(None, &key)?.into())
+                    Some(self.child(None, &key)?)
                 };
 
                 res.insert(key, func(current_schema.as_ref().unwrap(), value)?);
@@ -83,7 +83,7 @@ pub mod generate {
             let mut res = Vec::with_capacity(length as _);
 
             for i in 0..length {
-                let current_schema = self.child(None, &i.to_string())?.into();
+                let current_schema = self.child(None, &i.to_string())?;
                 res.push(func(&current_schema, value.clone())?);
             }
 
