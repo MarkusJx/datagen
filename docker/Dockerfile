@@ -9,6 +9,7 @@ RUN cargo build -p datagen-rs-openaddresses-plugin -r -F sqlite
 RUN cargo build -p datagen-rs-upload-plugin -r
 
 FROM debian:bookworm-slim
+LABEL org.opencontainers.image.description = "Default datagen image based on debian"
 
 RUN apt-get update && apt-get install -y openssl
 

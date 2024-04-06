@@ -10,6 +10,7 @@ RUN cargo build -p datagen-rs-openaddresses-plugin -r -F sqlite
 RUN cargo build -p datagen-rs-upload-plugin -r
 
 FROM alpine:3.19
+LABEL org.opencontainers.image.description = "datagen image based on alpine"
 
 RUN apk update && apk add --no-cache libgcc openssl
 

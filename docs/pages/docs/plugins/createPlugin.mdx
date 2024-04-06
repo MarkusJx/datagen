@@ -11,9 +11,8 @@ implement the `PluginConstructor{:rust}` trait. This trait defines a function
 that is called by `datagen` to create a new instance of the plugin `struct{:rust}`.
 
 In order to expose the plugin to `datagen`, the plugin needs to be compiled
-to a dynamic library, exposing a `_plugin_create{:rust}` and `_plugin_version{:rust}`
-function. The easiest way of adding these functions is by using the
-`declare_plugin!{:rust}` macro.
+to a dynamic library, exposing a `new_plugin{:rust}` function using [`abi_stable`](https://docs.rs/abi_stable/latest/abi_stable/).
+The easiest way of adding this function is by using the `declare_plugin!{:rust}` macro.
 
 ## Plugin creation
 
@@ -26,7 +25,7 @@ requires the `Debug{:rust}` trait to be implemented.
 
 ```rust filename="src/lib.rs"
 use datagen_rs::plugins::plugin::Plugin;
-use datagen_rs::generate::current_schema::CurrentSchemaRef;
+use datagen_rs::generate::datagen_context::DatagenContextRef;
 use datagen_rs::generate::generated_schema::GeneratedSchema;
 use serde_json::Value;
 
@@ -42,7 +41,7 @@ impl Plugin for MyPlugin {
     // if the plugin provides a transformer.
     fn transform(
         &self,
-        schema: CurrentSchemaRef,
+        schema: DatagenContextRef,
         value: Arc<GeneratedSchema>,
         args: Value,
     ) -> anyhow::Result<Arc<GeneratedSchema>> {
@@ -53,7 +52,7 @@ impl Plugin for MyPlugin {
     // if the plugin provides a generator.
     fn generate(
         &self,
-        schema: CurrentSchemaRef,
+        schema: DatagenContextRef,
         args: Value
     ) -> anyhow::Result<Arc<GeneratedSchema>> {
         // ...
@@ -63,8 +62,17 @@ impl Plugin for MyPlugin {
     // if the plugin provides a serializer.
     fn serialize(
         &self,
-        value: &CurrentSchemaRef,
+        value: &Arc<GeneratedSchema>,
         args: Value
+    ) -> anyhow::Result<String> {
+        // ...
+    }
+
+    fn serialize_with_progress(
+        &self,
+        value: &Arc<GeneratedSchema>,
+        args: Value,
+        callback: &dyn Fn(usize, usize),
     ) -> anyhow::Result<String> {
         // ...
     }
@@ -76,10 +84,10 @@ the `PluginConstructor{:rust}` trait. This trait defines a function that is
 called by `datagen` to create a new instance of the plugin struct.
 
 ```rust
-use datagen_rs::plugins::plugin::PluginConstructor;
+use datagen_rs::plugins::plugin::{PluginConstructor, PluginOptions};
 
 impl PluginConstructor for MyPlugin {
-    fn new(args: Value) -> anyhow::Result<Self> {
+    fn new(args: Value, options: PluginOptions) -> anyhow::Result<Self> {
         // ...
     }
 }
@@ -122,5 +130,5 @@ edition = "2021"
 crate-type = ["dylib"]
 
 [dependencies]
-datagen-rs = "0.1.0"
+datagen-rs = { version = "0.1.0", features = ["plugin-abi"] }
 ```
