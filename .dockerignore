@@ -11,3 +11,5 @@ crates/datagen-wasm/*-pkg/
 .config/
 docker/
 !docker/docker-entrypoint.sh
+*.db
+*.geojson
