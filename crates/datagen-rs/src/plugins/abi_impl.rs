@@ -412,16 +412,14 @@ impl Plugin for PluginAbiBox {
         args: Value,
         callback: &dyn Fn(usize, usize),
     ) -> anyhow::Result<String> {
-        unsafe {
-            PluginAbiBox::serialize_with_progress(
-                self,
-                value.try_into()?,
-                JsonValue::read_from(args)?,
-                SerializeCallback::new(callback),
-            )
-            .map(Into::into)
-            .into_anyhow()
-        }
+        PluginAbiBox::serialize_with_progress(
+            self,
+            value.try_into()?,
+            JsonValue::read_from(args)?,
+            SerializeCallback::new(callback),
+        )
+        .map(Into::into)
+        .into_anyhow()
     }
 }
 
