@@ -4,7 +4,7 @@ use crate::classes::node_plugin_args::{
     TransformCall,
 };
 use anyhow::{anyhow, Context};
-use datagen_rs::generate::current_schema::CurrentSchemaRef;
+use datagen_rs::generate::datagen_context::DatagenContextRef;
 use datagen_rs::generate::generated_schema::GeneratedSchema;
 use datagen_rs::plugins::plugin::Plugin;
 use napi::threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction};
@@ -78,14 +78,14 @@ impl Plugin for NodePlugin {
 
     fn generate(
         &self,
-        schema: CurrentSchemaRef,
+        schema: DatagenContextRef,
         args: Value,
     ) -> anyhow::Result<Arc<GeneratedSchema>> {
         let res: Value = PluginCall::call(
             &self.generate,
             GenerateArgs {
                 args,
-                schema: CurrentSchema::from_ref(schema),
+                schema: CurrentSchema::from_ref(schema)?,
             },
         )
         .with_context(|| {
@@ -102,7 +102,7 @@ impl Plugin for NodePlugin {
 
     fn transform(
         &self,
-        schema: CurrentSchemaRef,
+        schema: DatagenContextRef,
         value: Arc<GeneratedSchema>,
         args: Value,
     ) -> anyhow::Result<Arc<GeneratedSchema>> {
@@ -111,7 +111,7 @@ impl Plugin for NodePlugin {
             TransformArgs {
                 value: serde_json::to_value(value).map_err(anyhow::Error::new)?,
                 args,
-                schema: CurrentSchema::from_ref(schema),
+                schema: CurrentSchema::from_ref(schema)?,
             },
         )
         .with_context(|| {

@@ -12,11 +12,9 @@ use crate::objects::call_args::CallArgs;
 #[cfg(not(feature = "sqlite"))]
 use anyhow::anyhow;
 use datagen_rs::declare_plugin;
-use datagen_rs::generate::current_schema::CurrentSchemaRef;
+use datagen_rs::generate::datagen_context::DatagenContextRef;
 use datagen_rs::generate::generated_schema::GeneratedSchema;
-use datagen_rs::plugins::plugin::{Plugin, PluginConstructor};
-#[cfg(feature = "log")]
-use log::LevelFilter;
+use datagen_rs::plugins::plugin::{Plugin, PluginConstructor, PluginOptions};
 #[cfg(feature = "log")]
 use log4rs::append::console::ConsoleAppender;
 #[cfg(feature = "log")]
@@ -64,7 +62,7 @@ impl Plugin for OpenAddressesPlugin {
 
     fn generate(
         &self,
-        schema: CurrentSchemaRef,
+        schema: DatagenContextRef,
         args: Value,
     ) -> anyhow::Result<Arc<GeneratedSchema>> {
         let args: CallArgs = serde_json::from_value(args)?;
@@ -94,12 +92,17 @@ impl PluginConstructor for OpenAddressesPlugin {
     ///     }
     /// })).unwrap();
     /// ```
-    fn new(args: Value) -> anyhow::Result<Self> {
+    fn new(
+        args: Value,
+        #[cfg(feature = "log")] options: PluginOptions,
+        #[cfg(not(feature = "log"))] _options: PluginOptions,
+    ) -> anyhow::Result<Self> {
         let args: PluginArgs = serde_json::from_value(args)?;
         let paths = match args.files.clone() {
             StringOrVec::Single(path) => vec![path],
             StringOrVec::Multiple(paths) => paths,
         };
+
         #[cfg(feature = "log")]
         log4rs::init_config(
             Config::builder()
@@ -107,7 +110,11 @@ impl PluginConstructor for OpenAddressesPlugin {
                     Appender::builder()
                         .build("stdout", Box::new(ConsoleAppender::builder().build())),
                 )
-                .build(Root::builder().appender("stdout").build(LevelFilter::Debug))?,
+                .build(
+                    Root::builder()
+                        .appender("stdout")
+                        .build(options.log_level()),
+                )?,
         )?;
 
         #[cfg(feature = "log")]

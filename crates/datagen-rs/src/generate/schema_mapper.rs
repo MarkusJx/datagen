@@ -1,11 +1,11 @@
-use crate::generate::current_schema::CurrentSchemaRef;
+use crate::generate::datagen_context::DatagenContextRef;
 use crate::generate::generated_schema::GeneratedSchema;
 use crate::schema::transform::Transform;
 use indexmap::IndexMap;
 use std::sync::Arc;
 
 pub trait MapSchema {
-    fn map_index_map<K, F: Fn(&CurrentSchemaRef, K) -> anyhow::Result<Arc<GeneratedSchema>>>(
+    fn map_index_map<K, F: Fn(&DatagenContextRef, K) -> anyhow::Result<Arc<GeneratedSchema>>>(
         &self,
         map: IndexMap<String, K>,
         transform: Option<Vec<Transform>>,
@@ -13,7 +13,7 @@ pub trait MapSchema {
         func: F,
     ) -> anyhow::Result<Arc<GeneratedSchema>>;
 
-    fn map_array<K: Clone, F: Fn(&CurrentSchemaRef, K) -> anyhow::Result<Arc<GeneratedSchema>>>(
+    fn map_array<K: Clone, F: Fn(&DatagenContextRef, K) -> anyhow::Result<Arc<GeneratedSchema>>>(
         &self,
         num: usize,
         arg: K,
@@ -25,7 +25,7 @@ pub trait MapSchema {
 
 #[cfg(feature = "map-schema")]
 pub mod generate {
-    use crate::generate::current_schema::{CurrentSchema, CurrentSchemaRef};
+    use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::generate::schema_mapper::MapSchema;
     use crate::schema::transform::Transform;
@@ -33,8 +33,11 @@ pub mod generate {
     use indexmap::IndexMap;
     use std::sync::Arc;
 
-    impl MapSchema for CurrentSchemaRef {
-        fn map_index_map<K, F: Fn(&CurrentSchemaRef, K) -> anyhow::Result<Arc<GeneratedSchema>>>(
+    impl MapSchema for DatagenContextRef {
+        fn map_index_map<
+            K,
+            F: Fn(&DatagenContextRef, K) -> anyhow::Result<Arc<GeneratedSchema>>,
+        >(
             &self,
             map: IndexMap<String, K>,
             transform: Option<Vec<Transform>>,
@@ -42,13 +45,13 @@ pub mod generate {
             func: F,
         ) -> anyhow::Result<Arc<GeneratedSchema>> {
             let mut res = IndexMap::new();
-            let mut current_schema: Option<CurrentSchemaRef> = None;
+            let mut current_schema: Option<DatagenContextRef> = None;
 
             for (key, value) in map {
                 current_schema = if let Some(cur) = current_schema {
-                    Some(CurrentSchema::child(self.clone(), Some(cur), key.clone()).into())
+                    Some(self.child(Some(cur), &key)?)
                 } else {
-                    Some(CurrentSchema::child(self.clone(), None, key.clone()).into())
+                    Some(self.child(None, &key)?)
                 };
 
                 res.insert(key, func(current_schema.as_ref().unwrap(), value)?);
@@ -60,7 +63,7 @@ pub mod generate {
                     res = transform.transform(self.clone(), res)?;
                 }
 
-                Ok(self.finalize(res))
+                self.finalize(res)
             } else {
                 Ok(GeneratedSchema::Object(res).into())
             }
@@ -68,7 +71,7 @@ pub mod generate {
 
         fn map_array<
             K: Clone,
-            F: Fn(&CurrentSchemaRef, K) -> anyhow::Result<Arc<GeneratedSchema>>,
+            F: Fn(&DatagenContextRef, K) -> anyhow::Result<Arc<GeneratedSchema>>,
         >(
             &self,
             length: usize,
@@ -80,7 +83,7 @@ pub mod generate {
             let mut res = Vec::with_capacity(length as _);
 
             for i in 0..length {
-                let current_schema = CurrentSchema::child(self.clone(), None, i.to_string()).into();
+                let current_schema = self.child(None, &i.to_string())?;
                 res.push(func(&current_schema, value.clone())?);
             }
 
@@ -90,7 +93,7 @@ pub mod generate {
                     res = transform.transform(self.clone(), res)?;
                 }
 
-                Ok(self.finalize(res))
+                self.finalize(res)
             } else {
                 Ok(GeneratedSchema::Array(res).into())
             }

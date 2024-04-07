@@ -3,6 +3,7 @@ pub mod generate_error;
 pub mod helpers;
 #[cfg(feature = "env-schema")]
 pub mod json_deserialize;
+pub(crate) mod macros;
 #[cfg(feature = "plugin")]
 pub mod plugin_error;
 #[cfg(feature = "generate")]

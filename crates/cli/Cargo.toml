@@ -20,6 +20,8 @@ indicatif = "0.17"
 colored = "2.0"
 num-format = "0.4"
 anyhow = "1"
+log = "0"
+log4rs = "1"
 
 [features]
 node = ["datagen-rs-node-runner"]

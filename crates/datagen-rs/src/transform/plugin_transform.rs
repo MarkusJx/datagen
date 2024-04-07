@@ -17,7 +17,7 @@ pub struct PluginTransform {
 
 #[cfg(feature = "map-schema")]
 pub mod generate {
-    use crate::generate::current_schema::CurrentSchemaRef;
+    use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::transform::plugin_transform::PluginTransform;
     use crate::util::traits::generate::TransformTrait;
@@ -26,14 +26,12 @@ pub mod generate {
     impl TransformTrait for PluginTransform {
         fn transform(
             self,
-            schema: CurrentSchemaRef,
+            schema: DatagenContextRef,
             value: Arc<GeneratedSchema>,
         ) -> anyhow::Result<Arc<GeneratedSchema>> {
-            schema.get_plugin(&self.name)?.transform(
-                schema.clone(),
-                value,
-                self.args.unwrap_or_default(),
-            )
+            schema
+                .get_plugin(&self.name)?
+                .transform(schema, value, self.args.unwrap_or_default())
         }
     }
 }

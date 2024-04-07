@@ -99,12 +99,12 @@ pub fn read_schema<P: AsRef<Path>>(path: P) -> anyhow::Result<Schema> {
 /// ```
 pub fn generate_random_data(
     schema: Schema,
-    additional_plugins: Option<HashMap<String, Box<dyn Plugin>>>,
+    additional_plugins: Option<HashMap<String, Arc<dyn Plugin>>>,
 ) -> anyhow::Result<String> {
     let plugins = PluginList::from_schema(&schema, additional_plugins)?;
     let options = Arc::new(schema.options.unwrap_or_default());
     let root = CurrentSchema::root(options.clone(), plugins.clone());
-    let generated = schema.value.into_random(root)?;
+    let generated = schema.value.into_random(root.into())?;
 
     options
         .serializer

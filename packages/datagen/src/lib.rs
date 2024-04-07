@@ -15,6 +15,7 @@ use napi::threadsafe_function::ThreadsafeFunctionCallMode;
 use napi::{Env, JsFunction, JsObject};
 use serde_json::Value;
 use std::collections::HashMap;
+use std::sync::Arc;
 
 #[napi]
 pub fn get_schema() -> napi::Result<Value> {
@@ -82,7 +83,7 @@ pub fn generate_random_data_internal(
                 let plugins = plugins.get_or_insert_with(HashMap::new);
 
                 for (name, plugin) in additional_plugins {
-                    plugins.insert(name, Box::new(plugin.clone()));
+                    plugins.insert(name, Arc::new(plugin.clone()));
                 }
             }
 

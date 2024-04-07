@@ -1,6 +1,6 @@
 use crate::classes::current_schema::CurrentSchema;
 use crate::util::traits::IntoNapiResult;
-use datagen_rs::generate::current_schema::CurrentSchemaRef;
+use datagen_rs::generate::datagen_context::DatagenContextRef;
 use datagen_rs::generate::generated_schema::GeneratedSchema;
 use napi::{Env, JsObject, JsUnknown};
 use serde_json::Value;
@@ -9,13 +9,13 @@ use std::sync::Arc;
 #[napi]
 pub struct DatagenPlugin {
     name: String,
-    schema: CurrentSchemaRef,
+    schema: DatagenContextRef,
 }
 
 #[napi]
 impl DatagenPlugin {
-    pub fn new(name: String, schema: CurrentSchemaRef) -> napi::Result<Self> {
-        if schema.plugin_exists(&name) {
+    pub fn new(name: String, schema: DatagenContextRef) -> napi::Result<Self> {
+        if schema.plugin_exists(&name).into_napi()? {
             Ok(Self { name, schema })
         } else {
             Err(napi::Error::from_reason(format!(

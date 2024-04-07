@@ -1,10 +1,9 @@
-#[cfg(feature = "map-schema")]
+#[cfg(not(feature = "map-schema"))]
+use crate::bail_unsupported;
+use crate::generate::datagen_context::{DatagenContext, DatagenContextRef};
 use crate::generate::generated_schema::GeneratedSchema;
-#[cfg(feature = "map-schema")]
 use crate::generate::resolved_reference::ResolvedReference;
-#[cfg(feature = "map-schema")]
 use crate::generate::schema_path::SchemaPath;
-#[cfg(feature = "map-schema")]
 use crate::generate::schema_value::SchemaProperties;
 use crate::generate::schema_value::SchemaValue;
 use crate::plugins::plugin::Plugin;
@@ -19,7 +18,6 @@ use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering;
 use std::sync::{Arc, Mutex};
 
-#[derive(Debug)]
 #[cfg_attr(not(feature = "generate"), allow(dead_code))]
 pub struct CurrentSchema {
     parent: Option<CurrentSchemaRef>,
@@ -168,7 +166,7 @@ impl CurrentSchema {
         self.value.lock().unwrap().path.clone()
     }
 
-    pub fn get_plugin<'a>(&'a self, key: &String) -> anyhow::Result<&'a dyn Plugin> {
+    pub fn get_plugin<'a>(&'a self, key: &String) -> anyhow::Result<&'a Arc<dyn Plugin>> {
         self.plugins.get(key)
     }
 
@@ -179,5 +177,92 @@ impl CurrentSchema {
 
     pub fn options(&self) -> &Arc<SchemaOptions> {
         &self.options
+    }
+}
+
+impl DatagenContext for CurrentSchemaRef {
+    #[cfg(feature = "map-schema")]
+    fn child(
+        &self,
+        sibling: Option<Box<dyn DatagenContext>>,
+        path: &str,
+    ) -> anyhow::Result<Box<dyn DatagenContext>> {
+        Ok(Box::new(Arc::new(CurrentSchema {
+            parent: Some(self.clone()),
+            value: Arc::new(Mutex::new(SchemaValue {
+                properties: sibling
+                    .map(|s| s.__schema_value_properties())
+                    .map_or(Ok(None), |s| s.map(Some))?
+                    .unwrap_or_default(),
+                path: DatagenContext::path(self)?.append(path),
+            })),
+            options: self.options.clone(),
+            plugins: self.plugins.clone(),
+            finalized: AtomicBool::default(),
+        })))
+    }
+
+    #[cfg(not(feature = "map-schema"))]
+    fn child(
+        &self,
+        _sibling: Option<DatagenContextRef>,
+        _path: &str,
+    ) -> anyhow::Result<DatagenContextRef> {
+        bail_unsupported!("map-schema")
+    }
+
+    #[cfg(feature = "map-schema")]
+    fn resolve_ref(&self, reference: &str) -> anyhow::Result<ResolvedReference> {
+        CurrentSchema::resolve_ref(self.as_ref(), reference.to_string())
+    }
+
+    #[cfg(not(feature = "map-schema"))]
+    fn resolve_ref(&self, _reference: &str) -> anyhow::Result<ResolvedReference> {
+        bail_unsupported!("map-schema")
+    }
+
+    #[cfg(feature = "map-schema")]
+    fn finalize(&self, schema: Arc<GeneratedSchema>) -> anyhow::Result<Arc<GeneratedSchema>> {
+        Ok(CurrentSchema::finalize(self.as_ref(), schema))
+    }
+
+    #[cfg(not(feature = "map-schema"))]
+    fn finalize(&self, _schema: Arc<GeneratedSchema>) -> anyhow::Result<Arc<GeneratedSchema>> {
+        bail_unsupported!("map-schema")
+    }
+
+    #[cfg(feature = "map-schema")]
+    fn path(&self) -> anyhow::Result<SchemaPath> {
+        Ok(CurrentSchema::path(self.as_ref()))
+    }
+
+    #[cfg(not(feature = "map-schema"))]
+    fn path(&self) -> anyhow::Result<SchemaPath> {
+        bail_unsupported!("map-schema")
+    }
+
+    fn get_plugin(&self, key: &str) -> anyhow::Result<Arc<dyn Plugin>> {
+        CurrentSchema::get_plugin(self.as_ref(), &key.to_string()).cloned()
+    }
+
+    fn plugin_exists(&self, key: &str) -> anyhow::Result<bool> {
+        Ok(CurrentSchema::plugin_exists(
+            self.as_ref(),
+            &key.to_string(),
+        ))
+    }
+
+    fn options(&self) -> anyhow::Result<Arc<SchemaOptions>> {
+        Ok(CurrentSchema::options(self.as_ref()).clone())
+    }
+
+    fn __schema_value_properties(&self) -> anyhow::Result<Arc<Mutex<SchemaProperties>>> {
+        Ok(self.value.lock().unwrap().properties.clone())
+    }
+}
+
+impl From<CurrentSchemaRef> for DatagenContextRef {
+    fn from(schema: CurrentSchemaRef) -> DatagenContextRef {
+        Box::new(schema)
     }
 }

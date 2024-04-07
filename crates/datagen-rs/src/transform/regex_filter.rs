@@ -14,7 +14,7 @@ pub struct RegexFilter {
 
 #[cfg(feature = "map-schema")]
 pub mod generate {
-    use crate::generate::current_schema::CurrentSchemaRef;
+    use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::transform::regex_filter::RegexFilter;
     use crate::util::traits::generate::TransformTrait;
@@ -24,7 +24,7 @@ pub mod generate {
     impl TransformTrait for RegexFilter {
         fn transform(
             self,
-            schema: CurrentSchemaRef,
+            schema: DatagenContextRef,
             value: Arc<GeneratedSchema>,
         ) -> anyhow::Result<Arc<GeneratedSchema>> {
             let str = match value.as_ref() {
@@ -32,7 +32,7 @@ pub mod generate {
                 _ => {
                     if self
                         .serialize_non_strings
-                        .or(schema.options().serialize_non_strings)
+                        .or(schema.options()?.serialize_non_strings)
                         .unwrap_or(false)
                     {
                         serde_json::to_string(&value)?

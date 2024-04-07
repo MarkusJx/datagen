@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 pub type DropRefsTsfn = ThreadsafeFunction<()>;
-pub type PluginMap = HashMap<String, Box<dyn Plugin>>;
+pub type PluginMap = HashMap<String, Arc<dyn Plugin>>;
 pub type PluginMapResult = anyhow::Result<(
     PluginMap,
     DropRefsTsfn,

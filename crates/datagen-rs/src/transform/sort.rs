@@ -14,7 +14,7 @@ pub struct SortTransform {
 
 #[cfg(feature = "map-schema")]
 pub mod generate {
-    use crate::generate::current_schema::CurrentSchemaRef;
+    use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::transform::sort::SortTransform;
     use crate::util::traits::generate::TransformTrait;
@@ -62,7 +62,7 @@ pub mod generate {
     impl TransformTrait for SortTransform {
         fn transform(
             self,
-            _schema: CurrentSchemaRef,
+            _schema: DatagenContextRef,
             value: Arc<GeneratedSchema>,
         ) -> anyhow::Result<Arc<GeneratedSchema>> {
             if let GeneratedSchema::Array(arr) = value.as_ref() {

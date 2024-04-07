@@ -18,7 +18,7 @@ pub enum AnyValue {
 
 #[cfg(feature = "generate")]
 pub mod generate {
-    use crate::generate::current_schema::CurrentSchemaRef;
+    use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::generate::IntoGeneratedArc;
     use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
     use crate::schema::any_value::AnyValue;
@@ -28,16 +28,16 @@ pub mod generate {
     impl IntoGeneratedArc for AnyValue {
         fn into_generated_arc(
             self,
-            schema: CurrentSchemaRef,
+            schema: DatagenContextRef,
         ) -> anyhow::Result<Arc<GeneratedSchema>> {
             match self {
                 AnyValue::Any(any) => any.into_random(schema),
-                AnyValue::String(string) => schema.resolve_ref(string)?.into_random(),
+                AnyValue::String(string) => schema.resolve_ref(&string)?.into_random(),
                 AnyValue::Number(number) => {
-                    Ok(schema.finalize(GeneratedSchema::Number(number.into()).into()))
+                    schema.finalize(GeneratedSchema::Number(number.into()).into())
                 }
-                AnyValue::Bool(bool) => Ok(schema.finalize(GeneratedSchema::Bool(bool).into())),
-                AnyValue::Null => Ok(schema.finalize(GeneratedSchema::None.into())),
+                AnyValue::Bool(bool) => schema.finalize(GeneratedSchema::Bool(bool).into()),
+                AnyValue::Null => schema.finalize(GeneratedSchema::None.into()),
             }
         }
 

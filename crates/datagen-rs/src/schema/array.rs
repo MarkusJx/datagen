@@ -42,7 +42,7 @@ pub struct ArrayWithValues {
 
 #[cfg(feature = "generate")]
 pub mod generate {
-    use crate::generate::current_schema::CurrentSchemaRef;
+    use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::generate::IntoGeneratedArc;
     use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
     use crate::generate::schema_mapper::MapSchema;
@@ -68,7 +68,7 @@ pub mod generate {
     impl IntoGeneratedArc for Array {
         fn into_generated_arc(
             self,
-            schema: CurrentSchemaRef,
+            schema: DatagenContextRef,
         ) -> anyhow::Result<Arc<GeneratedSchema>> {
             match self {
                 Array::RandomArray(random_array) => random_array.into_generated_arc(schema),
@@ -89,7 +89,7 @@ pub mod generate {
     impl IntoGeneratedArc for RandomArray {
         fn into_generated_arc(
             self,
-            schema: CurrentSchemaRef,
+            schema: DatagenContextRef,
         ) -> anyhow::Result<Arc<GeneratedSchema>> {
             let length = self.length.get_length();
             schema.map_array(length as _, self.items, None, false, |cur, value| {
@@ -105,7 +105,7 @@ pub mod generate {
     impl IntoGeneratedArc for ArrayWithValues {
         fn into_generated_arc(
             self,
-            schema: CurrentSchemaRef,
+            schema: DatagenContextRef,
         ) -> anyhow::Result<Arc<GeneratedSchema>> {
             Ok(GeneratedSchema::Array(
                 self.values

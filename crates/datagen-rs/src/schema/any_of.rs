@@ -17,7 +17,7 @@ pub struct AnyOf {
 
 #[cfg(feature = "generate")]
 pub mod generate {
-    use crate::generate::current_schema::CurrentSchemaRef;
+    use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::generate::IntoGeneratedArc;
     use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
     use crate::schema::any_of::AnyOf;
@@ -30,7 +30,7 @@ pub mod generate {
     impl IntoGeneratedArc for AnyOf {
         fn into_generated_arc(
             mut self,
-            schema: CurrentSchemaRef,
+            schema: DatagenContextRef,
         ) -> anyhow::Result<Arc<GeneratedSchema>> {
             self.values.shuffle(&mut rand::thread_rng());
             let min = if self.allow_null.unwrap_or(false) {

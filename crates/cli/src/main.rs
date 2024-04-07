@@ -11,6 +11,10 @@ use datagen_rs::util::helpers::{read_schema, write_json_schema};
 #[cfg(feature = "node")]
 use datagen_rs_node_runner::runner::node_runner::NodeRunner;
 use datagen_rs_progress_plugin::{PluginWithSchemaResult, ProgressPlugin};
+use log::LevelFilter;
+use log4rs::append::console::ConsoleAppender;
+use log4rs::config::{Appender, Root};
+use log4rs::Config;
 use std::collections::HashMap;
 use std::process::exit;
 use std::sync::Arc;
@@ -33,17 +37,20 @@ enum Commands {
         /// An optional path to write the generated data to.
         /// If not specified, the data will be written to stdout.
         out_file: Option<String>,
+        /// The log level to use
+        #[arg(short, long)]
+        log_level: Option<LevelFilter>,
     },
 }
 
 fn generate_random_data(
     schema: Schema,
-    additional_plugins: Option<HashMap<String, Box<dyn Plugin>>>,
+    additional_plugins: Option<HashMap<String, Arc<dyn Plugin>>>,
     progress_bar: CliProgressRef,
 ) -> anyhow::Result<(String, Arc<PluginList>)> {
     let plugins = PluginList::from_schema(&schema, additional_plugins)?;
     let options = Arc::new(schema.options.unwrap_or_default());
-    let root = CurrentSchema::root(options.clone(), plugins.clone());
+    let root = CurrentSchema::root(options.clone(), plugins.clone()).into();
     let generated = schema.value.into_random(root)?;
 
     progress_bar.set_message("Serializing data");
@@ -101,7 +108,23 @@ fn main() {
         Commands::Generate {
             schema_file,
             out_file,
+            log_level,
         } => {
+            log4rs::init_config(
+                Config::builder()
+                    .appender(
+                        Appender::builder()
+                            .build("stdout", Box::new(ConsoleAppender::builder().build())),
+                    )
+                    .build(
+                        Root::builder()
+                            .appender("stdout")
+                            .build(log_level.unwrap_or(LevelFilter::Off)),
+                    )
+                    .unwrap(),
+            )
+            .unwrap();
+
             let progress_bar = CliProgressRef::default();
 
             let res = generate_data(schema_file, out_file, &progress_bar);

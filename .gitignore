@@ -11,3 +11,4 @@ target/
 *.pdb
 *.db
 schema.json
+*.geojson

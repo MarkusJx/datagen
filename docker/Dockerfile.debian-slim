@@ -6,6 +6,7 @@ WORKDIR /app
 RUN cargo build -p datagen-rs-cli -r --no-default-features
 
 FROM debian:bookworm-slim
+LABEL org.opencontainers.image.description = "Slim datagen image based on debian"
 
 COPY --from=builder /app/target/release/datagen /usr/local/bin/datagen
 COPY --from=builder /app/docker/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh

@@ -1,6 +1,6 @@
 use crate::objects::args::IntoGenerated;
 use crate::objects::geo_data::{GeoFeature, Geometry};
-use datagen_rs::generate::current_schema::CurrentSchemaRef;
+use datagen_rs::generate::datagen_context::DatagenContextRef;
 use datagen_rs::generate::generated_schema::GeneratedSchema;
 use serde::Deserialize;
 use std::sync::Arc;
@@ -23,7 +23,7 @@ pub(crate) enum AddressType {
 impl IntoGenerated for AddressType {
     fn into_generated(
         self,
-        _schema: &CurrentSchemaRef,
+        _schema: &DatagenContextRef,
         feature: &GeoFeature,
     ) -> anyhow::Result<Arc<GeneratedSchema>> {
         Ok(match self {

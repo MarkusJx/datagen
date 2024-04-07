@@ -17,4 +17,4 @@ anyhow = "1"
 
 [features]
 default = []
-plugin = []
+plugin = ["datagen-rs/plugin-abi"]

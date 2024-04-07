@@ -11,13 +11,14 @@ name = "openaddresses_plugin"
 crate-type = ["dylib"]
 
 [dependencies]
-datagen-rs = { path = "../../crates/datagen-rs", features = ["map-schema"], version = "0.2.0" }
+datagen-rs = { path = "../../crates/datagen-rs", features = ["map-schema", "plugin", "plugin-abi"], version = "0.2.0" }
 serde_json = { version = "1.0", features = ["preserve_order"] }
 serde = { version = "1.0", features = ["derive"] }
 rand = "0.8"
 anyhow = "1"
 indexmap = { version = "2.0.0", features = ["serde"] }
-rusqlite = { version = "0.29", features = ["serde_json", "bundled"], optional = true }
+abi_stable = "0.11.3"
+rusqlite = { version = "0.31", features = ["serde_json", "bundled"], optional = true }
 log = { version = "0.4", optional = true }
 log4rs = { version = "1.2", optional = true }
 
@@ -28,7 +29,7 @@ build-vars = { git = "https://github.com/MarkusJx/datagen", optional = true }
 [dev-dependencies]
 datagen-rs = { path = "../../crates/datagen-rs", features = ["generate", "test"], version = "0.2.0" }
 rand = "0.8"
-serial_test = "2"
+serial_test = "3"
 ordered-float = "4"
 
 [features]

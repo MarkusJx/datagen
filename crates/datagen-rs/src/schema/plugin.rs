@@ -17,7 +17,7 @@ pub struct Plugin {
 
 #[cfg(feature = "generate")]
 pub mod generate {
-    use crate::generate::current_schema::CurrentSchemaRef;
+    use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::generate::IntoGeneratedArc;
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::schema::plugin::Plugin;
@@ -27,11 +27,11 @@ pub mod generate {
     impl IntoGeneratedArc for Plugin {
         fn into_generated_arc(
             self,
-            schema: CurrentSchemaRef,
+            schema: DatagenContextRef,
         ) -> anyhow::Result<Arc<GeneratedSchema>> {
             schema
                 .get_plugin(&self.plugin_name)?
-                .generate(schema.clone(), self.args.unwrap_or_default())
+                .generate(schema, self.args.unwrap_or_default())
         }
 
         fn get_transform(&self) -> Option<Vec<Transform>> {

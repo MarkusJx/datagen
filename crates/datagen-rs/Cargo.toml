@@ -19,10 +19,12 @@ quick-xml = { version = "0.31", features = ["serde", "serialize"], optional = tr
 schemars = { version = "0.8.13", features = ["indexmap2"], optional = true }
 rand = { version = "0.8.5", optional = true }
 fake = { version = "2.8", features = ["uuid", "geo"], optional = true }
-libloading = { version = "0.8.0", optional = true }
 handlebars = { version = "5", optional = true }
 regex = { version = "1.9", optional = true }
 shellexpand = { version = "3", optional = true }
+abi_stable = { version = "0.11.3", optional = true }
+dyn-clone = "1"
+log = "0"
 
 [dev-dependencies]
 envmnt = "0"
@@ -30,7 +32,8 @@ envmnt = "0"
 [features]
 all = ["plugin", "serialize", "generate", "schema", "native-plugin"]
 plugin = ["generate"]
-native-plugin = ["dep:libloading", "plugin"]
+plugin-abi = ["dep:abi_stable"]
+native-plugin = ["plugin-abi", "plugin"]
 serialize = ["env-schema", "dep:serde", "indexmap/serde", "ordered-float/serde"]
 map-schema = ["serialize", "dep:regex", "dep:handlebars", "dep:rand"]
 env-schema = ["dep:shellexpand"]

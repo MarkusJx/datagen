@@ -28,7 +28,7 @@ pub enum ToStringTransform {
 
 #[cfg(feature = "map-schema")]
 pub mod generate {
-    use crate::generate::current_schema::CurrentSchemaRef;
+    use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::transform::to_string::ToStringTransform;
     use crate::util::generate_error::GenerateError;
@@ -41,7 +41,7 @@ pub mod generate {
     impl TransformTrait for ToStringTransform {
         fn transform(
             self,
-            schema: CurrentSchemaRef,
+            schema: DatagenContextRef,
             value: Arc<GeneratedSchema>,
         ) -> anyhow::Result<Arc<GeneratedSchema>> {
             match self {
@@ -63,7 +63,7 @@ pub mod generate {
                                 GeneratedSchema::Integer(i) => Ok((k, i.to_string())),
                                 _ => {
                                     if serialize_non_strings
-                                        .or(schema.options().serialize_non_strings)
+                                        .or(schema.options()?.serialize_non_strings)
                                         .unwrap_or(false)
                                     {
                                         Ok((k, serde_json::to_string(v.as_ref())?))

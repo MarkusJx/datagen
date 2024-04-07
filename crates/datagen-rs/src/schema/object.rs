@@ -16,7 +16,7 @@ pub struct Object {
 
 #[cfg(feature = "generate")]
 pub mod generate {
-    use crate::generate::current_schema::CurrentSchemaRef;
+    use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::generate::IntoGeneratedArc;
     use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
     use crate::generate::schema_mapper::MapSchema;
@@ -27,7 +27,7 @@ pub mod generate {
     impl IntoGeneratedArc for Object {
         fn into_generated_arc(
             self,
-            schema: CurrentSchemaRef,
+            schema: DatagenContextRef,
         ) -> anyhow::Result<Arc<GeneratedSchema>> {
             schema.map_index_map(self.properties, None, false, |schema, value| {
                 value.into_random(schema.clone())
