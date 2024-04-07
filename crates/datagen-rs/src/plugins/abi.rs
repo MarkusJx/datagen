@@ -132,16 +132,27 @@ pub trait PluginAbi: Send + Sync {
         &self,
         value: GeneratedSchemaAbi,
         args: JsonValue,
-        _callback: SerializeCallback,
-    ) -> PluginResult<RString> {
-        self.serialize(value, args)
-    }
+        callback: SerializeCallback,
+    ) -> PluginResult<RString>;
 }
 
+#[repr(C)]
 #[derive(StableAbi)]
-#[repr(transparent)]
 pub struct SerializeCallback {
-    pub func: extern "C" fn(usize, usize),
+    fn_ptr: *const std::ffi::c_void,
+}
+
+impl SerializeCallback {
+    pub fn new(fn_ptr: &dyn Fn(usize, usize)) -> Self {
+        Self {
+            fn_ptr: fn_ptr as *const _ as *const std::ffi::c_void,
+        }
+    }
+
+    pub fn call(&self, current: usize, total: usize) {
+        let callback = unsafe { *(self.fn_ptr as *const &dyn Fn(usize, usize)) };
+        callback(current, total);
+    }
 }
 
 pub type PluginAbiBox = PluginAbi_TO<'static, RBox<()>>;

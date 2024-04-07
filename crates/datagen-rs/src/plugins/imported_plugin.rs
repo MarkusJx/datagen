@@ -153,7 +153,7 @@ impl ImportedPlugin {
 
 impl Plugin for ImportedPlugin {
     fn name(&self) -> String {
-        self.0.plugin.name().to_string()
+        Plugin::name(&self.0.plugin)
     }
 
     fn generate(
@@ -161,15 +161,7 @@ impl Plugin for ImportedPlugin {
         schema: DatagenContextRef,
         args: Value,
     ) -> anyhow::Result<Arc<GeneratedSchema>> {
-        self.0
-            .plugin
-            .generate(schema.into(), JsonValue::read_from(args)?)
-            .into_anyhow()
-            .and_then(TryInto::try_into)
-            .context(format!(
-                "Failed to call method 'generate' in plugin '{}'",
-                self.name()
-            ))
+        Plugin::generate(&self.0.plugin, schema, args)
     }
 
     fn transform(
@@ -178,30 +170,19 @@ impl Plugin for ImportedPlugin {
         value: Arc<GeneratedSchema>,
         args: Value,
     ) -> anyhow::Result<Arc<GeneratedSchema>> {
-        self.0
-            .plugin
-            .transform(
-                schema.into(),
-                value.try_into()?,
-                JsonValue::read_from(args)?,
-            )
-            .into_anyhow()
-            .and_then(TryInto::try_into)
-            .context(format!(
-                "Failed to call method 'transform' in plugin '{}'",
-                self.name()
-            ))
+        Plugin::transform(&self.0.plugin, schema, value, args)
     }
 
     fn serialize(&self, value: &Arc<GeneratedSchema>, args: Value) -> anyhow::Result<String> {
-        self.0
-            .plugin
-            .serialize(value.try_into()?, JsonValue::read_from(args)?)
-            .map(Into::into)
-            .into_anyhow()
-            .context(format!(
-                "Failed to call method 'transform' in plugin '{}'",
-                self.name()
-            ))
+        Plugin::serialize(&self.0.plugin, value, args)
+    }
+
+    fn serialize_with_progress(
+        &self,
+        value: &Arc<GeneratedSchema>,
+        args: Value,
+        callback: &dyn Fn(usize, usize),
+    ) -> anyhow::Result<String> {
+        Plugin::serialize_with_progress(&self.0.plugin, value, args, callback)
     }
 }

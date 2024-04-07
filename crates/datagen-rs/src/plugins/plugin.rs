@@ -247,11 +247,19 @@ impl PluginAbi for PluginContainer {
 
     fn serialize_with_progress(
         &self,
-        _value: GeneratedSchemaAbi,
-        _args: JsonValue,
-        _callback: SerializeCallback,
-    ) -> PluginResult<RString> where {
-        todo!()
+        value: GeneratedSchemaAbi,
+        args: JsonValue,
+        callback: SerializeCallback,
+    ) -> PluginResult<RString> {
+        PluginResult::wrap(|| {
+            self.plugin
+                .serialize_with_progress(
+                    &value.clone().try_into()?,
+                    args.parse_into()?,
+                    &|current, total| callback.call(current, total),
+                )
+                .map(Into::into)
+        })
     }
 }
 

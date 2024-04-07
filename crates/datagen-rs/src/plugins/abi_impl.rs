@@ -15,7 +15,7 @@ use crate::schema::schema_definition::SchemaOptions;
 use abi_stable::derive_macro_reexports::ROption;
 use abi_stable::erased_types::TD_CanDowncast;
 use abi_stable::std_types::{RString, RVec};
-use anyhow::anyhow;
+use anyhow::{anyhow, Context};
 use indexmap::IndexMap;
 use ordered_float::OrderedFloat;
 use serde_json::Value;
@@ -370,6 +370,10 @@ impl Plugin for PluginAbiBox {
         PluginAbiBox::generate(self, schema.into(), JsonValue::read_from(args)?)
             .into_anyhow()
             .and_then(TryInto::try_into)
+            .context(format!(
+                "Failed to call method 'generate' in plugin '{}'",
+                self.name()
+            ))
     }
 
     fn transform(
@@ -386,33 +390,39 @@ impl Plugin for PluginAbiBox {
         )
         .into_anyhow()
         .and_then(TryInto::try_into)
+        .context(format!(
+            "Failed to call method 'transform' in plugin '{}'",
+            self.name()
+        ))
     }
 
     fn serialize(&self, value: &Arc<GeneratedSchema>, args: Value) -> anyhow::Result<String> {
         PluginAbiBox::serialize(self, value.try_into()?, JsonValue::read_from(args)?)
             .map(Into::into)
             .into_anyhow()
+            .context(format!(
+                "Failed to call method 'serialize' in plugin '{}'",
+                self.name()
+            ))
     }
 
     fn serialize_with_progress(
         &self,
         value: &Arc<GeneratedSchema>,
         args: Value,
-        _callback: &dyn Fn(usize, usize),
+        callback: &dyn Fn(usize, usize),
     ) -> anyhow::Result<String> {
-        PluginAbiBox::serialize_with_progress(
-            self,
-            value.try_into()?,
-            JsonValue::read_from(args)?,
-            SerializeCallback { func: dummy },
-        )
-        .map(Into::into)
-        .into_anyhow()
+        unsafe {
+            PluginAbiBox::serialize_with_progress(
+                self,
+                value.try_into()?,
+                JsonValue::read_from(args)?,
+                SerializeCallback::new(callback),
+            )
+            .map(Into::into)
+            .into_anyhow()
+        }
     }
-}
-
-extern "C" fn dummy(_current: usize, _total: usize) {
-    todo!()
 }
 
 impl From<Arc<dyn Plugin>> for PluginAbiBox {
