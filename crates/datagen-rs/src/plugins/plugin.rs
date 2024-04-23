@@ -20,6 +20,11 @@ use serde_json::Value;
 use std::str::FromStr;
 use std::sync::Arc;
 
+/// A plugin serialize callback.
+/// The callback is used to report progress when serializing data.
+pub type PluginSerializeCallback =
+    Box<dyn (Fn(usize, usize) -> anyhow::Result<()>) + Send + Sync + 'static>;
+
 /// A `datagen` plugin.
 /// Plugins are used to generate data for a schema, transform generated data,
 /// and serialize generated data. Plugins are loaded dynamically at runtime.
@@ -159,7 +164,7 @@ pub trait Plugin: Send + Sync {
         &self,
         value: &Arc<GeneratedSchema>,
         args: Value,
-        callback: &dyn Fn(usize, usize),
+        callback: PluginSerializeCallback,
     ) -> anyhow::Result<String> {
         self.serialize(value, args)
     }
@@ -251,12 +256,14 @@ impl PluginAbi for PluginContainer {
         args: JsonValue,
         callback: SerializeCallback,
     ) -> PluginResult<RString> {
-        PluginResult::wrap(|| {
+        PluginResult::wrap(move || {
+            let callback_copy = callback.clone();
+
             self.plugin
                 .serialize_with_progress(
                     &value.clone().try_into()?,
                     args.parse_into()?,
-                    &|current, total| callback.call(current, total),
+                    Box::new(move |current, total| callback_copy.call(current, total)),
                 )
                 .map(Into::into)
         })

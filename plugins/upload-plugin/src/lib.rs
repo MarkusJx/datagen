@@ -6,7 +6,7 @@ mod tests;
 use crate::objects::upload_args::UploadArgs;
 use datagen_rs::declare_plugin;
 use datagen_rs::generate::generated_schema::GeneratedSchema;
-use datagen_rs::plugins::plugin::Plugin;
+use datagen_rs::plugins::plugin::{Plugin, PluginSerializeCallback};
 use serde_json::{from_value, Value};
 use std::sync::Arc;
 
@@ -19,14 +19,14 @@ impl Plugin for UploadPlugin {
     }
 
     fn serialize(&self, value: &Arc<GeneratedSchema>, args: Value) -> anyhow::Result<String> {
-        self.serialize_with_progress(value, args, &|_, _| {})
+        self.serialize_with_progress(value, args, Box::new(|_current, _total| Ok(())))
     }
 
     fn serialize_with_progress(
         &self,
         value: &Arc<GeneratedSchema>,
         args: Value,
-        callback: &dyn Fn(usize, usize),
+        callback: PluginSerializeCallback,
     ) -> anyhow::Result<String> {
         let args: UploadArgs = from_value(args).map_err(anyhow::Error::new)?;
         args.upload_data(value, callback)?;

@@ -63,9 +63,10 @@ fn generate_random_data(
             .serialize_generated_with_progress(
                 generated,
                 Some(plugins.clone()),
-                &|current, total| {
+                Box::new(move |current, total| {
                     progress_bar.increase(current, total);
-                },
+                    Ok(())
+                }),
             )?,
         plugins,
     ))

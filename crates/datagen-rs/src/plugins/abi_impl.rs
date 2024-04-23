@@ -10,7 +10,7 @@ use crate::plugins::abi::{
     IntoPluginResult, JsonValue, PluginAbiBox, PluginAbi_TO, PluginResult, ResolvedReferenceAbi,
     SchemaPathAbi, SchemaPathAbiBox, SchemaPathAbi_TO, SerializeCallback, WrapResult,
 };
-use crate::plugins::plugin::{Plugin, PluginContainer};
+use crate::plugins::plugin::{Plugin, PluginContainer, PluginSerializeCallback};
 use crate::schema::schema_definition::SchemaOptions;
 use abi_stable::derive_macro_reexports::ROption;
 use abi_stable::erased_types::TD_CanDowncast;
@@ -19,6 +19,7 @@ use anyhow::{anyhow, Context};
 use indexmap::IndexMap;
 use ordered_float::OrderedFloat;
 use serde_json::Value;
+use std::any::Any;
 use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
 
@@ -29,7 +30,11 @@ pub struct CurrentSchemaAbiImpl {
 
 impl CurrentSchemaAbiImpl {
     pub fn from_datagen_context(inner: DatagenContextRef) -> CurrentSchemaAbiBox {
-        CurrentSchemaAbi_TO::from_value(Self { inner }, TD_CanDowncast)
+        inner
+            .as_any()
+            .downcast_ref::<CurrentSchemaAbiBox>()
+            .cloned()
+            .unwrap_or_else(|| CurrentSchemaAbi_TO::from_value(Self { inner }, TD_CanDowncast))
     }
 }
 
@@ -152,6 +157,10 @@ impl DatagenContext for CurrentSchemaAbiBox {
         CurrentSchemaAbiBox::options(self)
             .into_anyhow()
             .and_then(|o| o.parse_into())
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 
     fn __schema_value_properties(&self) -> anyhow::Result<Arc<Mutex<SchemaProperties>>> {
@@ -410,7 +419,7 @@ impl Plugin for PluginAbiBox {
         &self,
         value: &Arc<GeneratedSchema>,
         args: Value,
-        callback: &dyn Fn(usize, usize),
+        callback: PluginSerializeCallback,
     ) -> anyhow::Result<String> {
         PluginAbiBox::serialize_with_progress(
             self,
@@ -431,6 +440,6 @@ impl From<Arc<dyn Plugin>> for PluginAbiBox {
 
 impl From<PluginAbiBox> for Arc<dyn Plugin> {
     fn from(value: PluginAbiBox) -> Self {
-        value.into()
+        Arc::new(value)
     }
 }

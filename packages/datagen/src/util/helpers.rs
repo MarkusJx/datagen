@@ -7,11 +7,14 @@ use napi::threadsafe_function::ThreadsafeFunction;
 use napi::{Env, JsFunction};
 use std::sync::Arc;
 
-pub(crate) fn generate_random_data_with_progress<F: Fn(usize, usize)>(
+pub(crate) fn generate_random_data_with_progress<F>(
     schema: Schema,
     progress_callback: Option<F>,
     additional_plugins: Option<PluginMap>,
-) -> anyhow::Result<String> {
+) -> anyhow::Result<String>
+where
+    F: (Fn(usize, usize) -> anyhow::Result<()>) + Send + Sync + 'static,
+{
     let plugins = PluginList::from_schema(&schema, additional_plugins)?;
     let options = Arc::new(schema.options.unwrap_or_default());
     let root = CurrentSchema::root(options.clone(), plugins.clone());
@@ -20,7 +23,7 @@ pub(crate) fn generate_random_data_with_progress<F: Fn(usize, usize)>(
     let serializer = options.serializer.as_ref().unwrap_or_default();
 
     if let Some(callback) = progress_callback {
-        serializer.serialize_generated_with_progress(generated, Some(plugins), &callback)
+        serializer.serialize_generated_with_progress(generated, Some(plugins), Box::new(callback))
     } else {
         serializer.serialize_generated(generated, Some(plugins))
     }

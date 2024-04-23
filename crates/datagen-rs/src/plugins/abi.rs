@@ -1,9 +1,13 @@
 #![allow(clippy::unnecessary_cast)]
+
 use crate::generate::resolved_reference::ResolvedReference;
 use crate::plugins::abi_impl::GeneratedSchemaVecAbiImpl;
+use crate::plugins::plugin::PluginSerializeCallback;
 use abi_stable::pmr::{ROption, RResult};
-use abi_stable::std_types::{RBox, RString, RVec};
+use abi_stable::std_types::{RArc, RBox, RString, RVec};
 use abi_stable::{sabi_trait, StableAbi};
+use anyhow::bail;
+use app_state::{stateful, AppStateTrait, MutAppState, MutAppStateLock};
 use serde::{Deserialize, Serialize};
 
 /// A C ABI compatible plugin error.
@@ -136,22 +140,65 @@ pub trait PluginAbi: Send + Sync {
     ) -> PluginResult<RString>;
 }
 
+//unsafe impl Send for SerializeCallback {}
+//unsafe impl Sync for SerializeCallback {}
+
+type PluginSerializeCallbackVec = Vec<Option<PluginSerializeCallback>>;
+
+#[stateful(init(state))]
+extern "C" fn call_serialize_callback(
+    current: usize,
+    total: usize,
+    id: usize,
+    mut state: MutAppStateLock<PluginSerializeCallbackVec>,
+) -> PluginResult<()> {
+    PluginResult::wrap(|| {
+        let Some(Some(callback)) = state.get(id) else {
+            bail!("Callback with id {} not found", id);
+        };
+
+        callback(current, total)
+    })
+}
+
 #[repr(C)]
 #[derive(StableAbi)]
+struct SerializeCallbackImpl {
+    id: usize,
+    func: extern "C" fn(usize, usize, usize) -> PluginResult<()>,
+}
+
+impl Drop for SerializeCallbackImpl {
+    #[stateful(init(state))]
+    fn drop(&mut self, mut state: MutAppStateLock<PluginSerializeCallbackVec>) {
+        state[self.id] = None;
+    }
+}
+
+#[repr(C)]
+#[derive(StableAbi, Clone)]
 pub struct SerializeCallback {
-    fn_ptr: *const std::ffi::c_void,
+    inner: RArc<SerializeCallbackImpl>,
 }
 
 impl SerializeCallback {
-    pub fn new(fn_ptr: &dyn Fn(usize, usize)) -> Self {
+    #[stateful(init(state))]
+    pub fn new(
+        func: PluginSerializeCallback,
+        mut state: MutAppStateLock<PluginSerializeCallbackVec>,
+    ) -> Self {
+        state.push(Some(func));
+
         Self {
-            fn_ptr: fn_ptr as *const _ as *const std::ffi::c_void,
+            inner: RArc::new(SerializeCallbackImpl {
+                func: call_serialize_callback,
+                id: state.len() - 1,
+            }),
         }
     }
 
-    pub fn call(&self, current: usize, total: usize) {
-        let callback = unsafe { *(self.fn_ptr as *const &dyn Fn(usize, usize)) };
-        callback(current, total);
+    pub fn call(&self, current: usize, total: usize) -> anyhow::Result<()> {
+        (self.inner.func)(current, total, self.inner.id).into_anyhow()
     }
 }
 

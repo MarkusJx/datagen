@@ -1,7 +1,7 @@
 use crate::generate::datagen_context::DatagenContextRef;
 use crate::generate::generated_schema::GeneratedSchema;
 use crate::plugins::abi::{IntoAnyhow, JsonValue, PluginAbiBox};
-use crate::plugins::plugin::{Plugin, PluginLibRef, PluginOptions};
+use crate::plugins::plugin::{Plugin, PluginLibRef, PluginOptions, PluginSerializeCallback};
 use abi_stable::library::lib_header_from_path;
 use anyhow::{anyhow, Context};
 use log::debug;
@@ -181,7 +181,7 @@ impl Plugin for ImportedPlugin {
         &self,
         value: &Arc<GeneratedSchema>,
         args: Value,
-        callback: &dyn Fn(usize, usize),
+        callback: PluginSerializeCallback,
     ) -> anyhow::Result<String> {
         Plugin::serialize_with_progress(&self.0.plugin, value, args, callback)
     }
