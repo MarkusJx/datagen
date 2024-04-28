@@ -28,7 +28,7 @@ testcases:
 
       # Run
       - type: exec
-        script: docker run --volume ".:/data" --net=host --name datagen --rm -t datagen generate "/data/schema.json"
+        script: docker run --volume ./:/data --net=host --name datagen --rm -t datagen generate "/data/schema.json"
         assertions:
           - result.code ShouldEqual 0
           - result.timeseconds ShouldBeLessThan 10
