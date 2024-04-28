@@ -84,13 +84,13 @@ jobs:
       matrix:
         include:
           - dockerfile: Dockerfile
-            skipUploadTests: false
+            skipUploadTests: 'false'
           - dockerfile: Dockerfile.alpine
-            skipUploadTests: false
+            skipUploadTests: 'false'
           - dockerfile: Dockerfile.debian-slim
-            skipUploadTests: true
+            skipUploadTests: 'true'
           - dockerfile: Dockerfile.alpine-slim
-            skipUploadTests: true
+            skipUploadTests: 'true'
     
     runs-on: ubuntu-latest
     permissions:
