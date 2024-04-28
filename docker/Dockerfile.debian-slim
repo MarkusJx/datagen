@@ -5,6 +5,10 @@ WORKDIR /app
 
 RUN cargo build -p datagen-rs-cli -r --no-default-features
 
+RUN apt-get update && apt-get install -y dos2unix && \
+    dos2unix /app/docker/docker-entrypoint.sh && \
+    chmod +x /app/docker/docker-entrypoint.sh
+
 FROM debian:bookworm-slim
 LABEL org.opencontainers.image.description = "Slim datagen image based on debian"
 
