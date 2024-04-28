@@ -106,11 +106,11 @@ jobs:
       - name: Run tests
         run: venom run test.yml --format=xml --output-dir=logs
         working-directory: test
-        if: matrix.skipUploadTests == 'false'
+        if: ${{matrix.skipUploadTests == 'false'}}
       - name: Run tests without upload
         run: venom run test.yml --format=xml --output-dir=logs --var="skipUpload=1"
         working-directory: test
-        if: matrix.skipUploadTests == 'true'
+        if: ${{matrix.skipUploadTests == 'true'}}
       - name: Create test summary
         uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
