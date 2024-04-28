@@ -78,3 +78,23 @@ jobs:
       - name: Run tests
         run: npm test
         working-directory: packages/datagen
+
+  test-docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build container
+        run: docker build -t datagen --file docker/Dockerfile .
+      - name: Download venom
+        run: curl https://github.com/ovh/venom/releases/download/v1.1.0/venom.linux-amd64 -L -o /usr/local/bin/venom && chmod +x /usr/local/bin/venom
+        working-directory: test
+      - name: Run tests
+        run: venom run test.yml --format=xml --output-dir=logs
+        working-directory: test
+      - name: Create test summary
+        uses: test-summary/action@dist
+        if: always()
+        with:
+          show: all
+          paths: test/logs/test_results_test.xml

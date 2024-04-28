@@ -13,3 +13,4 @@ docker/
 !docker/docker-entrypoint.sh
 *.db
 *.geojson
+test/

@@ -1,0 +1,10 @@
+- request:
+    path: /upload
+    method: POST
+    body:
+      value: test
+    headers:
+      Content-Type: application/json
+      Host: 'localhost:8080'
+  response:
+    status: 500
