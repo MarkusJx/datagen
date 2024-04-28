@@ -1,14 +1,4 @@
 {
-  "options": {
-    "serializer": {
-      "type": "plugin",
-      "pluginName": "upload_plugin",
-      "args": {
-        "url": "http://localhost:8080/upload",
-        "expectedStatus": 200
-      }
-    }
-  },
   "type": "object",
   "properties": {
     "value": "test"

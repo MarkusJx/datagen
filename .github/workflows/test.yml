@@ -80,20 +80,40 @@ jobs:
         working-directory: packages/datagen
 
   test-docker:
+    strategy:
+      matrix:
+        include:
+          - dockerfile: Dockerfile
+            skipUploadTests: false
+          - dockerfile: Dockerfile.alpine
+            skipUploadTests: false
+          - dockerfile: Dockerfile.debian-slim
+            skipUploadTests: true
+          - dockerfile: Dockerfile.alpine-slim
+            skipUploadTests: true
+    
     runs-on: ubuntu-latest
+    permissions:
+      checks: write
 
     steps:
       - uses: actions/checkout@v4
       - name: Build container
-        run: docker build -t datagen --file docker/Dockerfile .
+        run: docker build -t datagen --file docker/${{matrix.dockerfile}} .
       - name: Download venom
         run: curl https://github.com/ovh/venom/releases/download/v1.1.0/venom.linux-amd64 -L -o /usr/local/bin/venom && chmod +x /usr/local/bin/venom
         working-directory: test
       - name: Run tests
         run: venom run test.yml --format=xml --output-dir=logs
         working-directory: test
+        if: matrix.skipUploadTests == 'false'
+      - name: Run tests without upload
+        run: venom run test.yml --format=xml --output-dir=logs --var="skipUpload=1"
+        working-directory: test
+        if: matrix.skipUploadTests == 'true'
       - name: Create test summary
         uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
         with:
           files: test/logs/test_results_test.xml
+          comment_mode: off

@@ -13,5 +13,6 @@ test/logs/
 *.db
 schema.json
 !test/schema.json
+test/output.json
 *.geojson
 *.exe
