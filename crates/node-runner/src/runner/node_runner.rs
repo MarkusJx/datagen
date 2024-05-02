@@ -7,6 +7,7 @@ use anyhow::{anyhow, Context};
 use datagen_rs::plugins::plugin::Plugin;
 use datagen_rs::plugins::plugin_list::PluginList;
 use datagen_rs::schema::schema_definition::{PluginInitArgs, Schema};
+use log::debug;
 use napi::threadsafe_function::{
     ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode,
 };
@@ -32,8 +33,14 @@ impl NodeRunner {
     /// This method spawns a new Node.js instance and loads the plugins.
     /// This method can only be called once per process.
     /// If you want to load new plugins, use [`Self::load_new_plugins`].
-    pub fn init(schema: &Schema) -> anyhow::Result<(Self, PluginMap)> {
+    pub fn init(schema: &Schema) -> anyhow::Result<(Option<Self>, PluginMap)> {
+        debug!("Initializing Node.js plugins");
         let node_plugins = Self::find_plugins(schema)?;
+        if node_plugins.is_empty() {
+            debug!("No Node.js plugins found");
+            return Ok((None, PluginMap::new()));
+        }
+
         let (sender, receiver) = channel::<PluginMapResult>();
 
         let refs = Arc::new(Mutex::new(Vec::new()));
@@ -53,11 +60,11 @@ impl NodeRunner {
             .context("Failed to initialize Node.js plugins")??;
 
         Ok((
-            Self {
+            Some(Self {
                 drop_refs,
                 load_plugins,
                 refs,
-            },
+            }),
             res,
         ))
     }

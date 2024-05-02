@@ -2,6 +2,7 @@ use crate::generate::datagen_context::DatagenContextRef;
 use crate::generate::generated_schema::GeneratedSchema;
 use crate::plugins::abi::{IntoAnyhow, JsonValue, PluginAbiBox};
 use crate::plugins::plugin::{Plugin, PluginLibRef, PluginOptions, PluginSerializeCallback};
+use crate::util::traits::LogError;
 use abi_stable::library::lib_header_from_path;
 use anyhow::{anyhow, Context};
 use log::debug;
@@ -57,9 +58,10 @@ impl ImportedPlugin {
     }
 
     fn load_from_path(path: &str) -> anyhow::Result<PluginLibRef> {
-        lib_header_from_path(Path::new(path))?
+        lib_header_from_path(Path::new(path))
+            .log_error()?
             .init_root_module()
-            .map_err(Into::into)
+            .log_error()
     }
 
     fn try_load(path: String) -> anyhow::Result<PluginLibRef> {
