@@ -13,5 +13,4 @@ members = [
     "./packages/datagen"]
 
 [profile.release]
-#lto = true
-strip = "debuginfo" # In order to preserve napi functions, we shouldn't strip symbols
+lto = true

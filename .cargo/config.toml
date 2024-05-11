@@ -1,9 +1,26 @@
 [target.i686-pc-windows-msvc]
 rustflags = [
-    "-C", "link-arg=/SAFESEH:NO",
+    "-Clink-arg=/SAFESEH:NO",
+    "-Ctarget-feature=+crt-static",
 ]
 
 [target.x86_64-unknown-linux-musl]
 rustflags = [
-    "-C", "target-feature=-crt-static",
+    "-Ctarget-feature=-crt-static",
+    "-Clink-args=-rdynamic"
 ]
+
+[target.x86_64-apple-darwin]
+rustflags = ["-Clink-args=-rdynamic"]
+
+[target.aarch64-apple-darwin]
+rustflags = ["-Clink-args=-rdynamic"]
+
+[target.x86_64-unknown-linux-gnu]
+rustflags = ["-Clink-args=-rdynamic"]
+
+[target.i686-unknown-linux-gnu]
+rustflags = ["-Clink-args=-rdynamic"]
+
+[target.x86_64-pc-windows-msvc]
+rustflags = ["-Ctarget-feature=+crt-static"]
