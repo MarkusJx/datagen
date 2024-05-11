@@ -2050,7 +2050,7 @@ dependencies = [
 [[package]]
 name = "nodejs"
 version = "0.6.0"
-source = "git+https://github.com/MarkusJx/rust-nodejs#5b40bc70dc1ca2c4b724556e7e40de16c1405571"
+source = "git+https://github.com/MarkusJx/rust-nodejs#3f38883ff3ecc0ae207639751359cbf3267073cc"
 dependencies = [
  "anyhow",
  "attohttpc",

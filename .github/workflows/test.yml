@@ -34,6 +34,8 @@ jobs:
         run: npm run build
         working-directory: packages/test-plugin
       - name: Run tests
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cargo nextest run -p datagen-rs-progress-plugin -p datagen-rs-upload-plugin \
           -p datagen-rs-openaddresses-plugin --features sqlite -p datagen-rs --features all \

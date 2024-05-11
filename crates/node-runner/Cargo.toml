@@ -9,8 +9,7 @@ napi = { version = "2.16.6", features = [
     "napi8",
     "deferred_trace",
     "async",
-    "serde-json",
-    "dyn-symbols"] }
+    "serde-json"] }
 napi-derive = "2.16.4"
 anyhow = "1.0"
 serde_json = "1.0"

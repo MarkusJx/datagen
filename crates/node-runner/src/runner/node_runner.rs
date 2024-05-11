@@ -14,6 +14,7 @@ use nodejs::run_napi;
 use std::sync::mpsc::{channel, Sender};
 use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
+use std::time::Duration;
 
 type RefsVec = Arc<Mutex<Vec<RefArc>>>;
 
@@ -42,20 +43,30 @@ impl NodeRunner {
             return Ok((None, PluginMap::new()));
         }
 
-        let (sender, receiver) = channel::<PluginMapResult>();
+        let (sender, receiver) = channel();
+        let (run_sender, run_receiver) = channel();
 
         let refs = Arc::new(Mutex::new(Vec::new()));
         let refs_copy = refs.clone();
         let thread = std::thread::spawn(move || {
-            run_napi(|env| {
-                sender
-                    .send(Self::load_plugins(env, node_plugins, &refs_copy))
-                    .context("Failed to send result of Node.js plugin initialization")
-                    .into_napi()
-            })
-            .context("Failed to initialize Node.js plugins")
-            .unwrap();
+            let _ = run_sender.send(
+                run_napi(
+                    |env| {
+                        sender
+                            .send(Self::load_plugins(env, node_plugins, &refs_copy))
+                            .context("Failed to send result of Node.js plugin initialization")
+                            .into_napi()
+                    },
+                    None,
+                )
+                .context("Failed to initialize Node.js plugins"),
+            );
         });
+
+        run_receiver
+            .recv_timeout(Duration::from_secs(2))
+            .unwrap_or(Ok(()))
+            .context("Node.js thread exited prematurely")?;
 
         let (res, drop_refs, load_plugins) = receiver
             .recv()

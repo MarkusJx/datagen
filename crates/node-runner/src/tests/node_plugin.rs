@@ -15,13 +15,13 @@ static SCHEMA: Lazy<RunnerPlugins> = Lazy::new(|| {
         "options": {
             "plugins": {
                 "test": {
-                    "path": "node:../../../packages/test-plugin/dist/TestPlugin.js",
+                    "path": "node:../../packages/test-plugin/dist/TestPlugin.js",
                     "args": {
                         "init": "test",
                     }
                 },
                 "empty": {
-                    "path": "node:../../../packages/test-plugin/dist/EmptyPlugin.js",
+                    "path": "node:../../packages/test-plugin/dist/EmptyPlugin.js",
                     "args": null,
                 }
             },
@@ -41,13 +41,13 @@ fn get_schema(mut args: Value) -> Schema {
         json!({
             "plugins": {
                 "test": {
-                    "path": "node:../../../packages/test-plugin/dist/TestPlugin.js",
+                    "path": "node:../../packages/test-plugin/dist/TestPlugin.js",
                     "args": {
                         "init": "test",
                     }
                 },
                 "empty": {
-                    "path": "node:../../../packages/test-plugin/dist/EmptyPlugin.js",
+                    "path": "node:../../packages/test-plugin/dist/EmptyPlugin.js",
                     "args": null,
                 }
             }
@@ -116,13 +116,13 @@ fn test_serialize() {
         "options": {
             "plugins": {
                 "test": {
-                    "path": "node:../../../packages/test-plugin/dist/TestPlugin.js",
+                    "path": "node:../../packages/test-plugin/dist/TestPlugin.js",
                     "args": {
                         "init": "test",
                     }
                 },
                 "empty": {
-                    "path": "node:../../../packages/test-plugin/dist/EmptyPlugin.js",
+                    "path": "node:../../packages/test-plugin/dist/EmptyPlugin.js",
                     "args": null,
                 }
             },
@@ -210,13 +210,13 @@ fn test_serialize_not_implemented() {
         "options": {
             "plugins": {
                 "test": {
-                    "path": "node:../../../packages/test-plugin/dist/TestPlugin.js",
+                    "path": "node:../../packages/test-plugin/dist/TestPlugin.js",
                     "args": {
                         "init": "test",
                     }
                 },
                 "empty": {
-                    "path": "node:../../../packages/test-plugin/dist/EmptyPlugin.js",
+                    "path": "node:../../packages/test-plugin/dist/EmptyPlugin.js",
                     "args": null,
                 }
             },
