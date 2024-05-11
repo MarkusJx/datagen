@@ -31,7 +31,8 @@ static SCHEMA: Lazy<RunnerPlugins> = Lazy::new(|| {
     }))
     .unwrap();
 
-    NodeRunner::init(&schema).unwrap()
+    let (runner, plugins) = NodeRunner::init(&schema).unwrap();
+    (runner.unwrap(), plugins)
 });
 
 fn get_schema(mut args: Value) -> Schema {
