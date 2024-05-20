@@ -94,8 +94,8 @@ impl PluginConstructor for OpenAddressesPlugin {
     /// ```
     fn new(
         args: Value,
-        #[cfg(feature = "log")] options: PluginOptions,
-        #[cfg(not(feature = "log"))] _options: PluginOptions,
+        #[cfg(all(feature = "log", feature = "plugin-lib"))] options: PluginOptions,
+        #[cfg(not(all(feature = "log", feature = "plugin-lib")))] _options: PluginOptions,
     ) -> anyhow::Result<Self> {
         let args: PluginArgs = serde_json::from_value(args)?;
         let paths = match args.files.clone() {

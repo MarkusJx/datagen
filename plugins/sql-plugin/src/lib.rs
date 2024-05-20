@@ -265,7 +265,11 @@ impl Plugin for SQLPlugin {
 }
 
 impl PluginConstructor for SQLPlugin {
-    fn new(_args: Value, options: PluginOptions) -> anyhow::Result<Self> {
+    fn new(
+        _args: Value,
+        #[cfg(feature = "plugin-lib")] options: PluginOptions,
+        #[cfg(not(feature = "plugin-lib"))] _options: PluginOptions,
+    ) -> anyhow::Result<Self> {
         #[cfg(feature = "plugin-lib")]
         log4rs::init_config(
             Config::builder()

@@ -104,6 +104,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - name: Docker cache
+        uses: ScribeMD/docker-cache@0.5.0
+        with:
+          key: docker-${{ runner.os }}-${{ hashFiles('docker/**') }}
       - name: Build container
         run: docker build -t datagen --file docker/${{matrix.dockerfile}} .
       - name: Download venom
