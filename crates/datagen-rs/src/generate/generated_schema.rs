@@ -6,6 +6,7 @@ use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::fmt::{Display, Formatter};
 use std::sync::Arc;
 
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -34,6 +35,39 @@ impl GeneratedSchema {
             GeneratedSchema::Array(_) => "Array",
             GeneratedSchema::Object(_) => "Object",
             GeneratedSchema::Value(_) => "Value",
+        }
+    }
+}
+
+impl Display for GeneratedSchema {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            GeneratedSchema::None => write!(f, "None"),
+            GeneratedSchema::Number(n) => write!(f, "{}", n),
+            GeneratedSchema::Integer(n) => write!(f, "{}", n),
+            GeneratedSchema::Bool(b) => write!(f, "{}", b),
+            GeneratedSchema::String(s) => write!(f, "{}", s),
+            GeneratedSchema::Array(a) => {
+                write!(f, "[")?;
+                for (i, v) in a.iter().enumerate() {
+                    if i > 0 {
+                        write!(f, ", ")?;
+                    }
+                    write!(f, "{}", v)?;
+                }
+                write!(f, "]")
+            }
+            GeneratedSchema::Object(o) => {
+                write!(f, "{{")?;
+                for (i, (k, v)) in o.iter().enumerate() {
+                    if i > 0 {
+                        write!(f, ", ")?;
+                    }
+                    write!(f, "{}: {}", k, v)?;
+                }
+                write!(f, "}}")
+            }
+            GeneratedSchema::Value(v) => write!(f, "{}", v),
         }
     }
 }
