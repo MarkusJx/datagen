@@ -5,7 +5,7 @@ edition = "2021"
 
 [lib]
 name = "sql_plugin"
-crate-type = ["dylib"]
+crate-type = ["rlib", "dylib"]
 
 [dependencies]
 datagen-rs = { path = "../../crates/datagen-rs", features = ["map-schema", "plugin"], version = "0.2.0" }

@@ -8,7 +8,7 @@ license = "MIT"
 
 [lib]
 name = "openaddresses_plugin"
-crate-type = ["dylib"]
+crate-type = ["rlib", "dylib"]
 
 [dependencies]
 datagen-rs = { path = "../../crates/datagen-rs", features = ["map-schema", "plugin", "plugin-abi"], version = "0.2.0" }
@@ -17,7 +17,7 @@ serde = { version = "1.0", features = ["derive"] }
 rand = "0.8"
 anyhow = "1"
 indexmap = { version = "2.0.0", features = ["serde"] }
-abi_stable = "0.11.3"
+abi_stable = { version = "0.11.3", optional = true }
 rusqlite = { version = "0.30", features = ["serde_json", "bundled"], optional = true }
 log = { version = "0.4", optional = true }
 log4rs = { version = "1.2", optional = true }
@@ -35,3 +35,5 @@ ordered-float = "4"
 [features]
 sqlite = ["dep:rusqlite", "dep:regex", "dep:build-vars"]
 log = ["dep:log", "dep:log4rs"]
+plugin-lib = ["datagen-rs/plugin-abi", "dep:abi_stable"]
+default = ["plugin-lib"]

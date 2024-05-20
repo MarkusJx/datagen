@@ -2,9 +2,11 @@
 mod test;
 
 use anyhow::anyhow;
+#[cfg(feature = "plugin-lib")]
+use datagen_rs::declare_plugin;
 use datagen_rs::generate::generated_schema::GeneratedSchema;
+use datagen_rs::plugins;
 use datagen_rs::plugins::plugin::{Plugin, PluginConstructor, PluginSerializeCallback};
-use datagen_rs::{declare_plugin, plugins};
 use indexmap::IndexMap;
 use log::debug;
 use log4rs::append::console::ConsoleAppender;
@@ -41,7 +43,6 @@ pub struct TableMapping {
     pub column_mappings: IndexMap<String, String>,
 }
 
-#[derive(Default)]
 pub struct SQLPlugin {
     #[cfg(test)]
     pub pool: Option<AnyPool>,
@@ -278,7 +279,10 @@ impl PluginConstructor for SQLPlugin {
         debug!("Initializing default SQL drivers");
         sqlx::any::install_default_drivers();
 
-        Ok(Self::default())
+        Ok(Self {
+            #[cfg(test)]
+            pool: None,
+        })
     }
 }
 

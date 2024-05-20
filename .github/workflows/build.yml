@@ -47,6 +47,8 @@ jobs:
           LIBSQLITE3_FLAGS: SQLITE_MAX_VARIABLE_NUMBER=1000000
       - name: Build upload-plugin
         run: cargo build -p datagen-rs-upload-plugin -r --target ${{matrix.target}}
+      - name: Build sql-plugin
+        run: cargo build -p datagen-rs-sql-plugin -r --target ${{matrix.target}}
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -60,6 +62,9 @@ jobs:
             target/*/release/upload_plugin.dll
             target/*/release/libupload_plugin.dylib
             target/*/release/libupload_plugin.so
+            target/*/release/sql_plugin.dll
+            target/*/release/libsql_plugin.dylib
+            target/*/release/libsql_plugin.so
 
   build-docs:
     runs-on: ubuntu-latest

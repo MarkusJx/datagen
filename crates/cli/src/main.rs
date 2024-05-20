@@ -1,6 +1,8 @@
 mod util;
 
 use crate::util::cli_progress::{CliProgressRef, CliProgressTrait};
+#[cfg(feature = "embedded-plugins")]
+use crate::util::plugins::load_plugins;
 use clap::{Parser, Subcommand};
 use datagen_rs::generate::current_schema::CurrentSchema;
 use datagen_rs::generate::generated_schema::IntoRandom;
@@ -90,6 +92,9 @@ fn generate_data(
     let (_runner, node_plugins) = NodeRunner::init(&schema)?;
     #[cfg(feature = "node")]
     plugins.extend(node_plugins);
+    #[cfg(feature = "embedded-plugins")]
+    plugins.extend(load_plugins(&schema)?);
+
     let (generated, plugins) = generate_random_data(schema, Some(plugins), progress_bar.clone())?;
     drop(plugins);
 

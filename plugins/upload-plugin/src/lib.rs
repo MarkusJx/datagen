@@ -4,6 +4,7 @@ mod objects;
 mod tests;
 
 use crate::objects::upload_args::UploadArgs;
+#[cfg(feature = "plugin-lib")]
 use datagen_rs::declare_plugin;
 use datagen_rs::generate::generated_schema::GeneratedSchema;
 use datagen_rs::plugins::plugin::{Plugin, PluginSerializeCallback};
@@ -11,7 +12,7 @@ use serde_json::{from_value, Value};
 use std::sync::Arc;
 
 #[derive(Debug, Default)]
-struct UploadPlugin;
+pub struct UploadPlugin;
 
 impl Plugin for UploadPlugin {
     fn name(&self) -> String {
@@ -39,4 +40,5 @@ impl Plugin for UploadPlugin {
     }
 }
 
+#[cfg(feature = "plugin-lib")]
 declare_plugin!(UploadPlugin, UploadPlugin::default);

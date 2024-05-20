@@ -11,6 +11,7 @@ use crate::objects::args::{BackendType, IntoGenerated, PluginArgs, StringOrVec};
 use crate::objects::call_args::CallArgs;
 #[cfg(not(feature = "sqlite"))]
 use anyhow::anyhow;
+#[cfg(feature = "plugin-lib")]
 use datagen_rs::declare_plugin;
 use datagen_rs::generate::datagen_context::DatagenContextRef;
 use datagen_rs::generate::generated_schema::GeneratedSchema;
@@ -136,4 +137,5 @@ impl PluginConstructor for OpenAddressesPlugin {
     }
 }
 
+#[cfg(feature = "plugin-lib")]
 declare_plugin!(OpenAddressesPlugin);
