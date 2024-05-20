@@ -9,8 +9,11 @@ use datagen_rs::plugins;
 use datagen_rs::plugins::plugin::{Plugin, PluginConstructor, PluginSerializeCallback};
 use indexmap::IndexMap;
 use log::debug;
+#[cfg(feature = "plugin-lib")]
 use log4rs::append::console::ConsoleAppender;
+#[cfg(feature = "plugin-lib")]
 use log4rs::config::{Appender, Root};
+#[cfg(feature = "plugin-lib")]
 use log4rs::Config;
 use plugins::plugin::PluginOptions;
 use serde::Deserialize;
@@ -263,6 +266,7 @@ impl Plugin for SQLPlugin {
 
 impl PluginConstructor for SQLPlugin {
     fn new(_args: Value, options: PluginOptions) -> anyhow::Result<Self> {
+        #[cfg(feature = "plugin-lib")]
         log4rs::init_config(
             Config::builder()
                 .appender(

@@ -16,11 +16,11 @@ use datagen_rs::declare_plugin;
 use datagen_rs::generate::datagen_context::DatagenContextRef;
 use datagen_rs::generate::generated_schema::GeneratedSchema;
 use datagen_rs::plugins::plugin::{Plugin, PluginConstructor, PluginOptions};
-#[cfg(feature = "log")]
+#[cfg(all(feature = "log", feature = "plugin-lib"))]
 use log4rs::append::console::ConsoleAppender;
-#[cfg(feature = "log")]
+#[cfg(all(feature = "log", feature = "plugin-lib"))]
 use log4rs::config::{Appender, Root};
-#[cfg(feature = "log")]
+#[cfg(all(feature = "log", feature = "plugin-lib"))]
 use log4rs::Config;
 use serde_json::Value;
 use std::fmt::Debug;
@@ -103,7 +103,7 @@ impl PluginConstructor for OpenAddressesPlugin {
             StringOrVec::Multiple(paths) => paths,
         };
 
-        #[cfg(feature = "log")]
+        #[cfg(all(feature = "log", feature = "plugin-lib"))]
         log4rs::init_config(
             Config::builder()
                 .appender(
