@@ -66,11 +66,6 @@ impl Backend for MemoryBackend {
     fn as_any(&self) -> &dyn Any {
         self
     }
-
-    #[cfg(test)]
-    fn as_mut_any(&mut self) -> &mut dyn Any {
-        self
-    }
 }
 
 impl BackendConstructor for MemoryBackend {

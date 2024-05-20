@@ -1,3 +1,5 @@
+#![allow(clippy::empty_docs)]
+
 use crate::generate::datagen_context::DatagenContextRef;
 use crate::generate::generated_schema::GeneratedSchema;
 #[cfg(feature = "plugin-abi")]

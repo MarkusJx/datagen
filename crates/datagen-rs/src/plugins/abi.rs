@@ -1,4 +1,5 @@
 #![allow(clippy::unnecessary_cast)]
+#![allow(clippy::empty_docs)]
 
 use crate::generate::resolved_reference::ResolvedReference;
 use crate::plugins::abi_impl::GeneratedSchemaVecAbiImpl;

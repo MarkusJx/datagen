@@ -53,10 +53,6 @@ impl ImportedPlugin {
         Ok(Self(PluginData { plugin, _lib: lib }.into()))
     }
 
-    pub(crate) fn get_data(&self) -> Arc<PluginData> {
-        self.0.clone()
-    }
-
     fn load_from_path(path: &str) -> anyhow::Result<PluginLibRef> {
         lib_header_from_path(Path::new(path))
             .log_error()?
