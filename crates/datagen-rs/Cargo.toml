@@ -7,32 +7,34 @@ repository = "https://github.com/MarkusJx/datagen"
 license = "MIT"
 
 [dependencies]
-serde_json = { version = "1.0", features = ["preserve_order"] }
-indexmap = "2.0.0"
-ordered-float = "4"
-once_cell = "1.18"
-anyhow = { version = "1", features = ["backtrace"] }
-xml-rs = { version = "0.8", optional = true }
-serde_yaml = { version = "0.9", optional = true }
-serde = { version = "1.0", features = ["derive", "rc"], optional = true }
-quick-xml = { version = "0.31", features = ["serde", "serialize"], optional = true }
-schemars = { version = "0.8.13", features = ["indexmap2"], optional = true }
-rand = { version = "0.8.5", optional = true }
-fake = { version = "2.8", features = ["uuid", "geo"], optional = true }
-handlebars = { version = "5", optional = true }
-regex = { version = "1.9", optional = true }
-shellexpand = { version = "3", optional = true }
-abi_stable = { version = "0.11.3", optional = true }
-dyn-clone = "1"
-log = "0"
+serde_json = { version = "~1.0", features = ["preserve_order"] }
+indexmap = "~2.2"
+ordered-float = "~4.2"
+once_cell = "~1.19"
+anyhow = { version = "~1.0", features = ["backtrace"] }
+xml-rs = { version = "~0.8", optional = true }
+serde_yaml = { version = "~0.9", optional = true }
+serde = { version = "~1.0", features = ["derive", "rc"], optional = true }
+quick-xml = { version = "~0.31", features = ["serde", "serialize"], optional = true }
+schemars = { version = "~0.8", features = ["indexmap2"], optional = true }
+rand = { version = "~0.8", optional = true }
+fake = { version = "~2.9", features = ["uuid", "geo"], optional = true }
+handlebars = { version = "~5.1", optional = true }
+regex = { version = "~1.10", optional = true }
+shellexpand = { version = "~3.1", optional = true }
+abi_stable = { version = "~0.11", optional = true }
+dyn-clone = "~1.0"
+log = "~0.4"
+app-state = { version = "~0.1", optional = true }
 
 [dev-dependencies]
-envmnt = "0"
+envmnt = "~0.10"
+mockall = "~0.12"
 
 [features]
 all = ["plugin", "serialize", "generate", "schema", "native-plugin"]
 plugin = ["generate"]
-plugin-abi = ["dep:abi_stable"]
+plugin-abi = ["dep:abi_stable", "dep:app-state"]
 native-plugin = ["plugin-abi", "plugin"]
 serialize = ["env-schema", "dep:serde", "indexmap/serde", "ordered-float/serde"]
 map-schema = ["serialize", "dep:regex", "dep:handlebars", "dep:rand"]

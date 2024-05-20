@@ -1,0 +1,132 @@
+name: Test datagen
+
+vars:
+  gw: localhost:8080
+  mockserver: localhost:8081
+  skip: "{{.skipUpload}}"
+
+testcases:
+  - name: Upload generated data
+    skip:
+      - skip ShouldNotEqual 1
+    steps:
+      # Init
+      - type: exec
+        script: docker run -p 8080:8080 -p 8081:8081 --name smocker --rm -d ghcr.io/smocker-dev/smocker
+        assertions:
+          - result.code ShouldEqual 0
+
+      - type: http
+        method: POST
+        url: http://{{.mockserver}}/sessions?name=test1
+        assertions:
+          - result.statuscode ShouldEqual 200
+
+      - type: http
+        method: POST
+        url: http://{{.mockserver}}/mocks
+        bodyFile: ./mocks/ok.yml
+        assertions:
+          - result.statuscode ShouldEqual 200
+
+      # Run
+      - type: exec
+        script: docker run -v {{.venom.testsuite.workdir}}:/data --net=host --name datagen --rm -t datagen generate /data/schema-upload.json
+        assertions:
+          - result.code ShouldEqual 0
+          - result.timeseconds ShouldBeLessThan 10
+
+      # Verify
+      - type: http
+        method: POST
+        url: http://{{.mockserver}}/sessions/verify
+        headers:
+          Accept: application/json
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.mocks.verified ShouldBeTrue
+          - result.bodyjson.mocks.all_used ShouldBeTrue
+          - result.bodyjson.mocks.message ShouldEqual "All mocks match expectations"
+          - result.bodyjson.history.verified ShouldBeTrue
+          - result.bodyjson.history.message ShouldEqual "History is clean"
+
+      # Cleanup
+      - type: exec
+        script: docker stop smocker
+        assertions:
+          - result.code ShouldEqual 0
+
+  - name: Upload generated data when invalid response code
+    skip:
+      - skip ShouldNotEqual 1
+    steps:
+      # Init
+      - type: exec
+        script: docker run -p 8080:8080 -p 8081:8081 --name smocker --rm -d ghcr.io/smocker-dev/smocker
+        assertions:
+          - result.code ShouldEqual 0
+
+      - type: http
+        method: POST
+        url: http://{{.mockserver}}/sessions?name=test1
+        assertions:
+          - result.statuscode ShouldEqual 200
+
+      - type: http
+        method: POST
+        url: http://{{.mockserver}}/mocks
+        bodyFile: ./mocks/error.yml
+        assertions:
+          - result.statuscode ShouldEqual 200
+
+      # Run
+      - type: exec
+        script: docker run -v {{.venom.testsuite.workdir}}:/data --net=host --name datagen --rm -t datagen generate /data/schema-upload.json
+        assertions:
+          - result.code ShouldEqual 1
+          - result.timeseconds ShouldBeLessThan 10
+          - result.systemout ShouldContainSubstring "HTTP status server error (500 Internal Server Error)"
+
+      # Verify
+      - type: http
+        method: POST
+        url: http://{{.mockserver}}/sessions/verify
+        headers:
+          Accept: application/json
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.mocks.verified ShouldBeTrue
+          - result.bodyjson.mocks.all_used ShouldBeTrue
+          - result.bodyjson.mocks.message ShouldEqual "All mocks match expectations"
+          - result.bodyjson.history.verified ShouldBeTrue
+          - result.bodyjson.history.message ShouldEqual "History is clean"
+
+      # Cleanup
+      - type: exec
+        script: docker stop smocker
+        assertions:
+          - result.code ShouldEqual 0
+
+  - name: Generate data to stdout
+    steps:
+      # Run
+      - type: exec
+        script: docker run -v {{.venom.testsuite.workdir}}:/data --net=host --name datagen --rm -t datagen generate /data/schema.json
+        assertions:
+          - result.code ShouldEqual 0
+          - result.timeseconds ShouldBeLessThan 10
+          - result.systemout ShouldContainSubstring {"value":"test"}
+
+  - name: Generate data to file
+    steps:
+      # Run
+      - type: exec
+        script: docker run -v {{.venom.testsuite.workdir}}:/data:rw --net=host --name datagen --rm -t datagen generate /data/schema.json /data/output.json
+        assertions:
+          - result.code ShouldEqual 0
+          - result.timeseconds ShouldBeLessThan 10
+          - result.systemout ShouldContainSubstring "Success"
+      - type: readfile
+        path: output.json
+        assertions:
+          - result.contentjson.value ShouldEqual test

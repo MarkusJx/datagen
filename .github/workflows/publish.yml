@@ -37,8 +37,6 @@ jobs:
             target: x86_64-unknown-linux-gnu
           - os: windows-latest
             target: x86_64-pc-windows-msvc
-          - os: windows-latest
-            target: i686-pc-windows-msvc
           - os: macos-latest
             target: x86_64-apple-darwin
           - os: macos-latest
@@ -51,6 +49,8 @@ jobs:
         run: rustup target add ${{matrix.target}}
       - name: Build cli
         run: cargo build -p datagen-rs-cli -r --target ${{matrix.target}}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Build openaddresses plugin
         run: cargo build -p datagen-rs-openaddresses-plugin -r -F sqlite --target ${{matrix.target}}
         env:

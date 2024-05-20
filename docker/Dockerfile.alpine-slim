@@ -6,6 +6,10 @@ WORKDIR /app
 RUN apk update && apk add --no-cache musl-dev build-base
 RUN cargo build -p datagen-rs-cli -r --no-default-features
 
+RUN apk update && apk add dos2unix && \
+    dos2unix /app/docker/docker-entrypoint.sh && \
+    chmod +x /app/docker/docker-entrypoint.sh
+
 FROM alpine:3.19
 LABEL org.opencontainers.image.description = "Slim datagen image based on alpine"
 

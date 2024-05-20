@@ -5,9 +5,10 @@ use crate::generate::schema_value::SchemaProperties;
 use crate::plugins::plugin::Plugin;
 use crate::schema::schema_definition::SchemaOptions;
 use dyn_clone::{clone_trait_object, DynClone};
+use std::any::Any;
 use std::sync::{Arc, Mutex};
 
-pub trait DatagenContext: DynClone + Send + Sync {
+pub trait DatagenContext: DynClone + Send + Sync + Any {
     fn child(
         &self,
         sibling: Option<DatagenContextRef>,
@@ -25,6 +26,8 @@ pub trait DatagenContext: DynClone + Send + Sync {
     fn plugin_exists(&self, key: &str) -> anyhow::Result<bool>;
 
     fn options(&self) -> anyhow::Result<Arc<SchemaOptions>>;
+
+    fn as_any(&self) -> &dyn Any;
 
     #[doc(hidden)]
     fn __schema_value_properties(&self) -> anyhow::Result<Arc<Mutex<SchemaProperties>>>;

@@ -63,9 +63,10 @@ fn generate_random_data(
             .serialize_generated_with_progress(
                 generated,
                 Some(plugins.clone()),
-                &|current, total| {
+                Box::new(move |current, total| {
                     progress_bar.increase(current, total);
-                },
+                    Ok(())
+                }),
             )?,
         plugins,
     ))
@@ -89,7 +90,8 @@ fn generate_data(
     let (_runner, node_plugins) = NodeRunner::init(&schema)?;
     #[cfg(feature = "node")]
     plugins.extend(node_plugins);
-    let (generated, _plugins) = generate_random_data(schema, Some(plugins), progress_bar.clone())?;
+    let (generated, plugins) = generate_random_data(schema, Some(plugins), progress_bar.clone())?;
+    drop(plugins);
 
     if let Some(out_file) = out_file {
         progress_bar.set_message("Writing results to file");

@@ -1,3 +1,5 @@
+use log::error;
+
 #[cfg(feature = "map-schema")]
 pub mod generate {
     use crate::generate::datagen_context::DatagenContextRef;
@@ -35,5 +37,23 @@ pub mod generate {
         fn resolve_ref(self, schema: &DatagenContextRef) -> anyhow::Result<Arc<GeneratedSchema>> {
             schema.resolve_ref(self.as_str())?.into_random()
         }
+    }
+}
+
+pub trait LogError<T> {
+    fn log_error(self) -> anyhow::Result<T>;
+}
+
+impl<T, E> LogError<T> for Result<T, E>
+where
+    E: Into<anyhow::Error>,
+{
+    fn log_error(self) -> anyhow::Result<T> {
+        let result = self.map_err(Into::into);
+        if let Some(e) = result.as_ref().err() {
+            error!("{:?}", e);
+        }
+
+        result
     }
 }

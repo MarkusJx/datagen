@@ -8,6 +8,10 @@ ENV LIBSQLITE3_FLAGS="SQLITE_MAX_VARIABLE_NUMBER=1000000"
 RUN cargo build -p datagen-rs-openaddresses-plugin -r -F sqlite
 RUN cargo build -p datagen-rs-upload-plugin -r
 
+RUN apt-get update && apt-get install -y dos2unix && \
+  dos2unix /app/docker/docker-entrypoint.sh && \
+  chmod +x /app/docker/docker-entrypoint.sh
+
 FROM debian:bookworm-slim
 LABEL org.opencontainers.image.description = "Default datagen image based on debian"
 

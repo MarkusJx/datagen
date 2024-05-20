@@ -11,6 +11,7 @@ use serde::{Deserialize, Serialize};
 use tokio::runtime::Builder;
 
 use datagen_rs::generate::generated_schema::GeneratedSchema;
+use datagen_rs::plugins::plugin::PluginSerializeCallback;
 use datagen_rs::schema::serializer::Serializer;
 
 use crate::auth::authentication::{AnyAuth, Authentication, NoAuth};
@@ -157,7 +158,7 @@ impl UploadArgs {
     pub(crate) fn upload_data(
         &self,
         value: &Arc<GeneratedSchema>,
-        progress_callback: &dyn Fn(usize, usize),
+        progress_callback: PluginSerializeCallback,
     ) -> anyhow::Result<()> {
         let headers = self.get_headers()?;
         let split = self.split(value);
@@ -166,6 +167,7 @@ impl UploadArgs {
         let upload_in = self.upload_in.unwrap_or_default();
 
         let num_splits = split.len();
+        let callback_ref = &progress_callback;
 
         Builder::new_multi_thread()
             .enable_all()
@@ -191,9 +193,9 @@ impl UploadArgs {
                                 .map_err(|e| anyhow!(e.to_string()))?
                                 .error_for_status()
                                 .map_err(|e| anyhow!(e.to_string()))
-                                .map(|res| {
-                                    progress_callback(array_len, num_splits);
-                                    res
+                                .and_then(|res| {
+                                    callback_ref(array_len, num_splits)?;
+                                    Ok(res)
                                 })
                         }
                     })

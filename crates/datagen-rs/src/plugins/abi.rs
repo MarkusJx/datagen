@@ -1,9 +1,14 @@
 #![allow(clippy::unnecessary_cast)]
+#![allow(clippy::empty_docs)]
+
 use crate::generate::resolved_reference::ResolvedReference;
 use crate::plugins::abi_impl::GeneratedSchemaVecAbiImpl;
+use crate::plugins::plugin::PluginSerializeCallback;
 use abi_stable::pmr::{ROption, RResult};
-use abi_stable::std_types::{RBox, RString, RVec};
+use abi_stable::std_types::{RArc, RBox, RString, RVec};
 use abi_stable::{sabi_trait, StableAbi};
+use anyhow::bail;
+use app_state::{stateful, AppStateTrait, MutAppState, MutAppStateLock};
 use serde::{Deserialize, Serialize};
 
 /// A C ABI compatible plugin error.
@@ -132,16 +137,70 @@ pub trait PluginAbi: Send + Sync {
         &self,
         value: GeneratedSchemaAbi,
         args: JsonValue,
-        _callback: SerializeCallback,
-    ) -> PluginResult<RString> {
-        self.serialize(value, args)
+        callback: SerializeCallback,
+    ) -> PluginResult<RString>;
+}
+
+//unsafe impl Send for SerializeCallback {}
+//unsafe impl Sync for SerializeCallback {}
+
+type PluginSerializeCallbackVec = Vec<Option<PluginSerializeCallback>>;
+
+#[stateful(init(state))]
+extern "C" fn call_serialize_callback(
+    current: usize,
+    total: usize,
+    id: usize,
+    mut state: MutAppStateLock<PluginSerializeCallbackVec>,
+) -> PluginResult<()> {
+    PluginResult::wrap(|| {
+        let Some(Some(callback)) = state.get(id) else {
+            bail!("Callback with id {} not found", id);
+        };
+
+        callback(current, total)
+    })
+}
+
+#[repr(C)]
+#[derive(StableAbi)]
+struct SerializeCallbackImpl {
+    id: usize,
+    func: extern "C" fn(usize, usize, usize) -> PluginResult<()>,
+}
+
+impl Drop for SerializeCallbackImpl {
+    #[stateful(init(state))]
+    fn drop(&mut self, mut state: MutAppStateLock<PluginSerializeCallbackVec>) {
+        state[self.id] = None;
     }
 }
 
-#[derive(StableAbi)]
-#[repr(transparent)]
+#[repr(C)]
+#[derive(StableAbi, Clone)]
 pub struct SerializeCallback {
-    pub func: extern "C" fn(usize, usize),
+    inner: RArc<SerializeCallbackImpl>,
+}
+
+impl SerializeCallback {
+    #[stateful(init(state))]
+    pub fn new(
+        func: PluginSerializeCallback,
+        mut state: MutAppStateLock<PluginSerializeCallbackVec>,
+    ) -> Self {
+        state.push(Some(func));
+
+        Self {
+            inner: RArc::new(SerializeCallbackImpl {
+                func: call_serialize_callback,
+                id: state.len() - 1,
+            }),
+        }
+    }
+
+    pub fn call(&self, current: usize, total: usize) -> anyhow::Result<()> {
+        (self.inner.func)(current, total, self.inner.id).into_anyhow()
+    }
 }
 
 pub type PluginAbiBox = PluginAbi_TO<'static, RBox<()>>;

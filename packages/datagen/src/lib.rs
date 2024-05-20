@@ -91,13 +91,22 @@ pub fn generate_random_data_internal(
                 schema,
                 serialize_progress.map(|func| {
                     move |current, total| {
-                        func.call(
+                        let status = func.call(
                             Ok(GenerateProgress {
                                 current: current as _,
                                 total: total as _,
                             }),
                             ThreadsafeFunctionCallMode::NonBlocking,
                         );
+
+                        if status == napi::Status::Ok {
+                            Ok(())
+                        } else {
+                            Err(anyhow::anyhow!(
+                                "Failed to call progress callback: {}",
+                                status
+                            ))
+                        }
                     }
                 }),
                 plugins,

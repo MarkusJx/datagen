@@ -1,18 +1,20 @@
 use crate::classes::node_plugin::NodePlugin;
 use crate::runner::node_plugin_args::NodePluginArgs;
 use crate::runner::types::{DropRefsTsfn, PluginMap, PluginMapResult, RefArc};
-use crate::util::napi::run_napi;
 use crate::util::traits::IntoNapiResult;
 use anyhow::{anyhow, Context};
-use datagen_rs::plugins::plugin::Plugin;
 use datagen_rs::plugins::plugin_list::PluginList;
 use datagen_rs::schema::schema_definition::{PluginInitArgs, Schema};
+use log::debug;
 use napi::threadsafe_function::{
     ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode,
 };
 use napi::{CallContext, Env, JsError, JsFunction, JsObject, JsUnknown, Ref, ValueType};
+use nodejs::run_napi;
 use std::sync::mpsc::{channel, Sender};
 use std::sync::{Arc, Mutex};
+use std::thread::JoinHandle;
+use std::time::Duration;
 
 type RefsVec = Arc<Mutex<Vec<RefArc>>>;
 
@@ -25,6 +27,7 @@ pub struct NodeRunner {
     refs: RefsVec,
     drop_refs: DropRefsTsfn,
     load_plugins: Mutex<ThreadsafeFunction<NodePluginLoader>>,
+    thread: Option<JoinHandle<()>>,
 }
 
 impl NodeRunner {
@@ -32,32 +35,50 @@ impl NodeRunner {
     /// This method spawns a new Node.js instance and loads the plugins.
     /// This method can only be called once per process.
     /// If you want to load new plugins, use [`Self::load_new_plugins`].
-    pub fn init(schema: &Schema) -> anyhow::Result<(Self, PluginMap)> {
+    pub fn init(schema: &Schema) -> anyhow::Result<(Option<Self>, PluginMap)> {
+        debug!("Initializing Node.js plugins");
         let node_plugins = Self::find_plugins(schema)?;
-        let (sender, receiver) = channel::<PluginMapResult>();
+        if node_plugins.is_empty() {
+            debug!("No Node.js plugins found");
+            return Ok((None, PluginMap::new()));
+        }
+
+        let (sender, receiver) = channel();
+        let (run_sender, run_receiver) = channel();
 
         let refs = Arc::new(Mutex::new(Vec::new()));
         let refs_copy = refs.clone();
-        std::thread::spawn(move || {
-            run_napi(|env| {
-                sender
-                    .send(Self::load_plugins(env, node_plugins, &refs_copy))
-                    .context("Failed to send result of Node.js plugin initialization")
-            })
-            .context("Failed to initialize Node.js plugins")
-            .unwrap();
+        let thread = std::thread::spawn(move || {
+            let _ = run_sender.send(
+                run_napi(
+                    |env| {
+                        sender
+                            .send(Self::load_plugins(env, node_plugins, &refs_copy))
+                            .context("Failed to send result of Node.js plugin initialization")
+                            .into_napi()
+                    },
+                    None,
+                )
+                .context("Failed to initialize Node.js plugins"),
+            );
         });
+
+        run_receiver
+            .recv_timeout(Duration::from_secs(2))
+            .unwrap_or(Ok(()))
+            .context("Node.js thread exited prematurely")?;
 
         let (res, drop_refs, load_plugins) = receiver
             .recv()
             .context("Failed to initialize Node.js plugins")??;
 
         Ok((
-            Self {
+            Some(Self {
                 drop_refs,
                 load_plugins,
                 refs,
-            },
+                thread: Some(thread),
+            }),
             res,
         ))
     }
@@ -178,7 +199,7 @@ impl NodeRunner {
                 Ok((
                     plugin.name.clone(),
                     NodePlugin::new(plugin.name.clone(), generate, transform, serialize, env)
-                        .map(|p| Arc::new(p) as Arc<dyn Plugin>)
+                        .map(|p| Arc::new(p) as _)
                         .context(anyhow!("Failed to create plugin '{}'", plugin.name))?,
                 ))
             })
@@ -275,5 +296,6 @@ impl Drop for NodeRunner {
     fn drop(&mut self) {
         self.drop_refs
             .call(Ok(()), ThreadsafeFunctionCallMode::Blocking);
+        let _ = self.thread.take().and_then(|t| t.join().ok());
     }
 }

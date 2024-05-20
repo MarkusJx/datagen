@@ -11,6 +11,7 @@ use crate::plugins::plugin_list::PluginList;
 use crate::schema::schema_definition::SchemaOptions;
 #[cfg(feature = "map-schema")]
 use anyhow::anyhow;
+use std::any::Any;
 #[cfg(feature = "generate")]
 use std::collections::BTreeMap;
 use std::sync::atomic::AtomicBool;
@@ -254,6 +255,10 @@ impl DatagenContext for CurrentSchemaRef {
 
     fn options(&self) -> anyhow::Result<Arc<SchemaOptions>> {
         Ok(CurrentSchema::options(self.as_ref()).clone())
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 
     fn __schema_value_properties(&self) -> anyhow::Result<Arc<Mutex<SchemaProperties>>> {

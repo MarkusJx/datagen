@@ -55,6 +55,7 @@ impl Default for &Serializer {
 #[cfg(feature = "generate")]
 pub mod generate {
     use crate::generate::generated_schema::GeneratedSchema;
+    use crate::plugins::plugin::PluginSerializeCallback;
     use crate::plugins::plugin_list::PluginList;
     use crate::schema::serializer::Serializer;
     use anyhow::anyhow;
@@ -120,7 +121,7 @@ pub mod generate {
             &self,
             generated: Arc<GeneratedSchema>,
             plugins: Option<Arc<PluginList>>,
-            callback: &dyn Fn(usize, usize),
+            callback: PluginSerializeCallback,
         ) -> anyhow::Result<String> {
             match self {
                 Serializer::Plugin { plugin_name, args } => plugins

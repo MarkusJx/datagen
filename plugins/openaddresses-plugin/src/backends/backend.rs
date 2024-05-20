@@ -7,11 +7,9 @@ use std::fmt::Debug;
 pub(crate) trait Backend: Debug + Send + Sync {
     fn get_random_feature(&mut self) -> anyhow::Result<GeoFeature>;
 
+    #[allow(dead_code)]
     #[cfg(test)]
     fn as_any(&self) -> &dyn Any;
-
-    #[cfg(test)]
-    fn as_mut_any(&mut self) -> &mut dyn Any;
 }
 
 pub(crate) trait BackendConstructor: Backend + Sized {
