@@ -2,11 +2,15 @@
 mod test;
 
 use anyhow::anyhow;
-use datagen_rs::declare_plugin;
 use datagen_rs::generate::generated_schema::GeneratedSchema;
-use datagen_rs::plugins::plugin::{Plugin, PluginSerializeCallback};
+use datagen_rs::plugins::plugin::{Plugin, PluginConstructor, PluginSerializeCallback};
+use datagen_rs::{declare_plugin, plugins};
 use indexmap::IndexMap;
 use log::debug;
+use log4rs::append::console::ConsoleAppender;
+use log4rs::config::{Appender, Root};
+use log4rs::Config;
+use plugins::plugin::PluginOptions;
 use serde::Deserialize;
 use serde_json::Value;
 use sqlx::any::AnyPoolOptions;
@@ -247,6 +251,8 @@ impl Plugin for SQLPlugin {
         callback: PluginSerializeCallback,
     ) -> anyhow::Result<String> {
         let args: SQLPluginArgs = serde_json::from_value(args)?;
+
+        debug!("Initializing default SQL drivers");
         sqlx::any::install_default_drivers();
 
         run_sync(self.insert_into_db(&args, value, &callback))?;
@@ -254,5 +260,27 @@ impl Plugin for SQLPlugin {
     }
 }
 
+impl PluginConstructor for SQLPlugin {
+    fn new(_args: Value, options: PluginOptions) -> anyhow::Result<Self> {
+        log4rs::init_config(
+            Config::builder()
+                .appender(
+                    Appender::builder()
+                        .build("stdout", Box::new(ConsoleAppender::builder().build())),
+                )
+                .build(
+                    Root::builder()
+                        .appender("stdout")
+                        .build(options.log_level()),
+                )?,
+        )?;
+
+        debug!("Initializing default SQL drivers");
+        sqlx::any::install_default_drivers();
+
+        Ok(Self::default())
+    }
+}
+
 #[cfg(feature = "plugin-lib")]
-declare_plugin!(SQLPlugin, SQLPlugin::default);
+declare_plugin!(SQLPlugin);
