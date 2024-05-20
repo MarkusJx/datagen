@@ -35,9 +35,8 @@ include!(concat!(env!("OUT_DIR"), "/build_vars.rs"));
 /// ```no_run
 /// use datagen_rs::generate::generated_schema::GeneratedSchema;
 /// use datagen_rs::generate::current_schema::CurrentSchemaRef;
-/// use datagen_rs::plugins::plugin::Plugin;
-/// use datagen_rs::plugins::openaddresses_plugin::OpenAddressesPlugin;
-/// use datagen_rs::util::types::Result;
+/// use datagen_rs::plugins::plugin::{Plugin, PluginConstructor, PluginOptions};
+/// use openaddresses_plugin::OpenAddressesPlugin;
 /// use serde_json::json;
 /// use std::sync::Arc;
 ///
@@ -49,7 +48,7 @@ include!(concat!(env!("OUT_DIR"), "/build_vars.rs"));
 ///         "batchSize": 1000,
 ///         "cacheSize": 1000
 ///      }
-/// })).unwrap();
+/// }), PluginOptions::default()).unwrap();
 /// ```
 #[derive(Debug)]
 pub struct OpenAddressesPlugin {
@@ -81,8 +80,8 @@ impl PluginConstructor for OpenAddressesPlugin {
     ///
     /// # Example
     /// ```no_run
-    /// use datagen_rs::plugins::plugin::PluginConstructor;
-    /// use datagen_rs::plugins::openaddresses_plugin::OpenAddressesPlugin;
+    /// use datagen_rs::plugins::plugin::{PluginConstructor, PluginOptions};
+    /// use openaddresses_plugin::OpenAddressesPlugin;
     /// use serde_json::json;
     /// use std::sync::Arc;
     ///
@@ -91,7 +90,7 @@ impl PluginConstructor for OpenAddressesPlugin {
     ///     "backend": {
     ///         "type": "memory",
     ///     }
-    /// })).unwrap();
+    /// }), PluginOptions::default()).unwrap();
     /// ```
     fn new(
         args: Value,
