@@ -15,13 +15,9 @@ use anyhow::anyhow;
 use datagen_rs::declare_plugin;
 use datagen_rs::generate::datagen_context::DatagenContextRef;
 use datagen_rs::generate::generated_schema::GeneratedSchema;
+#[cfg(feature = "plugin-lib")]
+use datagen_rs::init_plugin_logger;
 use datagen_rs::plugins::plugin::{Plugin, PluginConstructor, PluginOptions};
-#[cfg(all(feature = "log", feature = "plugin-lib"))]
-use log4rs::append::console::ConsoleAppender;
-#[cfg(all(feature = "log", feature = "plugin-lib"))]
-use log4rs::config::{Appender, Root};
-#[cfg(all(feature = "log", feature = "plugin-lib"))]
-use log4rs::Config;
 use serde_json::Value;
 use std::fmt::Debug;
 use std::sync::{Arc, Mutex};
@@ -104,18 +100,7 @@ impl PluginConstructor for OpenAddressesPlugin {
         };
 
         #[cfg(all(feature = "log", feature = "plugin-lib"))]
-        log4rs::init_config(
-            Config::builder()
-                .appender(
-                    Appender::builder()
-                        .build("stdout", Box::new(ConsoleAppender::builder().build())),
-                )
-                .build(
-                    Root::builder()
-                        .appender("stdout")
-                        .build(options.log_level()),
-                )?,
-        )?;
+        init_plugin_logger!(options);
 
         #[cfg(feature = "log")]
         log::debug!("Initializing plugin 'openaddress'");

@@ -5,17 +5,12 @@ use anyhow::anyhow;
 #[cfg(feature = "plugin-lib")]
 use datagen_rs::declare_plugin;
 use datagen_rs::generate::generated_schema::GeneratedSchema;
-use datagen_rs::plugins;
+#[cfg(feature = "plugin-lib")]
+use datagen_rs::init_plugin_logger;
+use datagen_rs::plugins::plugin::PluginOptions;
 use datagen_rs::plugins::plugin::{Plugin, PluginConstructor, PluginSerializeCallback};
 use indexmap::IndexMap;
 use log::debug;
-#[cfg(feature = "plugin-lib")]
-use log4rs::append::console::ConsoleAppender;
-#[cfg(feature = "plugin-lib")]
-use log4rs::config::{Appender, Root};
-#[cfg(feature = "plugin-lib")]
-use log4rs::Config;
-use plugins::plugin::PluginOptions;
 use serde::Deserialize;
 use serde_json::Value;
 use sqlx::any::AnyPoolOptions;
@@ -271,18 +266,7 @@ impl PluginConstructor for SQLPlugin {
         #[cfg(not(feature = "plugin-lib"))] _options: PluginOptions,
     ) -> anyhow::Result<Self> {
         #[cfg(feature = "plugin-lib")]
-        log4rs::init_config(
-            Config::builder()
-                .appender(
-                    Appender::builder()
-                        .build("stdout", Box::new(ConsoleAppender::builder().build())),
-                )
-                .build(
-                    Root::builder()
-                        .appender("stdout")
-                        .build(options.log_level()),
-                )?,
-        )?;
+        init_plugin_logger!(options);
 
         debug!("Initializing default SQL drivers");
         sqlx::any::install_default_drivers();

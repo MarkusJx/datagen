@@ -1,0 +1,1 @@
+../../docs/pages/docs/plugins/default/sql.md

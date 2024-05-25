@@ -49,10 +49,10 @@ jobs:
         run: cargo build -p datagen-rs-upload-plugin -r --target ${{matrix.target}}
       - name: Build sql-plugin
         run: cargo build -p datagen-rs-sql-plugin -r --target ${{matrix.target}}
-      - name: Upload artifacts
+      - name: Upload shared artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: datagen-${{runner.os}}-${{matrix.target}}
+          name: datagen-${{runner.os}}-${{matrix.target}}-shared
           path: |
             target/*/release/datagen.exe
             target/*/release/datagen
@@ -65,6 +65,18 @@ jobs:
             target/*/release/sql_plugin.dll
             target/*/release/libsql_plugin.dylib
             target/*/release/libsql_plugin.so
+      - name: Build cli with embedded plugins
+        run: cargo build -p datagen-rs-cli -r --target ${{matrix.target}} --features embedded-plugins
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LIBSQLITE3_FLAGS: SQLITE_MAX_VARIABLE_NUMBER=1000000
+      - name: Upload cli with embedded plugins
+        uses: actions/upload-artifact@v4
+        with:
+          name: datagen-${{runner.os}}-${{matrix.target}}-single-binary
+          path: |
+            target/*/release/datagen.exe
+            target/*/release/datagen
 
   build-docs:
     runs-on: ubuntu-latest
