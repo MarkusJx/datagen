@@ -412,3 +412,23 @@ macro_rules! declare_plugin {
         }
     };
 }
+
+/// Initialize the logger for a plugin.
+/// Requires the `log` and `log4rs` crates to be installed.
+#[macro_export]
+macro_rules! init_plugin_logger {
+    ($options: ident) => {
+        log4rs::init_config(
+            log4rs::Config::builder()
+                .appender(log4rs::config::Appender::builder().build(
+                    "stdout",
+                    Box::new(log4rs::append::console::ConsoleAppender::builder().build()),
+                ))
+                .build(
+                    log4rs::config::Root::builder()
+                        .appender("stdout")
+                        .build($options.log_level()),
+                )?,
+        )?;
+    };
+}

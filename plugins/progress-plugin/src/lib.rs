@@ -46,6 +46,7 @@ pub struct ProgressPlugin<F: Fn(usize, usize) + Send + Sync> {
     total_elements: AtomicUsize,
     progress: AtomicUsize,
     arrays: Mutex<BTreeMap<RandomArrayLength, VecDeque<u32>>>,
+    any_of_values: Mutex<BTreeMap<String, VecDeque<Vec<AnyValue>>>>,
     callback: F,
 }
 
@@ -158,6 +159,7 @@ impl<F: Fn(usize, usize) + Send + Sync> ProgressPlugin<F> {
             total_elements: AtomicUsize::new(0),
             progress: AtomicUsize::new(0),
             arrays: Mutex::new(BTreeMap::new()),
+            any_of_values: Mutex::new(BTreeMap::new()),
             callback,
         }
     }
@@ -250,8 +252,14 @@ impl<F: Fn(usize, usize) + Send + Sync> ProgressPlugin<F> {
         schema: DatagenContextRef,
         any_of: AnyOf,
     ) -> anyhow::Result<Arc<GeneratedSchema>> {
-        let values = any_of
-            .values
+        let any_of_str = serde_json::to_string(&any_of).unwrap();
+        let mut lock = self.any_of_values.lock().unwrap();
+
+        let values = lock
+            .get_mut(&any_of_str)
+            .ok_or(anyhow!("AnyOf values for key not found"))?
+            .pop_front()
+            .ok_or(anyhow!("No more AnyOf values left in queue"))?
             .into_iter()
             .map(|value| value.into_random(schema.clone()))
             .collect::<anyhow::Result<Vec<_>>>()?;
@@ -284,7 +292,11 @@ impl<F: Fn(usize, usize) + Send + Sync> ProgressPlugin<F> {
                     len
                 }
                 Any::AnyOf(any_of) => {
-                    any_of.values.shuffle(&mut rand::thread_rng());
+                    let any_of_str = serde_json::to_string(any_of).unwrap();
+                    let mut lock = self.any_of_values.lock().unwrap();
+
+                    let mut values = any_of.values.clone();
+                    values.shuffle(&mut rand::thread_rng());
                     let min = if any_of.allow_null.unwrap_or(false) {
                         0
                     } else {
@@ -301,13 +313,22 @@ impl<F: Fn(usize, usize) + Send + Sync> ProgressPlugin<F> {
                     }
 
                     if num >= 0 {
-                        any_of.values.drain(num as usize..);
+                        values.drain(num as usize..);
                     }
 
                     let mut len = 1;
-                    for val in &mut any_of.values {
+                    for val in &mut values {
                         len += self.map_any(val);
                     }
+
+                    if let Some(queue) = lock.get_mut(&any_of_str) {
+                        queue.push_back(values);
+                    } else {
+                        let mut res = VecDeque::new();
+                        res.push_back(values);
+                        lock.insert(any_of_str, res);
+                    }
+
                     len
                 }
                 _ => 1,

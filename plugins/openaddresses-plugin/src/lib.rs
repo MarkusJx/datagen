@@ -11,16 +11,13 @@ use crate::objects::args::{BackendType, IntoGenerated, PluginArgs, StringOrVec};
 use crate::objects::call_args::CallArgs;
 #[cfg(not(feature = "sqlite"))]
 use anyhow::anyhow;
+#[cfg(feature = "plugin-lib")]
 use datagen_rs::declare_plugin;
 use datagen_rs::generate::datagen_context::DatagenContextRef;
 use datagen_rs::generate::generated_schema::GeneratedSchema;
+#[cfg(all(feature = "log", feature = "plugin-lib"))]
+use datagen_rs::init_plugin_logger;
 use datagen_rs::plugins::plugin::{Plugin, PluginConstructor, PluginOptions};
-#[cfg(feature = "log")]
-use log4rs::append::console::ConsoleAppender;
-#[cfg(feature = "log")]
-use log4rs::config::{Appender, Root};
-#[cfg(feature = "log")]
-use log4rs::Config;
 use serde_json::Value;
 use std::fmt::Debug;
 use std::sync::{Arc, Mutex};
@@ -34,9 +31,8 @@ include!(concat!(env!("OUT_DIR"), "/build_vars.rs"));
 /// ```no_run
 /// use datagen_rs::generate::generated_schema::GeneratedSchema;
 /// use datagen_rs::generate::current_schema::CurrentSchemaRef;
-/// use datagen_rs::plugins::plugin::Plugin;
-/// use datagen_rs::plugins::openaddresses_plugin::OpenAddressesPlugin;
-/// use datagen_rs::util::types::Result;
+/// use datagen_rs::plugins::plugin::{Plugin, PluginConstructor, PluginOptions};
+/// use openaddresses_plugin::OpenAddressesPlugin;
 /// use serde_json::json;
 /// use std::sync::Arc;
 ///
@@ -48,7 +44,7 @@ include!(concat!(env!("OUT_DIR"), "/build_vars.rs"));
 ///         "batchSize": 1000,
 ///         "cacheSize": 1000
 ///      }
-/// })).unwrap();
+/// }), PluginOptions::default()).unwrap();
 /// ```
 #[derive(Debug)]
 pub struct OpenAddressesPlugin {
@@ -80,8 +76,8 @@ impl PluginConstructor for OpenAddressesPlugin {
     ///
     /// # Example
     /// ```no_run
-    /// use datagen_rs::plugins::plugin::PluginConstructor;
-    /// use datagen_rs::plugins::openaddresses_plugin::OpenAddressesPlugin;
+    /// use datagen_rs::plugins::plugin::{PluginConstructor, PluginOptions};
+    /// use openaddresses_plugin::OpenAddressesPlugin;
     /// use serde_json::json;
     /// use std::sync::Arc;
     ///
@@ -90,12 +86,12 @@ impl PluginConstructor for OpenAddressesPlugin {
     ///     "backend": {
     ///         "type": "memory",
     ///     }
-    /// })).unwrap();
+    /// }), PluginOptions::default()).unwrap();
     /// ```
     fn new(
         args: Value,
-        #[cfg(feature = "log")] options: PluginOptions,
-        #[cfg(not(feature = "log"))] _options: PluginOptions,
+        #[cfg(all(feature = "log", feature = "plugin-lib"))] options: PluginOptions,
+        #[cfg(not(all(feature = "log", feature = "plugin-lib")))] _options: PluginOptions,
     ) -> anyhow::Result<Self> {
         let args: PluginArgs = serde_json::from_value(args)?;
         let paths = match args.files.clone() {
@@ -103,19 +99,8 @@ impl PluginConstructor for OpenAddressesPlugin {
             StringOrVec::Multiple(paths) => paths,
         };
 
-        #[cfg(feature = "log")]
-        log4rs::init_config(
-            Config::builder()
-                .appender(
-                    Appender::builder()
-                        .build("stdout", Box::new(ConsoleAppender::builder().build())),
-                )
-                .build(
-                    Root::builder()
-                        .appender("stdout")
-                        .build(options.log_level()),
-                )?,
-        )?;
+        #[cfg(all(feature = "log", feature = "plugin-lib"))]
+        init_plugin_logger!(options);
 
         #[cfg(feature = "log")]
         log::debug!("Initializing plugin 'openaddress'");
@@ -136,4 +121,5 @@ impl PluginConstructor for OpenAddressesPlugin {
     }
 }
 
+#[cfg(feature = "plugin-lib")]
 declare_plugin!(OpenAddressesPlugin);

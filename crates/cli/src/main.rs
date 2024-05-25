@@ -1,6 +1,8 @@
 mod util;
 
-use crate::util::cli_progress::{CliProgressRef, CliProgressTrait};
+use crate::util::cli_progress::{CliProgressRef, CliProgressTrait, CliProgressType};
+#[cfg(feature = "embedded-plugins")]
+use crate::util::plugins::load_plugins;
 use clap::{Parser, Subcommand};
 use datagen_rs::generate::current_schema::CurrentSchema;
 use datagen_rs::generate::generated_schema::IntoRandom;
@@ -46,15 +48,17 @@ enum Commands {
 fn generate_random_data(
     schema: Schema,
     additional_plugins: Option<HashMap<String, Arc<dyn Plugin>>>,
-    progress_bar: CliProgressRef,
+    progress_bar: &mut CliProgressRef,
 ) -> anyhow::Result<(String, Arc<PluginList>)> {
     let plugins = PluginList::from_schema(&schema, additional_plugins)?;
     let options = Arc::new(schema.options.unwrap_or_default());
     let root = CurrentSchema::root(options.clone(), plugins.clone()).into();
     let generated = schema.value.into_random(root)?;
 
-    progress_bar.set_message("Serializing data");
+    progress_bar.finish(true);
+    *progress_bar = CliProgressRef::with_type(CliProgressType::Serialize);
 
+    let progress_bar_copy = progress_bar.clone();
     Ok((
         options
             .serializer
@@ -64,7 +68,7 @@ fn generate_random_data(
                 generated,
                 Some(plugins.clone()),
                 Box::new(move |current, total| {
-                    progress_bar.increase(current, total);
+                    progress_bar_copy.increase(current, total);
                     Ok(())
                 }),
             )?,
@@ -75,7 +79,7 @@ fn generate_random_data(
 fn generate_data(
     schema_file: String,
     out_file: Option<String>,
-    progress_bar: &CliProgressRef,
+    progress_bar: &mut CliProgressRef,
 ) -> anyhow::Result<Option<String>> {
     let progress_bar_copy = progress_bar.clone();
     #[cfg_attr(not(feature = "node"), allow(unused_mut))]
@@ -90,7 +94,10 @@ fn generate_data(
     let (_runner, node_plugins) = NodeRunner::init(&schema)?;
     #[cfg(feature = "node")]
     plugins.extend(node_plugins);
-    let (generated, plugins) = generate_random_data(schema, Some(plugins), progress_bar.clone())?;
+    #[cfg(feature = "embedded-plugins")]
+    plugins.extend(load_plugins(&schema)?);
+
+    let (generated, plugins) = generate_random_data(schema, Some(plugins), progress_bar)?;
     drop(plugins);
 
     if let Some(out_file) = out_file {
@@ -127,9 +134,9 @@ fn main() {
             )
             .unwrap();
 
-            let progress_bar = CliProgressRef::default();
+            let mut progress_bar = CliProgressRef::with_type(CliProgressType::Generate);
 
-            let res = generate_data(schema_file, out_file, &progress_bar);
+            let res = generate_data(schema_file, out_file, &mut progress_bar);
             progress_bar.finish(res.is_ok());
 
             match res {

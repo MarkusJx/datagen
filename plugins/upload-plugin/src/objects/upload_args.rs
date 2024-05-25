@@ -1,3 +1,4 @@
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time;
 use time::Duration;
@@ -5,6 +6,7 @@ use time::Duration;
 use anyhow::anyhow;
 use futures::{stream, StreamExt};
 use indexmap::IndexMap;
+use log::debug;
 use reqwest::header::{HeaderMap, HeaderName};
 use reqwest::{Client, RequestBuilder};
 use serde::{Deserialize, Serialize};
@@ -102,14 +104,6 @@ impl RequestCreator {
 }
 
 impl UploadArgs {
-    fn array_len(schema: &Arc<GeneratedSchema>) -> usize {
-        if let GeneratedSchema::Array(arr) = schema.as_ref() {
-            arr.len()
-        } else {
-            1
-        }
-    }
-
     fn get_headers(&self) -> anyhow::Result<HeaderMap> {
         let mut map = HeaderMap::new();
 
@@ -168,7 +162,9 @@ impl UploadArgs {
 
         let num_splits = split.len();
         let callback_ref = &progress_callback;
+        let counter = AtomicUsize::new(0);
 
+        debug!("Uploading data to {}", self.url);
         Builder::new_multi_thread()
             .enable_all()
             .build()
@@ -180,7 +176,9 @@ impl UploadArgs {
                         let creator = &creator;
                         let serializer = &serializer;
                         let upload_in = &upload_in;
-                        let array_len = Self::array_len(&d);
+
+                        let current_count = counter.fetch_add(1, Ordering::SeqCst);
+                        debug!("Uploading chunk {}/{}", current_count, num_splits);
 
                         async move {
                             creator
@@ -194,7 +192,7 @@ impl UploadArgs {
                                 .error_for_status()
                                 .map_err(|e| anyhow!(e.to_string()))
                                 .and_then(|res| {
-                                    callback_ref(array_len, num_splits)?;
+                                    callback_ref(current_count, num_splits)?;
                                     Ok(res)
                                 })
                         }

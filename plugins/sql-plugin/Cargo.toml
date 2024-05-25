@@ -1,0 +1,24 @@
+[package]
+name = "datagen-rs-sql-plugin"
+version = "0.2.0"
+edition = "2021"
+
+[lib]
+name = "sql_plugin"
+crate-type = ["rlib", "dylib"]
+
+[dependencies]
+datagen-rs = { path = "../../crates/datagen-rs", features = ["map-schema", "plugin"], version = "0.2.0" }
+serde_json = { version = "1.0", features = ["preserve_order"] }
+serde = { version = "1.0", features = ["derive"] }
+indexmap = { version = "2.0.0", features = ["serde"] }
+sqlx = { version = "0.7", features = ["runtime-tokio", "tls-native-tls", "any", "sqlite", "mysql", "postgres"] }
+tokio = "1.37"
+abi_stable = { version = "0.11.3", optional = true }
+anyhow = "1.0"
+log = "0.4"
+log4rs = "1.2"
+
+[features]
+plugin-lib = ["datagen-rs/plugin-abi", "dep:abi_stable"]
+default = ["plugin-lib"]

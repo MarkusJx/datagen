@@ -19,10 +19,15 @@ serde_json = { version = "1.0", features = ["preserve_order"] }
 indicatif = "0.17"
 colored = "2.0"
 num-format = "0.4"
-anyhow = "1"
+anyhow = "1.0.86"
+derive_more = "0.99.17"
 log = "0"
 log4rs = "1"
+datagen-rs-openaddresses-plugin = { path = "../../plugins/openaddresses-plugin", features = ["sqlite", "log"], default-features = false, version = "0.2.0", optional = true }
+datagen-rs-upload-plugin = { path = "../../plugins/upload-plugin", default-features = false, version = "0.2.0", optional = true }
+datagen-rs-sql-plugin = { path = "../../plugins/sql-plugin", default-features = false, version = "0.2.0", optional = true }
 
 [features]
+embedded-plugins = ["dep:datagen-rs-openaddresses-plugin", "dep:datagen-rs-upload-plugin", "dep:datagen-rs-sql-plugin"]
 node = ["datagen-rs-node-runner"]
 default = ["node"]

@@ -4,14 +4,19 @@ mod objects;
 mod tests;
 
 use crate::objects::upload_args::UploadArgs;
+#[cfg(feature = "plugin-lib")]
 use datagen_rs::declare_plugin;
 use datagen_rs::generate::generated_schema::GeneratedSchema;
-use datagen_rs::plugins::plugin::{Plugin, PluginSerializeCallback};
+#[cfg(feature = "plugin-lib")]
+use datagen_rs::init_plugin_logger;
+use datagen_rs::plugins::plugin::{
+    Plugin, PluginConstructor, PluginOptions, PluginSerializeCallback,
+};
 use serde_json::{from_value, Value};
 use std::sync::Arc;
 
 #[derive(Debug, Default)]
-struct UploadPlugin;
+pub struct UploadPlugin;
 
 impl Plugin for UploadPlugin {
     fn name(&self) -> String {
@@ -39,4 +44,18 @@ impl Plugin for UploadPlugin {
     }
 }
 
-declare_plugin!(UploadPlugin, UploadPlugin::default);
+impl PluginConstructor for UploadPlugin {
+    fn new(
+        _args: Value,
+        #[cfg(feature = "plugin-lib")] options: PluginOptions,
+        #[cfg(not(feature = "plugin-lib"))] _options: PluginOptions,
+    ) -> anyhow::Result<Self> {
+        #[cfg(feature = "plugin-lib")]
+        init_plugin_logger!(options);
+
+        Ok(Self)
+    }
+}
+
+#[cfg(feature = "plugin-lib")]
+declare_plugin!(UploadPlugin);

@@ -57,7 +57,9 @@ database already exists, it will be used instead of creating a new one.
           "files": ["/path/to/geojson/file1", "/path/to/geojson/file2"],
           "backend": {
             "type": "sqlite",
-            "databaseName": "/path/to/sqlite/database.db"
+            "databaseName": "/path/to/sqlite/database.db",
+            "batchSize": 1000,
+            "cacheSize": 10000
           }
         }
       }
@@ -66,10 +68,19 @@ database already exists, it will be used instead of creating a new one.
 }
 ```
 
+#### Arguments
+
+- `databaseName`: The path to the sqlite database file. The file will be
+  created if it does not exist.
+- `batchSize`: The number of rows to insert into the database at once.
+  The default is set during the build.
+- `cacheSize`: The number of rows to cache in memory. The default is `10000`.
+
 ### Generate addresses
 
 In order to use the plugin, provide the `openaddresses-plugin` plugin
-name in the [`plugin`](https://markusjx.github.io/datagen/docs/generators/plugin/) generator.
+name in the [`plugin`](https://markusjx.github.io/datagen/docs/generators/plugin/)
+generator.
 
 The plugin accepts an object containing the names of the properties to
 generate as keys and the fields to use as values. The following field

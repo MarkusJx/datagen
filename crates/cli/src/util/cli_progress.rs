@@ -1,4 +1,5 @@
 use colored::Colorize;
+use derive_more::Display;
 use indicatif::{ProgressBar, ProgressState, ProgressStyle};
 use num_format::{Locale, ToFormattedString};
 use std::fmt::Write;
@@ -6,21 +7,35 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 pub trait CliProgressTrait {
+    fn with_type(ty: CliProgressType) -> Self;
     fn increase(&self, current: usize, total: usize);
     fn set_message(&self, msg: &'static str);
     fn finish(&self, ok: bool);
 }
 
-#[derive(Default)]
 pub struct CliProgress {
     pb: Option<ProgressBar>,
+    ty: CliProgressType,
+}
+
+#[derive(Display)]
+pub enum CliProgressType {
+    #[display(fmt = "Generat")]
+    Generate,
+    #[display(fmt = "Serializ")]
+    Serialize,
 }
 
 impl CliProgress {
+    pub fn new(ty: CliProgressType) -> Self {
+        Self { pb: None, ty }
+    }
+
     pub fn increase(&mut self, current: usize, total: usize) {
         if self.pb.is_none() {
             println!(
-                "Generating {} records",
+                "{}ing {} records",
+                self.ty,
                 format!("~{}", total.to_formatted_string(&Locale::en)).bright_cyan()
             );
 
@@ -50,7 +65,7 @@ impl CliProgress {
                         "✔"
                     ]),
             );
-            pb.set_message("Generating records");
+            pb.set_message(format!("{}ing records", self.ty));
 
             self.pb.replace(pb);
         }
@@ -69,7 +84,8 @@ impl CliProgress {
             if ok {
                 pb.finish_with_message("Done");
                 println!(
-                    "Success - Generated {} records in {}",
+                    "Success - {}ed {} records in {}",
+                    self.ty,
                     pb.position().to_formatted_string(&Locale::en).bright_blue(),
                     format!("{:.1?}", pb.elapsed()).bright_blue()
                 );
@@ -83,6 +99,10 @@ impl CliProgress {
 pub type CliProgressRef = Arc<Mutex<CliProgress>>;
 
 impl CliProgressTrait for CliProgressRef {
+    fn with_type(ty: CliProgressType) -> Self {
+        Arc::new(Mutex::new(CliProgress::new(ty)))
+    }
+
     fn increase(&self, current: usize, total: usize) {
         self.lock().unwrap().increase(current, total);
     }
