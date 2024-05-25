@@ -15,7 +15,7 @@ use anyhow::anyhow;
 use datagen_rs::declare_plugin;
 use datagen_rs::generate::datagen_context::DatagenContextRef;
 use datagen_rs::generate::generated_schema::GeneratedSchema;
-#[cfg(feature = "plugin-lib")]
+#[cfg(all(feature = "log", feature = "plugin-lib"))]
 use datagen_rs::init_plugin_logger;
 use datagen_rs::plugins::plugin::{Plugin, PluginConstructor, PluginOptions};
 use serde_json::Value;
