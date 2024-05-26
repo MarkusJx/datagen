@@ -289,6 +289,31 @@ The `phone` generator generates a random phone number.
 ```
 </RunCode>
 
+### dateTime
+
+The `dateTime` generator generates a random date and time.
+Parameters:
+
+- `format`: The format of the date and time. The default format is [RFC 3339](https://www.rfc-editor.org/rfc/rfc3339).
+- `from`: The start date and time.
+- `to`: The end date and time. Must be at least one minute after `from`.
+
+All parameters are optional.
+
+<RunCode>
+```json
+{
+  "type": "string",
+  "generator": {
+    "type": "dateTime",
+    "format": "%Y-%m-%d %H:%M:%S",
+    "from": "2021-01-01T00:00:00Z",
+    "to": "2021-12-31T23:59:59Z"
+  }
+}
+```
+</RunCode>
+
 ### format
 
 The `format` generator formats strings using [handlebars](https://handlebarsjs.com/guide/)

@@ -18,7 +18,8 @@ serde = { version = "~1.0", features = ["derive", "rc"], optional = true }
 quick-xml = { version = "~0.31", features = ["serde", "serialize"], optional = true }
 schemars = { version = "~0.8", features = ["indexmap2"], optional = true }
 rand = { version = "~0.8", optional = true }
-fake = { version = "~2.9", features = ["uuid", "geo"], optional = true }
+fake = { version = "~2.9", features = ["uuid", "geo", "chrono"], optional = true }
+chrono = { version = "~0.4", optional = true }
 handlebars = { version = "~5.1", optional = true }
 regex = { version = "~1.10", optional = true }
 shellexpand = { version = "~3.1", optional = true }
@@ -39,6 +40,6 @@ native-plugin = ["plugin-abi", "plugin"]
 serialize = ["env-schema", "dep:serde", "indexmap/serde", "ordered-float/serde"]
 map-schema = ["serialize", "dep:regex", "dep:handlebars", "dep:rand"]
 env-schema = ["dep:shellexpand"]
-generate = ["map-schema", "plugin", "dep:fake", "dep:serde_yaml", "dep:quick-xml", "dep:xml-rs"]
+generate = ["map-schema", "plugin", "dep:fake", "dep:chrono", "dep:serde_yaml", "dep:quick-xml", "dep:xml-rs"]
 schema = ["dep:serde", "dep:schemars", "ordered-float/schemars", "serialize"]
 test = ["plugin"]

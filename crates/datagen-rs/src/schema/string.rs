@@ -35,6 +35,20 @@ pub enum StringGenerator {
         args: BTreeMap<String, FormatArg>,
         serialize_non_strings: Option<bool>,
     },
+    #[cfg_attr(feature = "serialize", serde(rename_all = "camelCase"))]
+    DateTime {
+        /// The format of the resulting date and time string.
+        /// If not specified, the result will be in RFC 3339 format.
+        /// Example: "%Y-%m-%d %H:%M:%S"
+        format: Option<String>,
+        /// The minimum date and time in RFC 3339 format.
+        /// Example: "1996-12-19T16:39:57-08:00"
+        from: Option<String>,
+        /// The maximum date and time in RFC 3339 format.
+        /// This date must be at lease one minute after the minimum date.
+        /// Example: "1996-12-19T16:39:57-08:00"
+        to: Option<String>,
+    },
 }
 
 #[derive(Debug, Clone)]
@@ -74,10 +88,12 @@ pub mod generate {
     use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
     use crate::schema::string::{FormatArg, StringGenerator, StringSchema};
     use crate::schema::transform::Transform;
-    use anyhow::anyhow;
+    use anyhow::{anyhow, Context};
+    use chrono::{DateTime, SecondsFormat, Timelike, Utc};
     use fake::faker::address::en::{
         CityName, CountryCode, CountryName, Latitude, Longitude, StateName, StreetName, ZipCode,
     };
+    use fake::faker::chrono::en::{DateTime, DateTimeAfter, DateTimeBefore, DateTimeBetween};
     use fake::faker::internet::en::{FreeEmail, Username};
     use fake::faker::name::en::{FirstName, LastName, Name};
     use fake::faker::phone_number::en::PhoneNumber;
@@ -191,6 +207,52 @@ pub mod generate {
                         .collect::<anyhow::Result<HashMap<_, _>>>()?;
 
                     GeneratedSchema::String(hbs.render("template", &data)?)
+                }
+                StringGenerator::DateTime { format, from, to } => {
+                    let date: DateTime<Utc> = if from.is_some() && to.is_some() {
+                        let min: DateTime<Utc> = DateTime::parse_from_rfc3339(&from.unwrap())
+                            .context("Failed to parse 'to' date")?
+                            .into();
+                        let max: DateTime<Utc> = DateTime::parse_from_rfc3339(&to.unwrap())
+                            .context("Failed to parse 'to' date")?
+                            .into();
+
+                        if min
+                            .with_second(0)
+                            .ok_or(anyhow!("Failed to set seconds of 'from' date"))?
+                            >= max
+                                .with_second(0)
+                                .ok_or(anyhow!("Failed to set seconds of 'to' date"))?
+                        {
+                            return Err(anyhow!(
+                                "'From' date must be at least one minute before the 'to' date"
+                            ));
+                        }
+
+                        DateTimeBetween(min, max).fake()
+                    } else if let Some(min) = from {
+                        DateTimeAfter(
+                            DateTime::parse_from_rfc3339(&min)
+                                .context("Failed to parse 'from' date")?
+                                .into(),
+                        )
+                        .fake()
+                    } else if let Some(max) = to {
+                        DateTimeBefore(
+                            DateTime::parse_from_rfc3339(&max)
+                                .context("Failed to parse 'to' date")?
+                                .into(),
+                        )
+                        .fake()
+                    } else {
+                        DateTime().fake()
+                    };
+
+                    if let Some(format) = format {
+                        GeneratedSchema::String(date.format(&format).to_string())
+                    } else {
+                        GeneratedSchema::String(date.to_rfc3339_opts(SecondsFormat::Secs, true))
+                    }
                 }
             })
         }
