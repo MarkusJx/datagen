@@ -1,1 +1,2 @@
 mod file;
+mod string;
