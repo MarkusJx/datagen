@@ -6,6 +6,7 @@ pub mod bool;
 pub mod counter;
 pub mod file;
 pub mod flatten;
+pub mod include;
 pub mod integer;
 pub mod number;
 pub mod object;

@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests;
+
 use anyhow::anyhow;
 /// A plugin that can be used to track the progress of the data generation of [`datagen_rs`].
 /// The plugin will call the given callback with the current progress and
@@ -197,6 +200,7 @@ impl<F: Fn(usize, usize) + Send + Sync> ProgressPlugin<F> {
                 .pop_front()
                 .ok_or(anyhow!("Array length not found")),
             ArrayLength::Constant { value } => Ok(*value),
+            ArrayLength::ShortConstant(value) => Ok(*value),
         }
     }
 
@@ -279,17 +283,17 @@ impl<F: Fn(usize, usize) + Send + Sync> ProgressPlugin<F> {
         schema.finalize(res)
     }
 
-    fn map_any(&self, val: &mut AnyValue) -> usize {
+    fn map_any(&self, val: &mut AnyValue) -> anyhow::Result<usize> {
         if let AnyValue::Any(any) = val {
             match any {
                 Any::Array(array) => self.map_array(array.as_mut()),
                 Any::Object(object) => {
                     let mut len = 1;
                     for (_, value) in &mut object.properties {
-                        len += self.map_any(value);
+                        len += self.map_any(value)?;
                     }
 
-                    len
+                    Ok(len)
                 }
                 Any::AnyOf(any_of) => {
                     let any_of_str = serde_json::to_string(any_of).unwrap();
@@ -318,7 +322,7 @@ impl<F: Fn(usize, usize) + Send + Sync> ProgressPlugin<F> {
 
                     let mut len = 1;
                     for val in &mut values {
-                        len += self.map_any(val);
+                        len += self.map_any(val)?;
                     }
 
                     if let Some(queue) = lock.get_mut(&any_of_str) {
@@ -329,12 +333,16 @@ impl<F: Fn(usize, usize) + Send + Sync> ProgressPlugin<F> {
                         lock.insert(any_of_str, res);
                     }
 
-                    len
+                    Ok(len)
                 }
-                _ => 1,
+                Any::Include(include) => {
+                    *any = include.as_schema()?;
+                    self.map_any(val)
+                }
+                _ => Ok(1),
             }
         } else {
-            1
+            Ok(1)
         }
     }
 
@@ -353,28 +361,29 @@ impl<F: Fn(usize, usize) + Send + Sync> ProgressPlugin<F> {
                 res
             }
             ArrayLength::Constant { value } => *value,
+            ArrayLength::ShortConstant(value) => *value,
         }
     }
 
-    fn map_array(&self, val: &mut Array) -> usize {
+    fn map_array(&self, val: &mut Array) -> anyhow::Result<usize> {
         match val {
             Array::RandomArray(array) => {
                 let len = self.add_array_len(&array.length);
 
                 let mut res = 1;
                 for _ in 0..len {
-                    res += self.map_any(&mut array.items);
+                    res += self.map_any(&mut array.items)?;
                 }
 
-                res
+                Ok(res)
             }
             Array::ArrayWithValues(array) => {
                 let mut res = 1;
                 for value in &mut array.values {
-                    res += self.map_any(value);
+                    res += self.map_any(value)?;
                 }
 
-                res
+                Ok(res)
             }
         }
     }
@@ -393,7 +402,7 @@ impl<F: Fn(usize, usize) + Send + Sync> Plugin for ProgressPlugin<F> {
         let mut val: AnyValue = serde_json::from_value(args)?;
 
         self.total_elements
-            .store(self.map_any(&mut val), Ordering::SeqCst);
+            .store(self.map_any(&mut val)?, Ordering::SeqCst);
 
         let res = self.convert_any_value(schema, val)?;
         // Increase the progress by one to account for the root element

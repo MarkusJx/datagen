@@ -4,6 +4,7 @@ use crate::schema::bool::Bool;
 use crate::schema::counter::Counter;
 use crate::schema::file::File;
 use crate::schema::flatten::Flatten;
+use crate::schema::include::Include;
 use crate::schema::integer::Integer;
 use crate::schema::number::Number;
 use crate::schema::object::Object;
@@ -32,6 +33,7 @@ pub enum Any {
     Object(Box<Object>),
     Flatten(Flatten),
     File(File),
+    Include(Include),
 }
 
 #[cfg(feature = "generate")]
@@ -61,6 +63,7 @@ pub mod generate {
                 Any::Object(object) => object.into_random(schema),
                 Any::Flatten(flatten) => flatten.into_random(schema),
                 Any::File(file) => file.into_random(schema),
+                Any::Include(include) => include.into_random(schema),
             }
         }
 

@@ -48,7 +48,7 @@ impl PluginList {
 
     #[cfg(feature = "plugin")]
     pub fn from_schema(
-        schema: &Schema,
+        schema: &mut Schema,
         additional_plugins: Option<PluginMap>,
     ) -> anyhow::Result<Arc<Self>> {
         let plugins = Self::find_and_map_plugins(schema, additional_plugins, Self::map_plugin)?;
@@ -58,7 +58,7 @@ impl PluginList {
 
     #[cfg(feature = "plugin")]
     pub fn find_and_map_plugins<M, R>(
-        schema: &Schema,
+        schema: &mut Schema,
         additional_plugins: Option<HashMap<String, R>>,
         mapper: M,
     ) -> anyhow::Result<HashMap<String, R>>
@@ -120,16 +120,16 @@ impl PluginList {
     #[cfg(feature = "plugin")]
     fn add_plugins<F, M, T>(
         plugins: &mut HashMap<String, T>,
-        schema: &Schema,
+        schema: &mut Schema,
         func: F,
         mapper: &M,
     ) -> anyhow::Result<()>
     where
-        F: Fn(&AnyValue) -> Vec<String>,
+        F: Fn(&mut AnyValue) -> anyhow::Result<Vec<String>>,
         M: Fn(String, Value, String) -> anyhow::Result<Option<(String, T)>>,
     {
         plugins.extend(
-            func(&schema.value)
+            func(&mut schema.value)?
                 .into_iter()
                 .filter(|p| !plugins.contains_key(p))
                 .filter_map(|p| {
@@ -179,27 +179,34 @@ impl PluginList {
     }
 
     #[cfg(feature = "plugin")]
-    fn find_object_transformers(object: &Object) -> Vec<String> {
+    fn find_object_transformers(object: &mut Object) -> anyhow::Result<Vec<String>> {
         let mut props = object
             .properties
-            .iter()
-            .flat_map(|(_, val)| Self::find_transformers(val))
-            .collect::<Vec<String>>();
+            .iter_mut()
+            .map(|(_, val)| Self::find_transformers(val))
+            .collect::<anyhow::Result<Vec<_>>>()?
+            .into_iter()
+            .flatten()
+            .collect::<Vec<_>>();
+
         if let Some(transform) = &object.transform {
             props.extend(Self::transformers_to_vec(transform, &props))
         }
 
-        props
+        Ok(props)
     }
 
     #[cfg(feature = "plugin")]
-    fn find_array_transformers(array: &Array) -> Vec<String> {
+    fn find_array_transformers(array: &mut Array) -> anyhow::Result<Vec<String>> {
         let mut props = match array {
-            Array::RandomArray(arr) => Self::find_transformers(&arr.items),
+            Array::RandomArray(arr) => Self::find_transformers(&mut arr.items)?,
             Array::ArrayWithValues(arr) => arr
                 .values
-                .iter()
-                .flat_map(Self::find_transformers)
+                .iter_mut()
+                .map(Self::find_transformers)
+                .collect::<anyhow::Result<Vec<_>>>()?
+                .into_iter()
+                .flatten()
                 .collect(),
         };
 
@@ -207,26 +214,32 @@ impl PluginList {
             props.extend(Self::transformers_to_vec(transform, &props));
         }
 
-        props
+        Ok(props)
     }
 
     #[cfg(feature = "plugin")]
-    fn find_flatten_transformers(flatten: &Flatten) -> Vec<String> {
+    fn find_flatten_transformers(flatten: &mut Flatten) -> anyhow::Result<Vec<String>> {
         let mut props = flatten
             .values
-            .iter()
-            .flat_map(|val| match val {
-                FlattenableValue::Object(obj) => Self::find_object_transformers(obj),
-                FlattenableValue::Reference(reference) => Self::map_transform(reference),
-                FlattenableValue::Plugin(gen) => Self::map_transform(gen),
-                FlattenableValue::Array(array) => Self::find_array_transformers(array),
+            .iter_mut()
+            .map(|val| {
+                Ok(match val {
+                    FlattenableValue::Object(obj) => Self::find_object_transformers(obj)?,
+                    FlattenableValue::Reference(reference) => Self::map_transform(reference),
+                    FlattenableValue::Plugin(gen) => Self::map_transform(gen),
+                    FlattenableValue::Array(array) => Self::find_array_transformers(array)?,
+                })
             })
-            .collect::<Vec<String>>();
+            .collect::<anyhow::Result<Vec<_>>>()?
+            .into_iter()
+            .flatten()
+            .collect::<Vec<_>>();
+
         if let Some(transform) = &flatten.transform {
             props.extend(Self::transformers_to_vec(transform, &props));
         }
 
-        props
+        Ok(props)
     }
 
     #[cfg(feature = "plugin")]
@@ -238,19 +251,19 @@ impl PluginList {
 
     /// I am Bumblebee, I am Bumblebee, I am Bumblebee
     #[cfg(feature = "plugin")]
-    fn find_transformers(any: &AnyValue) -> Vec<String> {
+    fn find_transformers(any: &mut AnyValue) -> anyhow::Result<Vec<String>> {
         match any {
             AnyValue::Any(any) => Self::find_transformers_in_any(any),
-            _ => vec![],
+            _ => Ok(vec![]),
         }
     }
 
     #[cfg(feature = "plugin")]
-    fn find_transformers_in_any(any: &Any) -> Vec<String> {
-        match any {
-            Any::Object(object) => Self::find_object_transformers(object),
-            Any::Array(array) => Self::find_array_transformers(array),
-            Any::Flatten(flatten) => Self::find_flatten_transformers(flatten),
+    fn find_transformers_in_any(any: &mut Any) -> anyhow::Result<Vec<String>> {
+        Ok(match any {
+            Any::Object(object) => Self::find_object_transformers(object)?,
+            Any::Array(array) => Self::find_array_transformers(array)?,
+            Any::Flatten(flatten) => Self::find_flatten_transformers(flatten)?,
             rest => match rest {
                 Any::String(str) => str.get_transform(),
                 Any::AnyOf(any_of) => any_of.get_transform(),
@@ -264,37 +277,49 @@ impl PluginList {
                 Any::Object(_) => panic!("Object should be handled above"),
                 Any::Array(_) => panic!("Array should be handled above"),
                 Any::Flatten(_) => panic!("Flatten should be handled above"),
+                Any::Include(include) => {
+                    *rest = include.as_schema()?;
+                    return Self::find_transformers_in_any(rest);
+                }
             }
             .map(|t| Self::transformers_to_vec(&t, &[]))
             .unwrap_or_default(),
-        }
+        })
     }
 
     #[cfg(feature = "plugin")]
-    fn find_generators(any: &AnyValue) -> Vec<String> {
+    fn find_generators(any: &mut AnyValue) -> anyhow::Result<Vec<String>> {
         match any {
             AnyValue::Any(any) => Self::find_generators_in_any(any),
-            _ => vec![],
+            _ => Ok(vec![]),
         }
     }
 
     #[cfg(feature = "plugin")]
-    fn find_generators_in_any(any: &Any) -> Vec<String> {
-        match any {
+    fn find_generators_in_any(any: &mut Any) -> anyhow::Result<Vec<String>> {
+        Ok(match any {
             Any::Plugin(gen) => vec![gen.plugin_name.clone()],
             Any::Object(obj) => obj
                 .properties
-                .iter()
-                .flat_map(|(_, val)| Self::find_generators(val))
+                .iter_mut()
+                .map(|(_, val)| Self::find_generators(val))
+                .collect::<anyhow::Result<Vec<_>>>()?
+                .into_iter()
+                .flatten()
                 .collect(),
-            Any::Array(arr) => match arr.as_ref() {
-                Array::RandomArray(arr) => Self::find_generators(&arr.items),
-                Array::ArrayWithValues(arr) => {
-                    arr.values.iter().flat_map(Self::find_generators).collect()
-                }
+            Any::Array(arr) => match arr.as_mut() {
+                Array::RandomArray(arr) => Self::find_generators(&mut arr.items)?,
+                Array::ArrayWithValues(arr) => arr
+                    .values
+                    .iter_mut()
+                    .map(Self::find_generators)
+                    .collect::<anyhow::Result<Vec<_>>>()?
+                    .into_iter()
+                    .flatten()
+                    .collect(),
             },
             _ => vec![],
-        }
+        })
     }
 
     pub fn get<'a>(&'a self, key: &String) -> anyhow::Result<&'a Arc<dyn Plugin>> {

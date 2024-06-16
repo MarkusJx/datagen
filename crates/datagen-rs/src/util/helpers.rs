@@ -98,10 +98,10 @@ pub fn read_schema<P: AsRef<Path>>(path: P) -> anyhow::Result<Schema> {
 /// println!("{}", data);
 /// ```
 pub fn generate_random_data(
-    schema: Schema,
+    mut schema: Schema,
     additional_plugins: Option<HashMap<String, Arc<dyn Plugin>>>,
 ) -> anyhow::Result<String> {
-    let plugins = PluginList::from_schema(&schema, additional_plugins)?;
+    let plugins = PluginList::from_schema(&mut schema, additional_plugins)?;
     let options = Arc::new(schema.options.unwrap_or_default());
     let root = CurrentSchema::root(options.clone(), plugins.clone());
     let generated = schema.value.into_random(root.into())?;

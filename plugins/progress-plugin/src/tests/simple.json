@@ -1,0 +1,9 @@
+{
+  "type": "object",
+  "properties": {
+    "array": {
+      "type": "include",
+      "path": "src/tests/array.json"
+    }
+  }
+}

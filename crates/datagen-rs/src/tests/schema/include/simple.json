@@ -1,0 +1,9 @@
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "include",
+      "path": "src/tests/schema/include/name.json"
+    }
+  }
+}

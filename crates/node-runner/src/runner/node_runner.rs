@@ -35,7 +35,7 @@ impl NodeRunner {
     /// This method spawns a new Node.js instance and loads the plugins.
     /// This method can only be called once per process.
     /// If you want to load new plugins, use [`Self::load_new_plugins`].
-    pub fn init(schema: &Schema) -> anyhow::Result<(Option<Self>, PluginMap)> {
+    pub fn init(schema: &mut Schema) -> anyhow::Result<(Option<Self>, PluginMap)> {
         debug!("Initializing Node.js plugins");
         let node_plugins = Self::find_plugins(schema)?;
         if node_plugins.is_empty() {
@@ -83,7 +83,7 @@ impl NodeRunner {
         ))
     }
 
-    pub fn load_new_plugins(&self, schema: &Schema) -> anyhow::Result<PluginMap> {
+    pub fn load_new_plugins(&self, schema: &mut Schema) -> anyhow::Result<PluginMap> {
         let load_plugins = self.load_plugins.lock().unwrap();
         let (sender, receiver) = channel();
 
@@ -105,7 +105,7 @@ impl NodeRunner {
         Ok(plugins)
     }
 
-    fn find_plugins(schema: &Schema) -> anyhow::Result<Vec<NodePluginArgs>> {
+    fn find_plugins(schema: &mut Schema) -> anyhow::Result<Vec<NodePluginArgs>> {
         Ok(
             PluginList::find_and_map_plugins(schema, None, |name, args, path| {
                 if !name.starts_with("node:") && !path.starts_with("node:") {

@@ -61,7 +61,6 @@ fn test_date_time_from() {
 
     let generated = schema.into_generated(root_schema()).unwrap();
     let string = assert_enum!(generated, GeneratedSchema::String);
-    println!("{}", string);
     let parsed = DateTime::parse_from_rfc3339(&string).unwrap();
     assert!(parsed > DateTime::parse_from_rfc3339("2020-12-19T16:39:00Z").unwrap());
 }

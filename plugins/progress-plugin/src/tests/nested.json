@@ -1,0 +1,9 @@
+{
+  "type": "object",
+  "properties": {
+    "inner": {
+      "type": "include",
+      "path": "src/tests/simple.json"
+    }
+  }
+}
