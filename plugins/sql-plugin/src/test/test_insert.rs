@@ -211,9 +211,9 @@ fn test_serialize_with_progress() {
         }
     });
 
-    let schema = serde_json::from_value(schema).unwrap();
+    let mut schema = serde_json::from_value(schema).unwrap();
     let plugins = PluginList::from_schema(
-        &schema,
+        &mut schema,
         Some(
             vec![("sql".into(), plugin.clone() as Arc<dyn Plugin>)]
                 .into_iter()
