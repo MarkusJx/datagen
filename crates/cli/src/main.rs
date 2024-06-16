@@ -46,11 +46,11 @@ enum Commands {
 }
 
 fn generate_random_data(
-    schema: Schema,
+    mut schema: Schema,
     additional_plugins: Option<HashMap<String, Arc<dyn Plugin>>>,
     progress_bar: &mut CliProgressRef,
 ) -> anyhow::Result<(String, Arc<PluginList>)> {
-    let plugins = PluginList::from_schema(&schema, additional_plugins)?;
+    let plugins = PluginList::from_schema(&mut schema, additional_plugins)?;
     let options = Arc::new(schema.options.unwrap_or_default());
     let root = CurrentSchema::root(options.clone(), plugins.clone()).into();
     let generated = schema.value.into_random(root)?;
@@ -84,14 +84,14 @@ fn generate_data(
     let progress_bar_copy = progress_bar.clone();
     #[cfg_attr(not(feature = "node"), allow(unused_mut))]
     let PluginWithSchemaResult {
-        schema,
+        mut schema,
         mut plugins,
     } = ProgressPlugin::with_schema(read_schema(schema_file)?, move |current, total| {
         progress_bar_copy.increase(current, total);
     })?;
 
     #[cfg(feature = "node")]
-    let (_runner, node_plugins) = NodeRunner::init(&schema)?;
+    let (_runner, node_plugins) = NodeRunner::init(&mut schema)?;
     #[cfg(feature = "node")]
     plugins.extend(node_plugins);
     #[cfg(feature = "embedded-plugins")]

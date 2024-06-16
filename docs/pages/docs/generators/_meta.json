@@ -10,5 +10,6 @@
   "flatten": "flatten",
   "plugin": "plugin",
   "reference": "reference",
-  "file": "file"
+  "file": "file",
+  "include": "include"
 }

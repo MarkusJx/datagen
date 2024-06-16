@@ -1,0 +1,48 @@
+# include
+
+The `include` generator includes another schema file and uses it as a
+generator. This is useful for reusing common schema definitions across
+multiple files.
+
+The generator takes the following arguments:
+
+- `path`: The path to the schema file to include. This can be either
+  absolute or relative to the current working directory.
+
+## Example
+
+```json filename="schema.json"
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "include",
+      "path": "common/name.json"
+    },
+    "age": {
+      "type": "include",
+      "path": "common/age.json"
+    }
+  }
+}
+```
+
+```json filename="common/name.json"
+{
+  "type": "string",
+  "generator": {
+    "type": "fullName"
+  }
+}
+```
+
+```json filename="common/age.json"
+{
+  "type": "number",
+  "generator": {
+    "type": "number",
+    "min": 18,
+    "max": 100
+  }
+}
+```

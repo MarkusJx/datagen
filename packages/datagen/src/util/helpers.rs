@@ -8,14 +8,14 @@ use napi::{Env, JsFunction};
 use std::sync::Arc;
 
 pub(crate) fn generate_random_data_with_progress<F>(
-    schema: Schema,
+    mut schema: Schema,
     progress_callback: Option<F>,
     additional_plugins: Option<PluginMap>,
 ) -> anyhow::Result<String>
 where
     F: (Fn(usize, usize) -> anyhow::Result<()>) + Send + Sync + 'static,
 {
-    let plugins = PluginList::from_schema(&schema, additional_plugins)?;
+    let plugins = PluginList::from_schema(&mut schema, additional_plugins)?;
     let options = Arc::new(schema.options.unwrap_or_default());
     let root = CurrentSchema::root(options.clone(), plugins.clone());
     let generated = schema.value.into_random(root.into())?;

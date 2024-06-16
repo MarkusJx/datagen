@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serialize", serde(untagged, deny_unknown_fields))]
 pub enum ArrayLength {
+    ShortConstant(u32),
     Constant { value: u32 },
     Random { min: u32, max: u32 },
 }
@@ -56,6 +57,7 @@ pub mod generate {
     impl ArrayLength {
         pub fn get_length(&self) -> u32 {
             match self {
+                ArrayLength::ShortConstant(value) => *value,
                 ArrayLength::Constant { value } => *value,
                 ArrayLength::Random { min, max } => {
                     let mut rng = rand::thread_rng();

@@ -11,7 +11,7 @@ type RunnerPlugins = (NodeRunner, PluginMap);
 
 static SCHEMA: Lazy<RunnerPlugins> = Lazy::new(|| {
     napi::__private::register_class("CurrentSchema", None, "CurrentSchema\0", vec![]);
-    let schema = serde_json::from_value(json!({
+    let mut schema = serde_json::from_value(json!({
         "options": {
             "plugins": {
                 "test": {
@@ -31,7 +31,7 @@ static SCHEMA: Lazy<RunnerPlugins> = Lazy::new(|| {
     }))
     .unwrap();
 
-    let (runner, plugins) = NodeRunner::init(&schema).unwrap();
+    let (runner, plugins) = NodeRunner::init(&mut schema).unwrap();
     (runner.unwrap(), plugins)
 });
 
@@ -59,7 +59,7 @@ fn get_schema(mut args: Value) -> Schema {
 
 #[test]
 fn test_generate() {
-    let schema = get_schema(json!({
+    let mut schema = get_schema(json!({
         "type": "plugin",
         "pluginName": "test",
         "args": {
@@ -67,7 +67,7 @@ fn test_generate() {
         }
     }));
 
-    let plugins = SCHEMA.0.load_new_plugins(&schema).unwrap();
+    let plugins = SCHEMA.0.load_new_plugins(&mut schema).unwrap();
     let generated = generate_random_data(schema, Some(plugins)).unwrap();
 
     assert_eq!(
@@ -81,7 +81,7 @@ fn test_generate() {
 
 #[test]
 fn test_transform() {
-    let schema = get_schema(json!({
+    let mut schema = get_schema(json!({
         "type": "object",
         "properties": {
             "test": "value"
@@ -97,7 +97,7 @@ fn test_transform() {
         ]
     }));
 
-    let plugins = SCHEMA.0.load_new_plugins(&schema).unwrap();
+    let plugins = SCHEMA.0.load_new_plugins(&mut schema).unwrap();
     let generated = generate_random_data(schema, Some(plugins)).unwrap();
 
     assert_eq!(
@@ -112,7 +112,7 @@ fn test_transform() {
 
 #[test]
 fn test_serialize() {
-    let schema = serde_json::from_value(json!({
+    let mut schema = serde_json::from_value(json!({
         "options": {
             "plugins": {
                 "test": {
@@ -141,7 +141,7 @@ fn test_serialize() {
     }))
     .unwrap();
 
-    let plugins = SCHEMA.0.load_new_plugins(&schema).unwrap();
+    let plugins = SCHEMA.0.load_new_plugins(&mut schema).unwrap();
     let generated = generate_random_data(schema, Some(plugins)).unwrap();
 
     assert_eq!(
@@ -156,7 +156,7 @@ fn test_serialize() {
 
 #[test]
 fn test_generate_not_implemented() {
-    let schema = get_schema(json!({
+    let mut schema = get_schema(json!({
         "type": "plugin",
         "pluginName": "empty",
         "args": {
@@ -164,7 +164,7 @@ fn test_generate_not_implemented() {
         }
     }));
 
-    let plugins = SCHEMA.0.load_new_plugins(&schema).unwrap();
+    let plugins = SCHEMA.0.load_new_plugins(&mut schema).unwrap();
     let err = generate_random_data(schema, Some(plugins)).unwrap_err();
 
     assert_error_eq(
@@ -177,7 +177,7 @@ fn test_generate_not_implemented() {
 
 #[test]
 fn test_transform_not_implemented() {
-    let schema = get_schema(json!({
+    let mut schema = get_schema(json!({
         "type": "object",
         "properties": {
             "test": "value"
@@ -193,7 +193,7 @@ fn test_transform_not_implemented() {
         ]
     }));
 
-    let plugins = SCHEMA.0.load_new_plugins(&schema).unwrap();
+    let plugins = SCHEMA.0.load_new_plugins(&mut schema).unwrap();
     let err = generate_random_data(schema, Some(plugins)).unwrap_err();
 
     assert_error_eq(
@@ -206,7 +206,7 @@ fn test_transform_not_implemented() {
 
 #[test]
 fn test_serialize_not_implemented() {
-    let schema = serde_json::from_value(json!({
+    let mut schema = serde_json::from_value(json!({
         "options": {
             "plugins": {
                 "test": {
@@ -235,7 +235,7 @@ fn test_serialize_not_implemented() {
     }))
     .unwrap();
 
-    let plugins = SCHEMA.0.load_new_plugins(&schema).unwrap();
+    let plugins = SCHEMA.0.load_new_plugins(&mut schema).unwrap();
     let err = generate_random_data(schema, Some(plugins)).unwrap_err();
 
     assert_error_eq(
