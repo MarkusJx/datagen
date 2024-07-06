@@ -32,7 +32,7 @@ const SourceCode: React.FC<Props> = ({ children }) => {
     } else {
       setGenerated('Generating...');
       generateRandomData(code, setGenerating, setGenerated, true).catch((e) =>
-        console.error('Failed to generate data', e)
+        console.error('Failed to generate data', e),
       );
     }
   };
@@ -65,16 +65,16 @@ const SourceCode: React.FC<Props> = ({ children }) => {
 
     parent.appendChild(
       renderChild(
-        <Button title="Run example" onClick={() => handleRun(code)}>
+        <Button title='Run example' onClick={() => handleRun(code)}>
           <BsPlay size={22} />
         </Button>,
         'div',
-        ['run-button']
-      )
+        ['run-button'],
+      ),
     );
   }, [workerInitialized, workerSupported, ref.current]);
 
-  return <div ref={ref}>{children}</div>;
+  return <div ref={ref} style={{ 'marginTop': '1.5rem' }}>{children}</div>;
 };
 
 export default SourceCode;

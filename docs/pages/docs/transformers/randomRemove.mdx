@@ -1,0 +1,124 @@
+import RunCode from '../../../components/run/RunCode';
+
+# randomRemove
+
+The `randomRemove` transformer will randomly remove values from an array or object or
+remove single values based on chance.
+
+It has the following properties:
+
+- `chance`: The chance that a value will be removed. The chance must be a number between 0 and 1.
+  Only applies to single values. If not set, the chance will be 0.5.
+- `fields`: A list of fields to possibly remove. Only applies to objects.
+  If not set, all fields will be considered.
+- `min`: The minimum number of values to remove. Only applies to objects and arrays.
+  If not set, the minimum will be 0.
+- `max`: The maximum number of values to remove. Only applies to objects and arrays.
+  If not set, the maximum will be the length of the array or object.
+
+## Examples
+
+### Remove between 1 and 3 values from an array
+
+<RunCode>
+```json
+{
+  "type": "array",
+  "length": {
+    "value": 5
+  },
+  "items": {
+    "type": "integer",
+    "min": 0,
+    "max": 10
+  },
+  "transform": [
+    {
+      "type": "randomRemove",
+      "min": 1,
+      "max": 3
+    }
+  ]
+}
+```
+</RunCode>
+
+### Remove between 1 and 3 fields from an object
+
+<RunCode>
+```json
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "value": "John"
+    },
+    "age": {
+      "type": "integer",
+      "value": 20
+    },
+    "city": {
+      "type": "string",
+      "value": "New York"
+    }
+  },
+  "transform": [
+    {
+      "type": "randomRemove",
+      "min": 1,
+      "max": 3
+    }
+  ]
+}
+```
+</RunCode>
+
+### Remove between 1 and 3 fields from an object with specific fields
+
+<RunCode>
+```json
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "value": "John"
+    },
+    "age": {
+      "type": "integer",
+      "value": 20
+    },
+    "city": {
+      "type": "string",
+      "value": "New York"
+    }
+  },
+  "transform": [
+    {
+      "type": "randomRemove",
+      "fields": ["name", "age"],
+      "min": 1,
+      "max": 2
+    }
+  ]
+}
+```
+</RunCode>
+
+### Remove a value with a 50% chance
+
+<RunCode>
+```json
+{
+  "type": "integer",
+  "value": 5,
+  "transform": [
+    {
+      "type": "randomRemove",
+      "chance": 0.5
+    }
+  ]
+}
+```
+</RunCode>

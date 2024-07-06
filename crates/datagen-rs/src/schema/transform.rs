@@ -1,6 +1,7 @@
 use crate::schema::reference::Reference;
 use crate::transform::filter::FilterTransform;
 use crate::transform::plugin_transform::PluginTransform;
+use crate::transform::random_remove::RandomRemoveTransform;
 use crate::transform::regex_filter::RegexFilter;
 use crate::transform::sort::SortTransform;
 use crate::transform::string_case_transform::ToLowerCase;
@@ -29,6 +30,7 @@ pub enum Transform {
     ToLowerCase(ToLowerCase),
     Sort(SortTransform),
     Plugin(PluginTransform),
+    RandomRemove(RandomRemoveTransform),
 }
 
 #[derive(Debug, Clone)]
@@ -97,6 +99,7 @@ pub mod generate {
                 Transform::RegexFilter(regex_filter) => regex_filter.transform(schema, value),
                 Transform::Sort(sort) => sort.transform(schema, value),
                 Transform::Plugin(plugin) => plugin.transform(schema, value),
+                Transform::RandomRemove(random_remove) => random_remove.transform(schema, value),
             }
         }
     }
