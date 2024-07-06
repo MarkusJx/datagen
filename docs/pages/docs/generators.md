@@ -17,3 +17,4 @@ You can also create your own generators.
 - [`plugin`](generators/plugin.md)
 - [`reference`](generators/reference.mdx)
 - [`file`](generators/file.md)
+- [`include`](generators/include.mdx)

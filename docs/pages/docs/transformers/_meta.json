@@ -1,6 +1,7 @@
 {
   "filter": "filter",
   "filterNonNull": "filterNonNull",
+  "randomRemove": "randomRemove",
   "regexFilter": "regexFilter",
   "sort": "sort",
   "toUpperCase": "toUpperCase",

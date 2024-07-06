@@ -74,7 +74,11 @@ const SourceCode: React.FC<Props> = ({ children }) => {
     );
   }, [workerInitialized, workerSupported, ref.current]);
 
-  return <div ref={ref}>{children}</div>;
+  return (
+    <div ref={ref} style={{ marginTop: '1.5rem' }}>
+      {children}
+    </div>
+  );
 };
 
 export default SourceCode;
