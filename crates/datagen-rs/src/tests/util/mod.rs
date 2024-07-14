@@ -42,3 +42,13 @@ macro_rules! generate_schema {
                 .into_random($crate::tests::util::root_schema())
         };
     }
+
+#[macro_export]
+macro_rules! schema {
+    ($($json:tt)+) => {
+        serde_json::from_value::<$crate::schema::schema_definition::Schema>(
+            serde_json::json!($($json)+)
+        )
+        .unwrap()
+    };
+}

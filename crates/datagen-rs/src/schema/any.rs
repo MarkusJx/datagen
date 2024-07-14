@@ -12,9 +12,31 @@ use crate::schema::plugin::Plugin;
 use crate::schema::reference::Reference;
 use crate::schema::string::StringSchema;
 #[cfg(feature = "schema")]
+use schemars::gen::SchemaGenerator;
+#[cfg(feature = "schema")]
+use schemars::schema::Schema;
+#[cfg(feature = "schema")]
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "schema", derive(JsonSchema))]
+#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serialize", serde(untagged))]
+pub enum MaybeValidAny {
+    Valid(Any),
+    #[cfg_attr(
+        feature = "schema",
+        schemars(schema_with = "create_maybe_valid_any_schema")
+    )]
+    Invalid(serde_json::Value),
+}
+
+#[cfg(feature = "schema")]
+fn create_maybe_valid_any_schema(gen: &mut SchemaGenerator) -> Schema {
+    gen.subschema_for::<Any>()
+}
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "schema", derive(JsonSchema))]
@@ -41,8 +63,8 @@ pub mod generate {
     use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::generate::IntoGeneratedArc;
     use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
-    use crate::schema::any::Any;
-    use crate::schema::transform::Transform;
+    use crate::schema::any::{Any, MaybeValidAny};
+    use crate::schema::transform::MaybeValidTransform;
     use std::sync::Arc;
 
     impl IntoGeneratedArc for Any {
@@ -67,8 +89,37 @@ pub mod generate {
             }
         }
 
-        fn get_transform(&self) -> Option<Vec<Transform>> {
+        fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
             None
+        }
+    }
+
+    impl IntoGeneratedArc for MaybeValidAny {
+        fn into_generated_arc(
+            self,
+            schema: DatagenContextRef,
+        ) -> anyhow::Result<Arc<GeneratedSchema>> {
+            self.into_inner(&schema)?.into_generated_arc(schema)
+        }
+
+        fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
+            match self {
+                MaybeValidAny::Valid(inner) => inner.get_transform(),
+                MaybeValidAny::Invalid(_) => None,
+            }
+        }
+    }
+
+    impl MaybeValidAny {
+        pub fn into_inner(self, schema: &DatagenContextRef) -> anyhow::Result<Any> {
+            match self {
+                MaybeValidAny::Valid(inner) => Ok(inner),
+                MaybeValidAny::Invalid(err) => Err(anyhow::anyhow!(
+                    "Failed to parse schema at {}\nInvalid value was:\n{}",
+                    schema.path()?.to_string(),
+                    serde_json::to_string_pretty(&err).unwrap_or_default()
+                )),
+            }
         }
     }
 }

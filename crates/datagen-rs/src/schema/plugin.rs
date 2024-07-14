@@ -1,4 +1,4 @@
-use crate::schema::transform::Transform;
+use crate::schema::transform::MaybeValidTransform;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
@@ -12,7 +12,7 @@ use serde_json::Value;
 pub struct Plugin {
     pub plugin_name: String,
     pub args: Option<Value>,
-    pub transform: Option<Vec<Transform>>,
+    pub transform: Option<Vec<MaybeValidTransform>>,
 }
 
 #[cfg(feature = "generate")]
@@ -21,7 +21,7 @@ pub mod generate {
     use crate::generate::generated_schema::generate::IntoGeneratedArc;
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::schema::plugin::Plugin;
-    use crate::schema::transform::Transform;
+    use crate::schema::transform::MaybeValidTransform;
     use std::sync::Arc;
 
     impl IntoGeneratedArc for Plugin {
@@ -34,7 +34,7 @@ pub mod generate {
                 .generate(schema, self.args.unwrap_or_default())
         }
 
-        fn get_transform(&self) -> Option<Vec<Transform>> {
+        fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
             self.transform.clone()
         }
     }

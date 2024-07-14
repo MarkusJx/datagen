@@ -1,4 +1,4 @@
-use crate::schema::transform::Transform;
+use crate::schema::transform::MaybeValidTransform;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
@@ -11,11 +11,11 @@ use serde::{Deserialize, Serialize};
 pub enum Bool {
     Random {
         probability: Option<f64>,
-        transform: Option<Vec<Transform>>,
+        transform: Option<Vec<MaybeValidTransform>>,
     },
     Constant {
         value: bool,
-        transform: Option<Vec<Transform>>,
+        transform: Option<Vec<MaybeValidTransform>>,
     },
 }
 
@@ -25,7 +25,7 @@ pub mod generate {
     use crate::generate::generated_schema::generate::IntoGenerated;
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::schema::bool::Bool;
-    use crate::schema::transform::Transform;
+    use crate::schema::transform::MaybeValidTransform;
     use rand::Rng;
 
     impl IntoGenerated for Bool {
@@ -40,7 +40,7 @@ pub mod generate {
             })
         }
 
-        fn get_transform(&self) -> Option<Vec<Transform>> {
+        fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
             match self {
                 Bool::Constant { transform, .. } => transform.clone(),
                 Bool::Random { transform, .. } => transform.clone(),

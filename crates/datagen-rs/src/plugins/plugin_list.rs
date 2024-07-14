@@ -6,6 +6,8 @@ use crate::plugins::plugin::Plugin;
 #[cfg(feature = "plugin")]
 use crate::schema::any::Any;
 #[cfg(feature = "plugin")]
+use crate::schema::any::MaybeValidAny;
+#[cfg(feature = "plugin")]
 use crate::schema::any_value::AnyValue;
 #[cfg(feature = "plugin")]
 use crate::schema::array::Array;
@@ -19,6 +21,8 @@ use crate::schema::schema_definition::PluginInitArgs;
 use crate::schema::schema_definition::Schema;
 #[cfg(feature = "plugin")]
 use crate::schema::serializer::Serializer;
+#[cfg(feature = "plugin")]
+use crate::schema::transform::MaybeValidTransform;
 #[cfg(feature = "plugin")]
 use crate::schema::transform::Transform;
 use anyhow::anyhow;
@@ -167,11 +171,11 @@ impl PluginList {
     }
 
     #[cfg(feature = "plugin")]
-    fn transformers_to_vec(transform: &[Transform], loaded: &[String]) -> Vec<String> {
+    fn transformers_to_vec(transform: &[MaybeValidTransform], loaded: &[String]) -> Vec<String> {
         transform
             .iter()
             .filter_map(|t| match t {
-                Transform::Plugin(plugin) => Some(plugin.name.clone()),
+                MaybeValidTransform::Valid(Transform::Plugin(plugin)) => Some(plugin.name.clone()),
                 _ => None,
             })
             .filter(|name| !loaded.contains(name))
@@ -259,31 +263,34 @@ impl PluginList {
     }
 
     #[cfg(feature = "plugin")]
-    fn find_transformers_in_any(any: &mut Any) -> anyhow::Result<Vec<String>> {
+    fn find_transformers_in_any(any: &mut MaybeValidAny) -> anyhow::Result<Vec<String>> {
         Ok(match any {
-            Any::Object(object) => Self::find_object_transformers(object)?,
-            Any::Array(array) => Self::find_array_transformers(array)?,
-            Any::Flatten(flatten) => Self::find_flatten_transformers(flatten)?,
-            rest => match rest {
-                Any::String(str) => str.get_transform(),
-                Any::AnyOf(any_of) => any_of.get_transform(),
-                Any::Reference(reference) => reference.get_transform(),
-                Any::Integer(integer) => IntoGeneratedArc::get_transform(integer),
-                Any::Number(number) => IntoGeneratedArc::get_transform(number),
-                Any::Counter(counter) => IntoGeneratedArc::get_transform(counter),
-                Any::Bool(boolean) => IntoGeneratedArc::get_transform(boolean),
-                Any::Plugin(plugin) => plugin.get_transform(),
-                Any::File(file) => IntoGeneratedArc::get_transform(file),
-                Any::Object(_) => panic!("Object should be handled above"),
-                Any::Array(_) => panic!("Array should be handled above"),
-                Any::Flatten(_) => panic!("Flatten should be handled above"),
-                Any::Include(include) => {
-                    *rest = include.as_schema()?;
-                    return Self::find_transformers_in_any(rest);
+            MaybeValidAny::Valid(inner) => match inner {
+                Any::Object(object) => Self::find_object_transformers(object)?,
+                Any::Array(array) => Self::find_array_transformers(array)?,
+                Any::Flatten(flatten) => Self::find_flatten_transformers(flatten)?,
+                rest => match rest {
+                    Any::String(str) => str.get_transform(),
+                    Any::AnyOf(any_of) => any_of.get_transform(),
+                    Any::Reference(reference) => reference.get_transform(),
+                    Any::Integer(integer) => IntoGeneratedArc::get_transform(integer),
+                    Any::Number(number) => IntoGeneratedArc::get_transform(number),
+                    Any::Counter(counter) => IntoGeneratedArc::get_transform(counter),
+                    Any::Bool(boolean) => IntoGeneratedArc::get_transform(boolean),
+                    Any::Plugin(plugin) => plugin.get_transform(),
+                    Any::File(file) => IntoGeneratedArc::get_transform(file),
+                    Any::Object(_) => panic!("Object should be handled above"),
+                    Any::Array(_) => panic!("Array should be handled above"),
+                    Any::Flatten(_) => panic!("Flatten should be handled above"),
+                    Any::Include(include) => {
+                        *any = include.as_schema()?;
+                        return Self::find_transformers_in_any(any);
+                    }
                 }
-            }
-            .map(|t| Self::transformers_to_vec(&t, &[]))
-            .unwrap_or_default(),
+                .map(|t| Self::transformers_to_vec(&t, &[]))
+                .unwrap_or_default(),
+            },
+            MaybeValidAny::Invalid(_) => vec![],
         })
     }
 
@@ -296,29 +303,32 @@ impl PluginList {
     }
 
     #[cfg(feature = "plugin")]
-    fn find_generators_in_any(any: &mut Any) -> anyhow::Result<Vec<String>> {
+    fn find_generators_in_any(any: &mut MaybeValidAny) -> anyhow::Result<Vec<String>> {
         Ok(match any {
-            Any::Plugin(gen) => vec![gen.plugin_name.clone()],
-            Any::Object(obj) => obj
-                .properties
-                .iter_mut()
-                .map(|(_, val)| Self::find_generators(val))
-                .collect::<anyhow::Result<Vec<_>>>()?
-                .into_iter()
-                .flatten()
-                .collect(),
-            Any::Array(arr) => match arr.as_mut() {
-                Array::RandomArray(arr) => Self::find_generators(&mut arr.items)?,
-                Array::ArrayWithValues(arr) => arr
-                    .values
+            MaybeValidAny::Valid(inner) => match inner {
+                Any::Plugin(gen) => vec![gen.plugin_name.clone()],
+                Any::Object(obj) => obj
+                    .properties
                     .iter_mut()
-                    .map(Self::find_generators)
+                    .map(|(_, val)| Self::find_generators(val))
                     .collect::<anyhow::Result<Vec<_>>>()?
                     .into_iter()
                     .flatten()
                     .collect(),
+                Any::Array(arr) => match arr.as_mut() {
+                    Array::RandomArray(arr) => Self::find_generators(&mut arr.items)?,
+                    Array::ArrayWithValues(arr) => arr
+                        .values
+                        .iter_mut()
+                        .map(Self::find_generators)
+                        .collect::<anyhow::Result<Vec<_>>>()?
+                        .into_iter()
+                        .flatten()
+                        .collect(),
+                },
+                _ => vec![],
             },
-            _ => vec![],
+            MaybeValidAny::Invalid(_) => vec![],
         })
     }
 

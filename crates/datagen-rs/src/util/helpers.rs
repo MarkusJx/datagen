@@ -8,6 +8,8 @@ use crate::plugins::plugin::Plugin;
 use crate::plugins::plugin_list::PluginList;
 #[cfg(any(feature = "schema", any(feature = "serialize", feature = "generate")))]
 use crate::schema::schema_definition::Schema;
+#[cfg(feature = "serialize")]
+use anyhow::Context;
 #[cfg(feature = "schema")]
 use schemars::schema_for;
 #[cfg(feature = "schema")]
@@ -63,10 +65,16 @@ pub fn write_json_schema<P: AsRef<Path>>(path: P) -> anyhow::Result<()> {
 /// let schema = read_schema("schema.json").unwrap();
 /// ```
 pub fn read_schema<P: AsRef<Path>>(path: P) -> anyhow::Result<Schema> {
-    let file = File::open(path)?;
-    let schema: Schema = crate::util::json_deserialize::from_reader(file)?;
+    let file = File::open(&path).context("Failed to read schema file")?;
+    let res = crate::util::json_deserialize::from_reader(file);
 
-    Ok(schema)
+    match res {
+        Ok(schema) => Ok(schema),
+        Err(e) => {
+            let deserializer = &mut serde_json::Deserializer::from_reader(File::open(&path)?);
+            serde_path_to_error::deserialize(deserializer).context(e)
+        }
+    }
 }
 
 #[cfg(feature = "generate")]

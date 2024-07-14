@@ -4,17 +4,17 @@ use crate::generate_schema;
 use crate::schema::any_value::AnyValue;
 use crate::schema::object::Object;
 use crate::schema::string::StringSchema;
-use crate::schema::transform::Transform;
+use crate::schema::transform::{MaybeValidTransform, Transform};
 use crate::tests::util::root_schema;
 use crate::transform::filter::{FilterTransform, FilterTransformOp};
 use serde_json::json;
 
-fn create_filter(operator: FilterTransformOp, other: GeneratedSchema) -> Transform {
-    Transform::Filter(FilterTransform {
+fn create_filter(operator: FilterTransformOp, other: GeneratedSchema) -> MaybeValidTransform {
+    MaybeValidTransform::Valid(Transform::Filter(FilterTransform {
         operator,
         other,
         field: None,
-    })
+    }))
 }
 
 #[test]

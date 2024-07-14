@@ -4,12 +4,14 @@ use crate::util::cli_progress::{CliProgressRef, CliProgressTrait, CliProgressTyp
 #[cfg(feature = "embedded-plugins")]
 use crate::util::plugins::load_plugins;
 use clap::{Parser, Subcommand};
+use colored::Colorize;
 use datagen_rs::generate::current_schema::CurrentSchema;
 use datagen_rs::generate::generated_schema::IntoRandom;
 use datagen_rs::plugins::plugin::Plugin;
 use datagen_rs::plugins::plugin_list::PluginList;
 use datagen_rs::schema::schema_definition::Schema;
 use datagen_rs::util::helpers::{read_schema, write_json_schema};
+use datagen_rs::validation::validate::Validate;
 #[cfg(feature = "node")]
 use datagen_rs_node_runner::runner::node_runner::NodeRunner;
 use datagen_rs_progress_plugin::{PluginWithSchemaResult, ProgressPlugin};
@@ -42,6 +44,13 @@ enum Commands {
         /// The log level to use
         #[arg(short, long)]
         log_level: Option<LevelFilter>,
+        /// Whether to disable schema validation before generating the data
+        #[arg(short, long, default_value("false"))]
+        no_validate: bool,
+    },
+    Validate {
+        /// The path to the schema file to use
+        schema_file: String,
     },
 }
 
@@ -79,14 +88,20 @@ fn generate_random_data(
 fn generate_data(
     schema_file: String,
     out_file: Option<String>,
+    disable_validation: bool,
     progress_bar: &mut CliProgressRef,
 ) -> anyhow::Result<Option<String>> {
     let progress_bar_copy = progress_bar.clone();
+    let schema = read_schema(schema_file)?;
+    if !disable_validation {
+        schema.validate()?;
+    }
+
     #[cfg_attr(not(feature = "node"), allow(unused_mut))]
     let PluginWithSchemaResult {
         mut schema,
         mut plugins,
-    } = ProgressPlugin::with_schema(read_schema(schema_file)?, move |current, total| {
+    } = ProgressPlugin::with_schema(schema, move |current, total| {
         progress_bar_copy.increase(current, total);
     })?;
 
@@ -110,6 +125,32 @@ fn generate_data(
     }
 }
 
+fn validate_schema(schema_file: String) -> anyhow::Result<()> {
+    let schema = read_schema(schema_file)?;
+    let Err(error) = schema.validate() else {
+        return Ok(());
+    };
+
+    let cause = error
+        .iter()
+        .enumerate()
+        .map(|(i, e)| {
+            format!(
+                "  {}:\n{}",
+                format!("Validation error #{}", i + 1).bright_cyan(),
+                e.to_string()
+                    .split('\n')
+                    .map(|s| format!("    {}", s))
+                    .collect::<Vec<_>>()
+                    .join("\n")
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    anyhow::bail!("Found {} schema violations:\n{}", error.len(), cause);
+}
+
 fn main() {
     let args = CommendLineArgs::parse();
 
@@ -118,6 +159,7 @@ fn main() {
             schema_file,
             out_file,
             log_level,
+            no_validate,
         } => {
             log4rs::init_config(
                 Config::builder()
@@ -136,7 +178,7 @@ fn main() {
 
             let mut progress_bar = CliProgressRef::with_type(CliProgressType::Generate);
 
-            let res = generate_data(schema_file, out_file, &mut progress_bar);
+            let res = generate_data(schema_file, out_file, no_validate, &mut progress_bar);
             progress_bar.finish(res.is_ok());
 
             match res {
@@ -156,5 +198,14 @@ fn main() {
                 exit(1);
             }
         }
+        Commands::Validate { schema_file } => match validate_schema(schema_file) {
+            Err(e) => {
+                eprintln!("{}: {e}", "Failed to validate the schema".bright_red());
+                exit(1);
+            }
+            Ok(_) => {
+                println!("{} The schema is valid.", "Success!".bright_green());
+            }
+        },
     }
 }

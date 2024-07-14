@@ -8,9 +8,31 @@ use crate::transform::string_case_transform::ToLowerCase;
 use crate::transform::string_case_transform::ToUpperCase;
 use crate::transform::to_string::ToStringTransform;
 #[cfg(feature = "schema")]
+use schemars::gen::SchemaGenerator;
+#[cfg(feature = "schema")]
+use schemars::schema::Schema;
+#[cfg(feature = "schema")]
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "schema", derive(JsonSchema))]
+#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serialize", serde(untagged))]
+pub enum MaybeValidTransform {
+    Valid(Transform),
+    #[cfg_attr(
+        feature = "schema",
+        schemars(schema_with = "create_maybe_valid_transform_schema")
+    )]
+    Invalid(serde_json::Value),
+}
+
+#[cfg(feature = "schema")]
+fn create_maybe_valid_transform_schema(gen: &mut SchemaGenerator) -> Schema {
+    gen.subschema_for::<Transform>()
+}
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "schema", derive(JsonSchema))]
@@ -47,7 +69,7 @@ pub mod generate {
     use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::generate::IntoGeneratedArc;
     use crate::generate::generated_schema::GeneratedSchema;
-    use crate::schema::transform::{ReferenceOrString, Transform};
+    use crate::schema::transform::{MaybeValidTransform, ReferenceOrString, Transform};
     use crate::util::traits::generate::{ResolveRef, TransformTrait};
     use anyhow::anyhow;
     use indexmap::IndexMap;
@@ -100,6 +122,23 @@ pub mod generate {
                 Transform::Sort(sort) => sort.transform(schema, value),
                 Transform::Plugin(plugin) => plugin.transform(schema, value),
                 Transform::RandomRemove(random_remove) => random_remove.transform(schema, value),
+            }
+        }
+    }
+
+    impl TransformTrait for MaybeValidTransform {
+        fn transform(
+            self,
+            schema: DatagenContextRef,
+            value: Arc<GeneratedSchema>,
+        ) -> anyhow::Result<Arc<GeneratedSchema>> {
+            match self {
+                MaybeValidTransform::Valid(transform) => transform.transform(schema, value),
+                MaybeValidTransform::Invalid(err) => Err(anyhow!(
+                    "Failed to parse transform schema at {}\nInvalid value was:{}",
+                    schema.path()?.to_string(),
+                    serde_json::to_string(&err).unwrap_or_default()
+                )),
             }
         }
     }

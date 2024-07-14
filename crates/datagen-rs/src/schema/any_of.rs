@@ -1,5 +1,5 @@
 use crate::schema::any_value::AnyValue;
-use crate::schema::transform::Transform;
+use crate::schema::transform::MaybeValidTransform;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
@@ -12,7 +12,7 @@ pub struct AnyOf {
     pub values: Vec<AnyValue>,
     pub num: Option<i64>,
     pub allow_null: Option<bool>,
-    pub transform: Option<Vec<Transform>>,
+    pub transform: Option<Vec<MaybeValidTransform>>,
 }
 
 #[cfg(feature = "generate")]
@@ -21,7 +21,7 @@ pub mod generate {
     use crate::generate::generated_schema::generate::IntoGeneratedArc;
     use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
     use crate::schema::any_of::AnyOf;
-    use crate::schema::transform::Transform;
+    use crate::schema::transform::MaybeValidTransform;
     use rand::seq::SliceRandom;
     use rand::Rng;
     use std::cmp::Ordering;
@@ -63,7 +63,7 @@ pub mod generate {
             }
         }
 
-        fn get_transform(&self) -> Option<Vec<Transform>> {
+        fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
             self.transform.clone()
         }
     }

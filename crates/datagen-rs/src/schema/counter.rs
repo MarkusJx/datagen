@@ -1,4 +1,4 @@
-use crate::schema::transform::Transform;
+use crate::schema::transform::MaybeValidTransform;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 )]
 pub struct Counter {
     pub step: Option<i64>,
-    pub transform: Option<Vec<Transform>>,
+    pub transform: Option<Vec<MaybeValidTransform>>,
     pub path_specific: Option<bool>,
     pub start: Option<i64>,
 }
@@ -24,7 +24,7 @@ pub mod generate {
     use crate::generate::generated_schema::generate::IntoGenerated;
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::schema::counter::Counter;
-    use crate::schema::transform::Transform;
+    use crate::schema::transform::MaybeValidTransform;
     use std::{
         collections::HashMap,
         ops::AddAssign,
@@ -72,7 +72,7 @@ pub mod generate {
             Ok(GeneratedSchema::Integer(value))
         }
 
-        fn get_transform(&self) -> Option<Vec<Transform>> {
+        fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
             self.transform.clone()
         }
     }

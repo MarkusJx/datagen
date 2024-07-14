@@ -1,5 +1,5 @@
 #[cfg(feature = "serialize")]
-use crate::schema::any::Any;
+use crate::schema::any::MaybeValidAny;
 #[cfg(feature = "serialize")]
 use crate::util::json_deserialize::from_reader;
 #[cfg(feature = "serialize")]
@@ -23,11 +23,11 @@ pub struct Include {
 
 #[cfg(feature = "serialize")]
 impl Include {
-    pub fn as_schema(&self) -> anyhow::Result<Any> {
+    pub fn as_schema(&self) -> anyhow::Result<MaybeValidAny> {
         debug!("Loading file at '{}'", self.path);
-        let file =
-            File::open(&self.path).context(format!("Could include file at '{}'", self.path))?;
-        let deserialized: Any =
+        let file = File::open(&self.path)
+            .context(format!("Could not open file to include at '{}'", self.path))?;
+        let deserialized: MaybeValidAny =
             from_reader(file).context(format!("Could not deserialize file at '{}'", self.path))?;
 
         Ok(deserialized)
@@ -40,7 +40,7 @@ pub mod generate {
     use crate::generate::generated_schema::generate::IntoGeneratedArc;
     use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
     use crate::schema::include::Include;
-    use crate::schema::transform::Transform;
+    use crate::schema::transform::MaybeValidTransform;
     use std::sync::Arc;
 
     impl IntoGeneratedArc for Include {
@@ -51,7 +51,7 @@ pub mod generate {
             self.as_schema()?.into_random(schema)
         }
 
-        fn get_transform(&self) -> Option<Vec<Transform>> {
+        fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
             None
         }
     }

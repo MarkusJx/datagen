@@ -1,6 +1,6 @@
 use crate::generate::datagen_context::DatagenContextRef;
 use crate::generate::generated_schema::GeneratedSchema;
-use crate::schema::transform::Transform;
+use crate::schema::transform::MaybeValidTransform;
 use indexmap::IndexMap;
 use std::sync::Arc;
 
@@ -8,7 +8,7 @@ pub trait MapSchema {
     fn map_index_map<K, F: Fn(&DatagenContextRef, K) -> anyhow::Result<Arc<GeneratedSchema>>>(
         &self,
         map: IndexMap<String, K>,
-        transform: Option<Vec<Transform>>,
+        transform: Option<Vec<MaybeValidTransform>>,
         finalize: bool,
         func: F,
     ) -> anyhow::Result<Arc<GeneratedSchema>>;
@@ -17,7 +17,7 @@ pub trait MapSchema {
         &self,
         num: usize,
         arg: K,
-        transform: Option<Vec<Transform>>,
+        transform: Option<Vec<MaybeValidTransform>>,
         finalize: bool,
         func: F,
     ) -> anyhow::Result<Arc<GeneratedSchema>>;
@@ -28,7 +28,7 @@ pub mod generate {
     use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::generate::schema_mapper::MapSchema;
-    use crate::schema::transform::Transform;
+    use crate::schema::transform::MaybeValidTransform;
     use crate::util::traits::generate::TransformTrait;
     use indexmap::IndexMap;
     use std::sync::Arc;
@@ -40,7 +40,7 @@ pub mod generate {
         >(
             &self,
             map: IndexMap<String, K>,
-            transform: Option<Vec<Transform>>,
+            transform: Option<Vec<MaybeValidTransform>>,
             finalize: bool,
             func: F,
         ) -> anyhow::Result<Arc<GeneratedSchema>> {
@@ -76,7 +76,7 @@ pub mod generate {
             &self,
             length: usize,
             value: K,
-            transform: Option<Vec<Transform>>,
+            transform: Option<Vec<MaybeValidTransform>>,
             finalize: bool,
             func: F,
         ) -> anyhow::Result<Arc<GeneratedSchema>> {

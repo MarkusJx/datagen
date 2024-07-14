@@ -203,7 +203,7 @@ impl SchemaPathAbi for SchemaPathAbiImpl {
 
     fn parts(&self) -> RVec<RString> where {
         self.inner
-            .0
+            .path
             .iter()
             .map(|s| RString::from(s.as_str()))
             .collect()
@@ -218,13 +218,13 @@ impl From<SchemaPath> for SchemaPathAbiBox {
 
 impl From<SchemaPathAbiBox> for SchemaPath {
     fn from(value: SchemaPathAbiBox) -> Self {
-        SchemaPath(
-            value
+        SchemaPath {
+            path: value
                 .parts()
                 .into_iter()
                 .map(|s| s.into())
                 .collect::<VecDeque<_>>(),
-        )
+        }
     }
 }
 
