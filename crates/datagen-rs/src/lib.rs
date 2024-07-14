@@ -28,3 +28,5 @@ pub mod schema;
 mod tests;
 pub mod transform;
 pub mod util;
+#[cfg(feature = "validate-schema")]
+pub mod validation;

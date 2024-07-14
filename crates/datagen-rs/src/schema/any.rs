@@ -19,6 +19,15 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "schema", derive(JsonSchema))]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serialize", serde(untagged))]
+pub enum MaybeValidAny {
+    Valid(Any),
+    Invalid(serde_json::Value),
+}
+
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "schema", derive(JsonSchema))]
+#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serialize", serde(tag = "type", rename_all = "camelCase"))]
 pub enum Any {
     Number(Number),
@@ -41,8 +50,8 @@ pub mod generate {
     use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::generate::IntoGeneratedArc;
     use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
-    use crate::schema::any::Any;
-    use crate::schema::transform::Transform;
+    use crate::schema::any::{Any, MaybeValidAny};
+    use crate::schema::transform::MaybeValidTransform;
     use std::sync::Arc;
 
     impl IntoGeneratedArc for Any {
@@ -67,8 +76,37 @@ pub mod generate {
             }
         }
 
-        fn get_transform(&self) -> Option<Vec<Transform>> {
+        fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
             None
+        }
+    }
+
+    impl IntoGeneratedArc for MaybeValidAny {
+        fn into_generated_arc(
+            self,
+            schema: DatagenContextRef,
+        ) -> anyhow::Result<Arc<GeneratedSchema>> {
+            self.into_inner(&schema)?.into_generated_arc(schema)
+        }
+
+        fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
+            match self {
+                MaybeValidAny::Valid(inner) => inner.get_transform(),
+                MaybeValidAny::Invalid(_) => None,
+            }
+        }
+    }
+
+    impl MaybeValidAny {
+        pub fn into_inner(self, schema: &DatagenContextRef) -> anyhow::Result<Any> {
+            match self {
+                MaybeValidAny::Valid(inner) => Ok(inner),
+                MaybeValidAny::Invalid(err) => Err(anyhow::anyhow!(
+                    "Failed to parse schema at {}\nInvalid value was:\n{}",
+                    schema.path()?.to_string(),
+                    serde_json::to_string_pretty(&err).unwrap_or_default()
+                )),
+            }
         }
     }
 }

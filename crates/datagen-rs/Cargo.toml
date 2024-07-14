@@ -27,19 +27,21 @@ abi_stable = { version = "~0.11", optional = true }
 dyn-clone = "~1.0"
 log = "~0.4"
 app-state = { version = "~0.1", optional = true }
+serde_path_to_error = { version = "0.1.16", optional = true }
 
 [dev-dependencies]
 envmnt = "~0.10"
 mockall = "~0.12"
 
 [features]
-all = ["plugin", "serialize", "generate", "schema", "native-plugin"]
+all = ["plugin", "serialize", "generate", "schema", "native-plugin", "validate-schema"]
 plugin = ["generate"]
 plugin-abi = ["dep:abi_stable", "dep:app-state"]
 native-plugin = ["plugin-abi", "plugin"]
-serialize = ["env-schema", "dep:serde", "indexmap/serde", "ordered-float/serde"]
+serialize = ["env-schema", "dep:serde", "dep:serde_path_to_error", "indexmap/serde", "ordered-float/serde"]
 map-schema = ["serialize", "dep:regex", "dep:handlebars", "dep:rand"]
 env-schema = ["dep:shellexpand"]
 generate = ["map-schema", "plugin", "dep:fake", "dep:chrono", "dep:serde_yaml", "dep:quick-xml", "dep:xml-rs"]
 schema = ["dep:serde", "dep:schemars", "ordered-float/schemars", "serialize"]
+validate-schema = ["serialize"]
 test = ["plugin"]

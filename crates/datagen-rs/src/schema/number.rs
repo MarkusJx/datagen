@@ -1,4 +1,4 @@
-use crate::schema::transform::Transform;
+use crate::schema::transform::MaybeValidTransform;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
 
@@ -14,11 +14,11 @@ pub enum Number {
         max: Option<f64>,
         #[cfg_attr(feature = "serialize", serde(skip_serializing_if = "Option::is_none"))]
         precision: Option<u8>,
-        transform: Option<Vec<Transform>>,
+        transform: Option<Vec<MaybeValidTransform>>,
     },
     Constant {
         value: f64,
-        transform: Option<Vec<Transform>>,
+        transform: Option<Vec<MaybeValidTransform>>,
     },
 }
 
@@ -31,7 +31,7 @@ pub mod generate {
     use crate::generate::generated_schema::generate::IntoGenerated;
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::schema::number::Number;
-    use crate::schema::transform::Transform;
+    use crate::schema::transform::MaybeValidTransform;
     use rand::Rng;
 
     impl IntoGenerated for Number {
@@ -57,7 +57,7 @@ pub mod generate {
             })
         }
 
-        fn get_transform(&self) -> Option<Vec<Transform>> {
+        fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
             match self {
                 Number::Constant { transform, .. } => transform.clone(),
                 Number::Random { transform, .. } => transform.clone(),

@@ -84,6 +84,8 @@ schema file as JSON objects. The following generators are available:
   strings.
 - [`bool`](https://markusjx.github.io/datagen/docs/generators/bool/): Generates random
   booleans.
+- [`counter`](https://markusjx.github.io/datagen/docs/generators/counter/) Generate
+  numbers which increment each time.
 - [`array`](https://markusjx.github.io/datagen/docs/generators/array/): Generates random
   arrays.
 - [`object`](https://markusjx.github.io/datagen/docs/generators/object/): Generates random
@@ -96,6 +98,36 @@ schema file as JSON objects. The following generators are available:
   array or object.
 - [`plugin`](https://markusjx.github.io/datagen/docs/generators/plugin/): Generates data
   using [plugins](https://markusjx.github.io/datagen/docs/plugins/).
+- [`file`](https://markusjx.github.io/datagen/docs/generators/file/): Read random values
+  from a JSON array inside a file.
+- [`include`](https://markusjx.github.io/datagen/docs/generators/include/): Include
+  external schema files.
+
+### Schema validation
+
+You can use `datagen validate schema.json` to validate a schema file.
+Currently, the following checks are performed:
+
+- Check if the schema is a valid JSON file.
+- Check if all `type`s match the supported types.
+- Check if all arguments are valid for the given type.
+- Check if files included by the `include` generator exist and are valid.
+- Check if files included by the `file` generator exist.
+- Check if all [transformers](https://markusjx.github.io/datagen/docs/transformers/) are
+  valid.
+
+The validation also runs before generating data using `datagen generate`.
+You can disable this behavior using the `--no-validate` flag.
+This disables all validation checks except for the first one.
+Potential schema errors will be thrown during generation, with less detailed error
+messages.
+
+A validation error includes:
+
+- The path to the error.
+- The error message.
+- The invalid value, if available.
+- The underlying error, if available.
 
 ### JSON schema
 

@@ -1,8 +1,8 @@
 use crate::generate::generated_schema::IntoRandom;
 use crate::generate_schema;
-use crate::schema::any::Any;
+use crate::schema::any::{Any, MaybeValidAny};
 use crate::schema::any_value::AnyValue;
-use crate::schema::transform::Transform;
+use crate::schema::transform::{MaybeValidTransform, Transform};
 use crate::tests::util::root_schema;
 use crate::transform::regex_filter::RegexFilter;
 use serde_json::json;
@@ -65,12 +65,12 @@ fn get_object_schema() -> AnyValue {
 }
 
 fn update_schema(regex: &str, mut any: &mut AnyValue) {
-    if let AnyValue::Any(Any::Object(obj)) = &mut any {
+    if let AnyValue::Any(MaybeValidAny::Valid(Any::Object(obj))) = &mut any {
         if let Some(transform) = &mut obj.transform {
-            transform[0] = Transform::RegexFilter(RegexFilter {
+            transform[0] = MaybeValidTransform::Valid(Transform::RegexFilter(RegexFilter {
                 pattern: regex.to_string(),
                 serialize_non_strings: Some(true),
-            });
+            }));
         }
     }
 }

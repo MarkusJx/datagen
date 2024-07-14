@@ -4,7 +4,6 @@ use log::error;
 pub mod generate {
     use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::GeneratedSchema;
-    use crate::schema::transform::Transform;
     use std::sync::Arc;
 
     pub trait TransformTrait {
@@ -15,7 +14,7 @@ pub mod generate {
         ) -> anyhow::Result<Arc<GeneratedSchema>>;
     }
 
-    impl TransformTrait for Vec<Transform> {
+    impl<T: TransformTrait> TransformTrait for Vec<T> {
         fn transform(
             self,
             schema: DatagenContextRef,

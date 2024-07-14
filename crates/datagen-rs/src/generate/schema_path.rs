@@ -4,30 +4,35 @@ use std::collections::VecDeque;
 use std::fmt::Display;
 
 #[derive(Clone, Debug)]
-pub struct SchemaPath(pub VecDeque<String>);
+pub struct SchemaPath {
+    pub path: VecDeque<String>,
+}
 
 impl SchemaPath {
     #[cfg(feature = "generate")]
     pub fn root() -> Self {
-        Self(VecDeque::new())
+        Self {
+            path: VecDeque::new(),
+        }
     }
 
     #[cfg(feature = "map-schema")]
     pub fn append<S: ToString>(&self, path: S) -> SchemaPath {
-        let mut res = self.0.clone();
+        let mut res = self.path.clone();
         res.push_back(path.to_string());
-        Self(res)
+
+        Self { path: res }
     }
 
     #[cfg(feature = "map-schema")]
     pub fn len(&self) -> usize {
-        self.0.len()
+        self.path.len()
     }
 
     #[cfg(feature = "map-schema")]
     #[allow(dead_code)]
     pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
+        self.path.is_empty()
     }
 
     #[cfg(any())]
@@ -44,21 +49,21 @@ impl SchemaPath {
             return self.clone();
         }
 
-        let mut res = self.0.clone();
+        let mut path = self.path.clone();
         for _ in 0..num {
             assert!(
-                res.pop_front().is_some(),
+                path.pop_front().is_some(),
                 "Tried to remove more elements from path {} than exist",
                 self
             );
         }
 
-        Self(res)
+        Self { path }
     }
 
     #[cfg(feature = "map-schema")]
     pub fn to_normalized_path(&self) -> String {
-        self.0
+        self.path
             .iter()
             .filter(|s| !s.chars().all(|c| c.is_numeric()))
             .cloned()
@@ -82,7 +87,7 @@ impl Display for SchemaPath {
         write!(
             f,
             "{}",
-            self.0.iter().cloned().collect::<Vec<_>>().join(".")
+            self.path.iter().cloned().collect::<Vec<_>>().join(".")
         )
     }
 }

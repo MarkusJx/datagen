@@ -14,7 +14,7 @@ use datagen_rs::generate::schema_mapper::MapSchema;
 use datagen_rs::plugins::plugin::Plugin;
 #[cfg(feature = "plugin")]
 use datagen_rs::plugins::plugin::PluginConstructor;
-use datagen_rs::schema::any::Any;
+use datagen_rs::schema::any::{Any, MaybeValidAny};
 use datagen_rs::schema::any_of::AnyOf;
 use datagen_rs::schema::any_value::AnyValue;
 use datagen_rs::schema::array::{Array, ArrayLength};
@@ -109,11 +109,13 @@ impl<F: Fn(usize, usize) + Send + Sync> ProgressPlugin<F> {
     {
         let progress: Arc<dyn Plugin> = Arc::new(ProgressPlugin::new(callback));
 
-        schema.value = AnyValue::Any(Any::Plugin(datagen_rs::schema::plugin::Plugin {
-            plugin_name: "progress".into(),
-            args: Some(serde_json::to_value(schema.value).map_err(anyhow::Error::new)?),
-            transform: None,
-        }));
+        schema.value = AnyValue::Any(MaybeValidAny::Valid(Any::Plugin(
+            datagen_rs::schema::plugin::Plugin {
+                plugin_name: "progress".into(),
+                args: Some(serde_json::to_value(schema.value).map_err(anyhow::Error::new)?),
+                transform: None,
+            },
+        )));
 
         Ok(PluginWithSchemaResult {
             schema,
@@ -132,6 +134,7 @@ impl<F: Fn(usize, usize) + Send + Sync> ProgressPlugin<F> {
     /// ```
     /// use std::sync::Arc;
     /// use datagen_rs::plugins::plugin::Plugin;
+    /// use datagen_rs::schema::any::MaybeValidAny;
     /// use datagen_rs::schema::any::Any;
     /// use datagen_rs::schema::any_value::AnyValue;
     /// use datagen_rs::schema::schema_definition::Schema;
@@ -144,11 +147,11 @@ impl<F: Fn(usize, usize) + Send + Sync> ProgressPlugin<F> {
     ///
     /// let schema = Schema {
     ///     options: None,
-    ///     value: AnyValue::Any(Any::Plugin(datagen_rs::schema::plugin::Plugin {
+    ///     value: AnyValue::Any(MaybeValidAny::Valid(Any::Plugin(datagen_rs::schema::plugin::Plugin {
     ///         plugin_name: "progress".into(),
     ///         args: Some(serde_json::to_value(AnyValue::String("test".into())).unwrap()),
     ///         transform: None
-    ///     }))
+    ///     })))
     /// };
     ///
     /// let generated = generate_random_data(
@@ -179,7 +182,7 @@ impl<F: Fn(usize, usize) + Send + Sync> ProgressPlugin<F> {
         val: AnyValue,
     ) -> anyhow::Result<Arc<GeneratedSchema>> {
         match val {
-            AnyValue::Any(any) => match any {
+            AnyValue::Any(any) => match any.into_inner(&schema)? {
                 Any::Array(array) => self.convert_array(schema, *array),
                 Any::Object(object) => self.convert_object(schema, *object),
                 Any::AnyOf(any_of) => self.convert_any_of(schema, any_of),
@@ -286,60 +289,63 @@ impl<F: Fn(usize, usize) + Send + Sync> ProgressPlugin<F> {
     fn map_any(&self, val: &mut AnyValue) -> anyhow::Result<usize> {
         if let AnyValue::Any(any) = val {
             match any {
-                Any::Array(array) => self.map_array(array.as_mut()),
-                Any::Object(object) => {
-                    let mut len = 1;
-                    for (_, value) in &mut object.properties {
-                        len += self.map_any(value)?;
-                    }
-
-                    Ok(len)
-                }
-                Any::AnyOf(any_of) => {
-                    let any_of_str = serde_json::to_string(any_of).unwrap();
-                    let mut lock = self.any_of_values.lock().unwrap();
-
-                    let mut values = any_of.values.clone();
-                    values.shuffle(&mut rand::thread_rng());
-                    let min = if any_of.allow_null.unwrap_or(false) {
-                        0
-                    } else {
-                        1
-                    };
-
-                    let mut num = any_of.num.unwrap_or(1);
-                    match num.cmp(&0) {
-                        core::cmp::Ordering::Equal => num = -1,
-                        core::cmp::Ordering::Less => {
-                            num = rand::thread_rng().gen_range(min..=any_of.values.len() as i64)
+                MaybeValidAny::Valid(inner) => match inner {
+                    Any::Array(array) => self.map_array(array.as_mut()),
+                    Any::Object(object) => {
+                        let mut len = 1;
+                        for (_, value) in &mut object.properties {
+                            len += self.map_any(value)?;
                         }
-                        _ => {}
-                    }
 
-                    if num >= 0 {
-                        values.drain(num as usize..);
+                        Ok(len)
                     }
+                    Any::AnyOf(any_of) => {
+                        let any_of_str = serde_json::to_string(any_of).unwrap();
+                        let mut lock = self.any_of_values.lock().unwrap();
 
-                    let mut len = 1;
-                    for val in &mut values {
-                        len += self.map_any(val)?;
+                        let mut values = any_of.values.clone();
+                        values.shuffle(&mut rand::thread_rng());
+                        let min = if any_of.allow_null.unwrap_or(false) {
+                            0
+                        } else {
+                            1
+                        };
+
+                        let mut num = any_of.num.unwrap_or(1);
+                        match num.cmp(&0) {
+                            core::cmp::Ordering::Equal => num = -1,
+                            core::cmp::Ordering::Less => {
+                                num = rand::thread_rng().gen_range(min..=any_of.values.len() as i64)
+                            }
+                            _ => {}
+                        }
+
+                        if num >= 0 {
+                            values.drain(num as usize..);
+                        }
+
+                        let mut len = 1;
+                        for val in &mut values {
+                            len += self.map_any(val)?;
+                        }
+
+                        if let Some(queue) = lock.get_mut(&any_of_str) {
+                            queue.push_back(values);
+                        } else {
+                            let mut res = VecDeque::new();
+                            res.push_back(values);
+                            lock.insert(any_of_str, res);
+                        }
+
+                        Ok(len)
                     }
-
-                    if let Some(queue) = lock.get_mut(&any_of_str) {
-                        queue.push_back(values);
-                    } else {
-                        let mut res = VecDeque::new();
-                        res.push_back(values);
-                        lock.insert(any_of_str, res);
+                    Any::Include(include) => {
+                        *any = include.as_schema()?;
+                        self.map_any(val)
                     }
-
-                    Ok(len)
-                }
-                Any::Include(include) => {
-                    *any = include.as_schema()?;
-                    self.map_any(val)
-                }
-                _ => Ok(1),
+                    _ => Ok(1),
+                },
+                MaybeValidAny::Invalid(_) => Ok(1),
             }
         } else {
             Ok(1)

@@ -80,14 +80,14 @@ pub trait IntoRandom {
 pub mod generate {
     use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
-    use crate::schema::transform::Transform;
+    use crate::schema::transform::MaybeValidTransform;
     use crate::util::traits::generate::TransformTrait;
     use std::sync::Arc;
 
     pub(crate) trait IntoGenerated: Sized {
         fn into_generated(self, schema: DatagenContextRef) -> anyhow::Result<GeneratedSchema>;
 
-        fn get_transform(&self) -> Option<Vec<Transform>>;
+        fn get_transform(&self) -> Option<Vec<MaybeValidTransform>>;
 
         fn should_finalize(&self) -> bool {
             true
@@ -100,7 +100,7 @@ pub mod generate {
             schema: DatagenContextRef,
         ) -> anyhow::Result<Arc<GeneratedSchema>>;
 
-        fn get_transform(&self) -> Option<Vec<Transform>>;
+        fn get_transform(&self) -> Option<Vec<MaybeValidTransform>>;
 
         fn should_finalize(&self) -> bool {
             true
@@ -118,7 +118,7 @@ pub mod generate {
             Ok(Arc::new(self.into_generated(schema)?))
         }
 
-        fn get_transform(&self) -> Option<Vec<Transform>> {
+        fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
             self.get_transform()
         }
 

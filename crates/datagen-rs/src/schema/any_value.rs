@@ -1,4 +1,4 @@
-use crate::schema::any::Any;
+use crate::schema::any::MaybeValidAny;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serialize", serde(untagged))]
 pub enum AnyValue {
-    Any(Any),
+    Any(MaybeValidAny),
     String(String),
     Number(f64),
     Bool(bool),
@@ -22,7 +22,7 @@ pub mod generate {
     use crate::generate::generated_schema::generate::IntoGeneratedArc;
     use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
     use crate::schema::any_value::AnyValue;
-    use crate::schema::transform::Transform;
+    use crate::schema::transform::MaybeValidTransform;
     use std::sync::Arc;
 
     impl IntoGeneratedArc for AnyValue {
@@ -41,7 +41,7 @@ pub mod generate {
             }
         }
 
-        fn get_transform(&self) -> Option<Vec<Transform>> {
+        fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
             None
         }
 

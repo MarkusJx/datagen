@@ -14,6 +14,15 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "schema", derive(JsonSchema))]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serialize", serde(untagged))]
+pub enum MaybeValidTransform {
+    Valid(Transform),
+    Invalid(serde_json::Value),
+}
+
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "schema", derive(JsonSchema))]
+#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 #[cfg_attr(
     feature = "serialize",
     serde(tag = "type", rename_all = "camelCase", deny_unknown_fields)
@@ -45,7 +54,7 @@ pub mod generate {
     use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::generate::IntoGeneratedArc;
     use crate::generate::generated_schema::GeneratedSchema;
-    use crate::schema::transform::{ReferenceOrString, Transform};
+    use crate::schema::transform::{MaybeValidTransform, ReferenceOrString, Transform};
     use crate::util::traits::generate::{ResolveRef, TransformTrait};
     use anyhow::anyhow;
     use indexmap::IndexMap;
@@ -97,6 +106,23 @@ pub mod generate {
                 Transform::RegexFilter(regex_filter) => regex_filter.transform(schema, value),
                 Transform::Sort(sort) => sort.transform(schema, value),
                 Transform::Plugin(plugin) => plugin.transform(schema, value),
+            }
+        }
+    }
+
+    impl TransformTrait for MaybeValidTransform {
+        fn transform(
+            self,
+            schema: DatagenContextRef,
+            value: Arc<GeneratedSchema>,
+        ) -> anyhow::Result<Arc<GeneratedSchema>> {
+            match self {
+                MaybeValidTransform::Valid(transform) => transform.transform(schema, value),
+                MaybeValidTransform::Invalid(err) => Err(anyhow!(
+                    "Failed to parse transform schema at {}\nInvalid value was:{}",
+                    schema.path()?.to_string(),
+                    serde_json::to_string(&err).unwrap_or_default()
+                )),
             }
         }
     }

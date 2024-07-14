@@ -1,5 +1,5 @@
 use crate::schema::any_value::AnyValue;
-use crate::schema::transform::Transform;
+use crate::schema::transform::MaybeValidTransform;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
@@ -30,7 +30,7 @@ pub enum Array {
 pub struct RandomArray {
     pub length: ArrayLength,
     pub items: AnyValue,
-    pub transform: Option<Vec<Transform>>,
+    pub transform: Option<Vec<MaybeValidTransform>>,
 }
 
 #[derive(Debug, Clone)]
@@ -38,7 +38,7 @@ pub struct RandomArray {
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 pub struct ArrayWithValues {
     pub values: Vec<AnyValue>,
-    pub transform: Option<Vec<Transform>>,
+    pub transform: Option<Vec<MaybeValidTransform>>,
 }
 
 #[cfg(feature = "generate")]
@@ -48,7 +48,7 @@ pub mod generate {
     use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
     use crate::generate::schema_mapper::MapSchema;
     use crate::schema::array::{Array, ArrayLength};
-    use crate::schema::transform::Transform;
+    use crate::schema::transform::MaybeValidTransform;
     use rand::Rng;
     use std::sync::Arc;
 
@@ -80,7 +80,7 @@ pub mod generate {
             }
         }
 
-        fn get_transform(&self) -> Option<Vec<Transform>> {
+        fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
             match self {
                 Array::RandomArray(random_array) => random_array.get_transform(),
                 Array::ArrayWithValues(array_with_values) => array_with_values.get_transform(),
@@ -99,7 +99,7 @@ pub mod generate {
             })
         }
 
-        fn get_transform(&self) -> Option<Vec<Transform>> {
+        fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
             self.transform.clone()
         }
     }
@@ -118,7 +118,7 @@ pub mod generate {
             .into())
         }
 
-        fn get_transform(&self) -> Option<Vec<Transform>> {
+        fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
             self.transform.clone()
         }
     }
