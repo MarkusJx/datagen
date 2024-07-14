@@ -9,11 +9,11 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serialize", serde(untagged))]
 pub enum AnyValue {
-    Any(MaybeValidAny),
     String(String),
     Number(f64),
     Bool(bool),
     Null,
+    Any(MaybeValidAny),
 }
 
 #[cfg(feature = "generate")]

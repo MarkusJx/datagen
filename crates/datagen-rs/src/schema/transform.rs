@@ -7,6 +7,10 @@ use crate::transform::string_case_transform::ToLowerCase;
 use crate::transform::string_case_transform::ToUpperCase;
 use crate::transform::to_string::ToStringTransform;
 #[cfg(feature = "schema")]
+use schemars::gen::SchemaGenerator;
+#[cfg(feature = "schema")]
+use schemars::schema::Schema;
+#[cfg(feature = "schema")]
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
@@ -17,7 +21,16 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "serialize", serde(untagged))]
 pub enum MaybeValidTransform {
     Valid(Transform),
+    #[cfg_attr(
+        feature = "schema",
+        schemars(schema_with = "create_maybe_valid_transform_schema")
+    )]
     Invalid(serde_json::Value),
+}
+
+#[cfg(feature = "schema")]
+fn create_maybe_valid_transform_schema(gen: &mut SchemaGenerator) -> Schema {
+    gen.subschema_for::<Transform>()
 }
 
 #[derive(Debug, Clone)]

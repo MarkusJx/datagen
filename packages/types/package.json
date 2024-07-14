@@ -25,12 +25,13 @@
   },
   "homepage": "https://github.com/MarkusJx/datagen#readme",
   "devDependencies": {
+    "@types/node": "^20.14.10",
     "datagen-rs-wasm": "file:../../crates/datagen-wasm/node-pkg",
-    "json-schema-to-typescript": "^13.1.1",
-    "prettier": "^3.0.3",
-    "tsx": "^3.12.10",
-    "typescript": "^5.2.2",
-    "wasm-pack": "^0.12.1"
+    "json-schema-to-typescript": "^14.1.0",
+    "prettier": "^3.3.3",
+    "tsx": "^4.16.2",
+    "typescript": "^5.5.3",
+    "wasm-pack": "^0.13.0"
   },
   "prettier": {
     "printWidth": 80,

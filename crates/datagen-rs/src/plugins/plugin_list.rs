@@ -3,6 +3,7 @@ use crate::generate::generated_schema::generate::IntoGeneratedArc;
 #[cfg(feature = "native-plugin")]
 use crate::plugins::imported_plugin::ImportedPlugin;
 use crate::plugins::plugin::Plugin;
+#[cfg(feature = "plugin")]
 use crate::schema::any::Any;
 #[cfg(feature = "plugin")]
 use crate::schema::any::MaybeValidAny;
@@ -20,6 +21,7 @@ use crate::schema::schema_definition::PluginInitArgs;
 use crate::schema::schema_definition::Schema;
 #[cfg(feature = "plugin")]
 use crate::schema::serializer::Serializer;
+#[cfg(feature = "plugin")]
 use crate::schema::transform::MaybeValidTransform;
 #[cfg(feature = "plugin")]
 use crate::schema::transform::Transform;

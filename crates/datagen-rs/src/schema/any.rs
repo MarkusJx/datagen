@@ -12,6 +12,10 @@ use crate::schema::plugin::Plugin;
 use crate::schema::reference::Reference;
 use crate::schema::string::StringSchema;
 #[cfg(feature = "schema")]
+use schemars::gen::SchemaGenerator;
+#[cfg(feature = "schema")]
+use schemars::schema::Schema;
+#[cfg(feature = "schema")]
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
@@ -22,7 +26,16 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "serialize", serde(untagged))]
 pub enum MaybeValidAny {
     Valid(Any),
+    #[cfg_attr(
+        feature = "schema",
+        schemars(schema_with = "create_maybe_valid_any_schema")
+    )]
     Invalid(serde_json::Value),
+}
+
+#[cfg(feature = "schema")]
+fn create_maybe_valid_any_schema(gen: &mut SchemaGenerator) -> Schema {
+    gen.subschema_for::<Any>()
 }
 
 #[derive(Debug, Clone)]

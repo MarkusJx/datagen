@@ -15,7 +15,7 @@ anyhow = { version = "~1.0", features = ["backtrace"] }
 xml-rs = { version = "~0.8", optional = true }
 serde_yaml = { version = "~0.9", optional = true }
 serde = { version = "~1.0", features = ["derive", "rc"], optional = true }
-quick-xml = { version = "~0.31", features = ["serde", "serialize"], optional = true }
+quick-xml = { version = "~0.36", features = ["serde", "serialize"], optional = true }
 schemars = { version = "~0.8", features = ["indexmap2"], optional = true }
 rand = { version = "~0.8", optional = true }
 fake = { version = "~2.9", features = ["uuid", "geo", "chrono"], optional = true }
