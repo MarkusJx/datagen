@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 pub struct FilterTransform {
     /// The field or reference to the field which will be used to compare the value
     /// with the other value specified in the `other` field. If this is not specified,
-    /// the value itself will be used. Also if this is specified and used on an array or object,
+    /// the value itself will be used. Also, if this is specified and used on an array or object,
     /// the whole array or object will be removed if the value of the field is not equal to the
     /// other value.
     pub field: Option<ReferenceOrString>,

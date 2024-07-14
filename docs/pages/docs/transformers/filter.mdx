@@ -9,7 +9,8 @@ The `filter` transformer has the following properties:
 
 - `field`: The field to filter. The field may be a reference to another field.
   If this is set and the transformer is used on an object or array, the whole object
-  or array will be removed if the field does not match the filter.
+  or array will be removed if the field does not match the filter. If this is not set,
+  the whole value will be used for comparison.
 - `operator`: The operator which will be used to compare the value with the other value.
   The operator may be one of:
   - `equals`: The value must be equal to the other value.
