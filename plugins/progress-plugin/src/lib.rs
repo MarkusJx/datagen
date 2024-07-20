@@ -301,7 +301,6 @@ impl<F: Fn(usize, usize) + Send + Sync> ProgressPlugin<F> {
                     }
                     Any::AnyOf(any_of) => {
                         let any_of_str = serde_json::to_string(any_of).unwrap();
-                        let mut lock = self.any_of_values.lock().unwrap();
 
                         let mut values = any_of.values.clone();
                         values.shuffle(&mut rand::thread_rng());
@@ -324,11 +323,12 @@ impl<F: Fn(usize, usize) + Send + Sync> ProgressPlugin<F> {
                             values.drain(num as usize..);
                         }
 
-                        let mut len = 1;
+                        let mut len = 0;
                         for val in &mut values {
                             len += self.map_any(val)?;
                         }
 
+                        let mut lock = self.any_of_values.lock().unwrap();
                         if let Some(queue) = lock.get_mut(&any_of_str) {
                             queue.push_back(values);
                         } else {

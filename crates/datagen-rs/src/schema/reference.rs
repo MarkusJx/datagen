@@ -1,4 +1,5 @@
 use crate::schema::transform::MaybeValidTransform;
+use crate::util::traits::GetTransform;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
@@ -24,13 +25,18 @@ pub enum StringOrNumber {
     Number(f64),
 }
 
+impl GetTransform for Reference {
+    fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
+        self.transform.clone()
+    }
+}
+
 #[cfg(feature = "map-schema")]
 pub mod generate {
     use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::generate::IntoGeneratedArc;
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::schema::reference::{Reference, StringOrNumber};
-    use crate::schema::transform::MaybeValidTransform;
     use rand::prelude::SliceRandom;
     use std::sync::Arc;
 
@@ -82,9 +88,23 @@ pub mod generate {
                 Arc::new(GeneratedSchema::None)
             })
         }
+    }
+}
 
-        fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
-            self.transform.clone()
+#[cfg(feature = "validate-schema")]
+pub mod validate {
+    use crate::schema::reference::Reference;
+    use crate::validation::path::ValidationPath;
+    use crate::validation::result::{IterValidate, ValidationResult};
+    use crate::validation::validate::ValidateGenerateSchema;
+
+    impl ValidateGenerateSchema for Reference {
+        fn validate_generate_schema(&self, path: &ValidationPath) -> ValidationResult {
+            ValidationResult::ensure(
+                !self.reference.is_empty(),
+                "reference must not be empty",
+                path,
+            )
         }
     }
 }

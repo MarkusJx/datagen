@@ -1,5 +1,6 @@
 use crate::schema::any_value::AnyValue;
 use crate::schema::transform::MaybeValidTransform;
+use crate::util::traits::GetTransform;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
@@ -41,6 +42,27 @@ pub struct ArrayWithValues {
     pub transform: Option<Vec<MaybeValidTransform>>,
 }
 
+impl GetTransform for RandomArray {
+    fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
+        self.transform.clone()
+    }
+}
+
+impl GetTransform for ArrayWithValues {
+    fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
+        self.transform.clone()
+    }
+}
+
+impl GetTransform for Array {
+    fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
+        match self {
+            Array::RandomArray(random_array) => random_array.get_transform(),
+            Array::ArrayWithValues(array_with_values) => array_with_values.get_transform(),
+        }
+    }
+}
+
 #[cfg(feature = "generate")]
 pub mod generate {
     use crate::generate::datagen_context::DatagenContextRef;
@@ -48,7 +70,6 @@ pub mod generate {
     use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
     use crate::generate::schema_mapper::MapSchema;
     use crate::schema::array::{Array, ArrayLength};
-    use crate::schema::transform::MaybeValidTransform;
     use rand::Rng;
     use std::sync::Arc;
 
@@ -79,13 +100,6 @@ pub mod generate {
                 }
             }
         }
-
-        fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
-            match self {
-                Array::RandomArray(random_array) => random_array.get_transform(),
-                Array::ArrayWithValues(array_with_values) => array_with_values.get_transform(),
-            }
-        }
     }
 
     impl IntoGeneratedArc for RandomArray {
@@ -97,10 +111,6 @@ pub mod generate {
             schema.map_array(length as _, self.items, None, false, |cur, value| {
                 value.into_random(cur.clone())
             })
-        }
-
-        fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
-            self.transform.clone()
         }
     }
 
@@ -117,9 +127,36 @@ pub mod generate {
             )
             .into())
         }
+    }
+}
 
-        fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
-            self.transform.clone()
+#[cfg(feature = "validate-schema")]
+pub mod validate {
+    use crate::schema::array::{Array, ArrayWithValues, RandomArray};
+    use crate::validation::path::ValidationPath;
+    use crate::validation::result::{IterValidate, ValidationResult};
+    use crate::validation::validate::{Validate, ValidateGenerateSchema};
+
+    impl ValidateGenerateSchema for RandomArray {
+        fn validate_generate_schema(&self, path: &ValidationPath) -> ValidationResult {
+            self.items.validate(&path.append_single("items"))
+        }
+    }
+
+    impl ValidateGenerateSchema for ArrayWithValues {
+        fn validate_generate_schema(&self, path: &ValidationPath) -> ValidationResult {
+            ValidationResult::validate(self.values.iter(), |i, value| {
+                value.validate(&path.append("items", i))
+            })
+        }
+    }
+
+    impl Validate for Array {
+        fn validate(&self, path: &ValidationPath) -> ValidationResult {
+            match self {
+                Array::RandomArray(random_array) => random_array.validate(path),
+                Array::ArrayWithValues(array_with_values) => array_with_values.validate(path),
+            }
         }
     }
 }

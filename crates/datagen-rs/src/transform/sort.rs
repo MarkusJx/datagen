@@ -109,3 +109,17 @@ pub mod generate {
         }
     }
 }
+
+#[cfg(feature = "validate-schema")]
+pub mod validate {
+    use crate::transform::sort::SortTransform;
+    use crate::validation::path::ValidationPath;
+    use crate::validation::result::ValidationResult;
+    use crate::validation::validate::Validate;
+
+    impl Validate for SortTransform {
+        fn validate(&self, _path: &ValidationPath) -> ValidationResult {
+            Ok(())
+        }
+    }
+}

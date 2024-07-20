@@ -1,5 +1,6 @@
 use crate::schema::reference::Reference;
 use crate::schema::transform::MaybeValidTransform;
+use crate::util::traits::GetTransform;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
@@ -81,13 +82,33 @@ pub enum StringSchema {
     },
 }
 
+impl GetTransform for StringSchema {
+    fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
+        match self {
+            StringSchema::Constant { transform, .. } => transform.clone(),
+            StringSchema::Generated { transform, .. } => transform.clone(),
+        }
+    }
+}
+
+impl GetTransform for StringGenerator {
+    fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
+        None
+    }
+}
+
+impl GetTransform for FormatArg {
+    fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
+        None
+    }
+}
+
 #[cfg(feature = "generate")]
 pub mod generate {
     use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::generate::{IntoGenerated, IntoGeneratedArc};
     use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
     use crate::schema::string::{FormatArg, StringGenerator, StringSchema};
-    use crate::schema::transform::MaybeValidTransform;
     use anyhow::{anyhow, Context};
     use chrono::{DateTime, SecondsFormat, Timelike, Utc};
     use fake::faker::address::en::{
@@ -111,13 +132,6 @@ pub mod generate {
             match self {
                 StringSchema::Constant { value, .. } => schema.resolve_ref(&value)?.into_random(),
                 StringSchema::Generated { generator, .. } => generator.into_random(schema),
-            }
-        }
-
-        fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
-            match self {
-                StringSchema::Constant { transform, .. } => transform.clone(),
-                StringSchema::Generated { transform, .. } => transform.clone(),
             }
         }
     }
@@ -257,12 +271,77 @@ pub mod generate {
             })
         }
 
-        fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
-            None
-        }
-
         fn should_finalize(&self) -> bool {
             false
+        }
+    }
+}
+
+#[cfg(feature = "validate-schema")]
+pub mod validate {
+    use crate::schema::string::{FormatArg, StringGenerator, StringSchema};
+    use crate::validation::path::ValidationPath;
+    use crate::validation::result::{IterValidate, ValidationResult};
+    use crate::validation::validate::{Validate, ValidateGenerateSchema};
+
+    impl ValidateGenerateSchema for StringSchema {
+        fn validate_generate_schema(&self, path: &ValidationPath) -> ValidationResult {
+            match self {
+                StringSchema::Generated { generator, .. } => generator.validate(path),
+                StringSchema::Constant { .. } => Ok(()),
+            }
+        }
+    }
+
+    impl ValidateGenerateSchema for StringGenerator {
+        fn validate_generate_schema(&self, path: &ValidationPath) -> ValidationResult {
+            match self {
+                StringGenerator::Format { format, args, .. } => ValidationResult::ensure(
+                    !format.is_empty(),
+                    "format must not be empty",
+                    &path.append_single("format"),
+                )
+                .concat(ValidationResult::validate(args.iter(), |_, (name, arg)| {
+                    arg.validate(&path.append("args", name))
+                })),
+                StringGenerator::DateTime { from, to, format } => from
+                    .as_ref()
+                    .map_or(Ok(()), |from| {
+                        ValidationResult::ensure_ok(
+                            chrono::DateTime::parse_from_rfc3339(from),
+                            "from must be a valid RFC 3339 date",
+                            &path.append_single("from"),
+                            Some(serde_json::Value::String(from.clone())),
+                        )
+                    })
+                    .concat(to.as_ref().map_or(Ok(()), |to| {
+                        ValidationResult::ensure(
+                            chrono::DateTime::parse_from_rfc3339(to).is_ok(),
+                            "to must be a valid RFC 3339 date",
+                            &path.append_single("to"),
+                        )
+                    }))
+                    .concat(format.as_ref().map_or(Ok(()), |format| {
+                        ValidationResult::ensure(
+                            format.is_empty()
+                                || chrono::DateTime::parse_from_str("2021-01-01 00:00:00", format)
+                                    .is_ok(),
+                            "format must be a valid date format",
+                            &path.append_single("format"),
+                        )
+                    })),
+                _ => Ok(()),
+            }
+        }
+    }
+
+    impl ValidateGenerateSchema for FormatArg {
+        fn validate_generate_schema(&self, path: &ValidationPath) -> ValidationResult {
+            match self {
+                FormatArg::StringSchema(schema) => schema.validate(path),
+                FormatArg::Reference(reference) => reference.validate(path),
+                _ => Ok(()),
+            }
         }
     }
 }

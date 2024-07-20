@@ -90,3 +90,42 @@ pub mod generate {
         }
     }
 }
+
+#[cfg(feature = "validate-schema")]
+pub mod validate {
+    use crate::transform::to_string::ToStringTransform;
+    use crate::validation::path::ValidationPath;
+    use crate::validation::result::{ValidationErrors, ValidationResult};
+    use crate::validation::validate::Validate;
+    use handlebars::Handlebars;
+
+    impl Validate for ToStringTransform {
+        fn validate(&self, path: &ValidationPath) -> ValidationResult {
+            match self {
+                ToStringTransform::Format { format, .. } => {
+                    if format.is_empty() {
+                        return Err(ValidationErrors::single(
+                            "format must not be empty",
+                            &path,
+                            None,
+                            None,
+                        ));
+                    }
+
+                    let mut hbs = Handlebars::new();
+                    if let Err(e) = hbs.register_template_string("template", format) {
+                        return Err(ValidationErrors::single(
+                            "invalid handlebars template",
+                            &path,
+                            Some(e.into()),
+                            None,
+                        ));
+                    }
+                }
+                ToStringTransform::Default => {}
+            }
+
+            Ok(())
+        }
+    }
+}

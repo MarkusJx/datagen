@@ -1,4 +1,5 @@
 use crate::schema::transform::MaybeValidTransform;
+use crate::util::traits::GetTransform;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
@@ -15,13 +16,18 @@ pub struct Plugin {
     pub transform: Option<Vec<MaybeValidTransform>>,
 }
 
+impl GetTransform for Plugin {
+    fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
+        self.transform.clone()
+    }
+}
+
 #[cfg(feature = "generate")]
 pub mod generate {
     use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::generate::IntoGeneratedArc;
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::schema::plugin::Plugin;
-    use crate::schema::transform::MaybeValidTransform;
     use std::sync::Arc;
 
     impl IntoGeneratedArc for Plugin {
@@ -33,9 +39,19 @@ pub mod generate {
                 .get_plugin(&self.plugin_name)?
                 .generate(schema, self.args.unwrap_or_default())
         }
+    }
+}
 
-        fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
-            self.transform.clone()
+#[cfg(feature = "validate-schema")]
+pub mod validate {
+    use crate::schema::plugin::Plugin;
+    use crate::validation::path::ValidationPath;
+    use crate::validation::result::ValidationResult;
+    use crate::validation::validate::ValidateGenerateSchema;
+
+    impl ValidateGenerateSchema for Plugin {
+        fn validate_generate_schema(&self, _path: &ValidationPath) -> ValidationResult {
+            Ok(())
         }
     }
 }

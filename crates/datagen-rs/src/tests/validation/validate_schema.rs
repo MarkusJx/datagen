@@ -9,7 +9,7 @@ fn test_validate_valid_string() {
         "value": "test"
     });
 
-    let result = schema.validate();
+    let result = schema.validate_root();
     assert!(result.is_ok());
 }
 
@@ -20,7 +20,7 @@ fn test_validate_invalid_string() {
         "value": 1
     });
 
-    let result = schema.validate();
+    let result = schema.validate_root();
     assert!(result.is_err());
     let error = result.unwrap_err();
     assert_eq!(error.len(), 1);
@@ -44,7 +44,7 @@ fn test_validate_valid_object() {
         }
     });
 
-    let result = schema.validate();
+    let result = schema.validate_root();
     assert!(result.is_ok());
 }
 
@@ -60,7 +60,7 @@ fn test_validate_invalid_object() {
         }
     });
 
-    let result = schema.validate();
+    let result = schema.validate_root();
     assert!(result.is_err());
     let error = result.unwrap_err();
     assert_eq!(error.len(), 1);
@@ -83,7 +83,7 @@ fn test_validate_valid_array() {
         }
     });
 
-    let result = schema.validate();
+    let result = schema.validate_root();
     assert!(result.is_ok());
 }
 
@@ -98,7 +98,7 @@ fn test_validate_invalid_array() {
         }
     });
 
-    let result = schema.validate();
+    let result = schema.validate_root();
     assert!(result.is_err());
     let error = result.unwrap_err();
     assert_eq!(error.len(), 1);
@@ -122,7 +122,7 @@ fn test_validate_valid_any_of() {
         ]
     });
 
-    let result = schema.validate();
+    let result = schema.validate_root();
     assert!(result.is_ok());
 }
 
@@ -138,7 +138,7 @@ fn test_validate_invalid_any_of() {
         ]
     });
 
-    let result = schema.validate();
+    let result = schema.validate_root();
     assert!(result.is_err());
     let error = result.unwrap_err();
     assert_eq!(error.len(), 1);
@@ -167,7 +167,7 @@ fn test_validate_valid_flatten() {
         ]
     });
 
-    let result = schema.validate();
+    let result = schema.validate_root();
     assert!(result.is_ok());
 }
 
@@ -188,7 +188,7 @@ fn test_validate_invalid_flatten() {
         ]
     });
 
-    let result = schema.validate();
+    let result = schema.validate_root();
     assert!(result.is_err());
     let error = result.unwrap_err();
     assert_eq!(error.len(), 1);
@@ -207,7 +207,7 @@ fn test_validate_invalid_file() {
         "path": "invalid.json"
     });
 
-    let result = schema.validate();
+    let result = schema.validate_root();
     assert!(result.is_err());
     let error = result.unwrap_err();
     assert_eq!(error.len(), 1);
@@ -238,7 +238,7 @@ fn test_validate_multiple_errors() {
         }
     });
 
-    let result = schema.validate();
+    let result = schema.validate_root();
     assert!(result.is_err());
     let error = result.unwrap_err();
     assert_eq!(error.len(), 2);
@@ -282,7 +282,7 @@ fn test_validate_complex() {
         }
     });
 
-    let result = schema.validate();
+    let result = schema.validate_root();
     assert!(result.is_err());
     let error = result.unwrap_err();
     assert_eq!(error.len(), 1);

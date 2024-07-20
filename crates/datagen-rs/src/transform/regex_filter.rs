@@ -51,3 +51,27 @@ pub mod generate {
         }
     }
 }
+
+#[cfg(feature = "validate-schema")]
+pub mod validate {
+    use crate::transform::regex_filter::RegexFilter;
+    use crate::validation::path::ValidationPath;
+    use crate::validation::result::{IterValidate, ValidationResult};
+    use crate::validation::validate::Validate;
+    use serde_json::Value;
+
+    impl Validate for RegexFilter {
+        fn validate(&self, path: &ValidationPath) -> ValidationResult {
+            if self.pattern.is_empty() {
+                return ValidationResult::single("pattern must not be empty", &path, None, None);
+            }
+
+            ValidationResult::ensure_ok(
+                regex::Regex::new(&self.pattern),
+                "invalid regex pattern",
+                &path,
+                Some(Value::String(self.pattern.clone())),
+            )
+        }
+    }
+}

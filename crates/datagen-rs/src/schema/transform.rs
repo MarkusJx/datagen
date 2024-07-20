@@ -143,3 +143,50 @@ pub mod generate {
         }
     }
 }
+
+#[cfg(feature = "validate-schema")]
+pub mod validate {
+    use crate::schema::transform::{MaybeValidTransform, ReferenceOrString, Transform};
+    use crate::validation::path::ValidationPath;
+    use crate::validation::result::{ValidationErrors, ValidationResult};
+    use crate::validation::validate::Validate;
+
+    impl Validate for Transform {
+        fn validate(&self, path: &ValidationPath) -> ValidationResult {
+            match self {
+                Transform::Filter(filter) => filter.validate(path),
+                Transform::FilterNonNull => Ok(()),
+                Transform::ToString(to_string) => to_string.validate(path),
+                Transform::ToLowerCase(to_lower_case) => to_lower_case.validate(path),
+                Transform::ToUpperCase(to_upper_case) => to_upper_case.validate(path),
+                Transform::RegexFilter(regex_filter) => regex_filter.validate(path),
+                Transform::Sort(sort) => sort.validate(path),
+                Transform::Plugin(plugin) => plugin.validate(path),
+                Transform::RandomRemove(random_remove) => random_remove.validate(path),
+            }
+        }
+    }
+
+    impl Validate for MaybeValidTransform {
+        fn validate(&self, path: &ValidationPath) -> ValidationResult {
+            match self {
+                MaybeValidTransform::Valid(transform) => transform.validate(path),
+                MaybeValidTransform::Invalid(err) => Err(ValidationErrors::single(
+                    "Failed to parse transform schema",
+                    path,
+                    None,
+                    Some(err.clone()),
+                )),
+            }
+        }
+    }
+
+    impl Validate for ReferenceOrString {
+        fn validate(&self, path: &ValidationPath) -> ValidationResult {
+            match self {
+                ReferenceOrString::Reference(reference) => reference.validate(path),
+                ReferenceOrString::String(_) => Ok(()),
+            }
+        }
+    }
+}

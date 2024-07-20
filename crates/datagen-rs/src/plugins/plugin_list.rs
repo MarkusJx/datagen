@@ -25,6 +25,7 @@ use crate::schema::serializer::Serializer;
 use crate::schema::transform::MaybeValidTransform;
 #[cfg(feature = "plugin")]
 use crate::schema::transform::Transform;
+use crate::util::traits::GetTransform;
 use anyhow::anyhow;
 #[cfg(feature = "native-plugin")]
 use anyhow::Context;
@@ -273,12 +274,12 @@ impl PluginList {
                     Any::String(str) => str.get_transform(),
                     Any::AnyOf(any_of) => any_of.get_transform(),
                     Any::Reference(reference) => reference.get_transform(),
-                    Any::Integer(integer) => IntoGeneratedArc::get_transform(integer),
-                    Any::Number(number) => IntoGeneratedArc::get_transform(number),
-                    Any::Counter(counter) => IntoGeneratedArc::get_transform(counter),
-                    Any::Bool(boolean) => IntoGeneratedArc::get_transform(boolean),
+                    Any::Integer(integer) => GetTransform::get_transform(integer),
+                    Any::Number(number) => GetTransform::get_transform(number),
+                    Any::Counter(counter) => GetTransform::get_transform(counter),
+                    Any::Bool(boolean) => GetTransform::get_transform(boolean),
                     Any::Plugin(plugin) => plugin.get_transform(),
-                    Any::File(file) => IntoGeneratedArc::get_transform(file),
+                    Any::File(file) => GetTransform::get_transform(file),
                     Any::Object(_) => panic!("Object should be handled above"),
                     Any::Array(_) => panic!("Array should be handled above"),
                     Any::Flatten(_) => panic!("Flatten should be handled above"),

@@ -1,7 +1,9 @@
 #[cfg(feature = "serialize")]
 use crate::schema::any::MaybeValidAny;
+use crate::schema::transform::MaybeValidTransform;
 #[cfg(feature = "serialize")]
 use crate::util::json_deserialize::from_reader;
+use crate::util::traits::GetTransform;
 #[cfg(feature = "serialize")]
 use anyhow::Context;
 #[cfg(feature = "serialize")]
@@ -34,13 +36,18 @@ impl Include {
     }
 }
 
+impl GetTransform for Include {
+    fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
+        None
+    }
+}
+
 #[cfg(feature = "generate")]
 pub mod generate {
     use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::generate::IntoGeneratedArc;
     use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
     use crate::schema::include::Include;
-    use crate::schema::transform::MaybeValidTransform;
     use std::sync::Arc;
 
     impl IntoGeneratedArc for Include {
@@ -50,9 +57,23 @@ pub mod generate {
         ) -> anyhow::Result<Arc<GeneratedSchema>> {
             self.as_schema()?.into_random(schema)
         }
+    }
+}
 
-        fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
-            None
+#[cfg(feature = "validate-schema")]
+pub mod validate {
+    use crate::schema::include::Include;
+    use crate::validation::path::ValidationPath;
+    use crate::validation::result::{ValidationErrors, ValidationResult};
+    use crate::validation::validate::{Validate, ValidateGenerateSchema};
+
+    impl ValidateGenerateSchema for Include {
+        fn validate_generate_schema(&self, path: &ValidationPath) -> ValidationResult {
+            self.as_schema()
+                .map_err(|e| {
+                    ValidationErrors::single("Invalid include schema", &path, Some(e), None)
+                })
+                .and_then(|schema| schema.validate(path))
         }
     }
 }

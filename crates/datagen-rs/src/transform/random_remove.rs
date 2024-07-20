@@ -85,3 +85,35 @@ pub mod generate {
         }
     }
 }
+
+#[cfg(feature = "validate-schema")]
+pub mod validate {
+    use crate::transform::random_remove::RandomRemoveTransform;
+    use crate::validation::path::ValidationPath;
+    use crate::validation::result::{IterValidate, ValidationResult};
+    use crate::validation::validate::Validate;
+
+    impl Validate for RandomRemoveTransform {
+        fn validate(&self, path: &ValidationPath) -> ValidationResult {
+            ValidationResult::valid()
+                .concat(if let Some(max) = self.max {
+                    ValidationResult::ensure(
+                        max >= self.min.unwrap_or(0),
+                        "max must be greater than or equal to min",
+                        path,
+                    )
+                } else {
+                    Ok(())
+                })
+                .concat(if let Some(chance) = self.chance {
+                    ValidationResult::ensure(
+                        chance >= 0.0 && chance <= 1.0,
+                        "chance must be between 0 and 1",
+                        path,
+                    )
+                } else {
+                    Ok(())
+                })
+        }
+    }
+}

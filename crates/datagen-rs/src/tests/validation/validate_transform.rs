@@ -15,7 +15,7 @@ fn test_validate_valid_transform() {
         ]
     });
 
-    let result = schema.validate();
+    let result = schema.validate_root();
     assert!(result.is_ok());
 }
 
@@ -32,7 +32,7 @@ fn test_validate_invalid_transform() {
         ]
     });
 
-    let result = schema.validate();
+    let result = schema.validate_root();
     assert!(result.is_err());
     let error = result.unwrap_err();
     assert_eq!(error.len(), 1);
@@ -69,7 +69,7 @@ fn test_validate_invalid_complex_transform() {
         }
     });
 
-    let result = schema.validate();
+    let result = schema.validate_root();
     assert!(result.is_err());
     let error = result.unwrap_err();
     assert_eq!(error.len(), 1);
@@ -97,7 +97,7 @@ fn test_validate_invalid_number_transform() {
         ]
     });
 
-    let result = schema.validate();
+    let result = schema.validate_root();
     assert!(result.is_err());
     let error = result.unwrap_err();
     assert_eq!(error.len(), 1);
@@ -125,7 +125,7 @@ fn test_validate_invalid_boolean_transform() {
         ]
     });
 
-    let result = schema.validate();
+    let result = schema.validate_root();
     assert!(result.is_err());
     let error = result.unwrap_err();
     assert_eq!(error.len(), 1);
@@ -157,10 +157,10 @@ fn test_validate_invalid_array_transform() {
             ]
     });
 
-    let result = schema.validate();
+    let result = schema.validate_root();
     assert!(result.is_err());
     let error = result.unwrap_err();
-    assert_eq!(error.len(), 1);
+    assert_eq!(error.len(), 1, "{error}");
     assert_eq!(error[0].message, "Failed to parse transform schema");
     assert_eq!(error[0].path, "transform.0");
     assert_eq!(
@@ -190,7 +190,7 @@ fn test_validate_invalid_object_transform() {
         ]
     });
 
-    let result = schema.validate();
+    let result = schema.validate_root();
     assert!(result.is_err());
     let error = result.unwrap_err();
     assert_eq!(error.len(), 1);
@@ -218,7 +218,7 @@ fn test_validate_invalid_integer_transform() {
         ]
     });
 
-    let result = schema.validate();
+    let result = schema.validate_root();
     assert!(result.is_err());
     let error = result.unwrap_err();
     assert_eq!(error.len(), 1);
@@ -245,7 +245,7 @@ fn test_validate_invalid_counter_transform() {
         ]
     });
 
-    let result = schema.validate();
+    let result = schema.validate_root();
     assert!(result.is_err());
     let error = result.unwrap_err();
     assert_eq!(error.len(), 1);
@@ -278,7 +278,7 @@ fn test_validate_invalid_any_of_transform() {
         ]
     });
 
-    let result = schema.validate();
+    let result = schema.validate_root();
     assert!(result.is_err());
     let error = result.unwrap_err();
     assert_eq!(error.len(), 1);
@@ -306,7 +306,7 @@ fn test_validate_invalid_reference_transform() {
         ]
     });
 
-    let result = schema.validate();
+    let result = schema.validate_root();
     assert!(result.is_err());
     let error = result.unwrap_err();
     assert_eq!(error.len(), 1);
@@ -334,7 +334,7 @@ fn test_validate_invalid_flatten_transform() {
         ]
     });
 
-    let result = schema.validate();
+    let result = schema.validate_root();
     assert!(result.is_err());
     let error = result.unwrap_err();
     assert_eq!(error.len(), 1);
@@ -362,7 +362,7 @@ fn test_validate_invalid_file_transform() {
         ]
     });
 
-    let result = schema.validate();
+    let result = schema.validate_root();
     assert!(result.is_err());
     let error = result.unwrap_err();
     assert_eq!(error.len(), 2);

@@ -94,7 +94,7 @@ fn generate_data(
     let progress_bar_copy = progress_bar.clone();
     let schema = read_schema(schema_file)?;
     if !disable_validation {
-        schema.validate()?;
+        schema.validate_root()?;
     }
 
     #[cfg_attr(not(feature = "node"), allow(unused_mut))]
@@ -127,7 +127,7 @@ fn generate_data(
 
 fn validate_schema(schema_file: String) -> anyhow::Result<()> {
     let schema = read_schema(schema_file)?;
-    let Err(error) = schema.validate() else {
+    let Err(error) = schema.validate_root() else {
         return Ok(());
     };
 

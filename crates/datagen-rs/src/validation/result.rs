@@ -48,6 +48,48 @@ pub trait IterValidate {
     {
         self.concat(Self::validate(iterable, mapper))
     }
+
+    fn valid() -> Self
+    where
+        Self: Sized;
+
+    fn single<S: ToString>(
+        message: S,
+        path: &ValidationPath,
+        cause: Option<anyhow::Error>,
+        invalid_value: Option<Value>,
+    ) -> Self
+    where
+        Self: Sized;
+
+    fn ensure<S>(condition: bool, message: S, path: &ValidationPath) -> Self
+    where
+        Self: Sized,
+        S: ToString,
+    {
+        if condition.into() {
+            Self::valid()
+        } else {
+            Self::single(message, path, None, None)
+        }
+    }
+
+    fn ensure_ok<S, R, E>(
+        result: Result<R, E>,
+        message: S,
+        path: &ValidationPath,
+        invalid_value: Option<Value>,
+    ) -> Self
+    where
+        Self: Sized,
+        S: ToString,
+        E: Into<anyhow::Error>,
+    {
+        match result {
+            Ok(_) => Self::valid(),
+            Err(e) => Self::single(message, path, Some(e.into()), invalid_value),
+        }
+    }
 }
 
 impl IterValidate for ValidationResult {
@@ -82,6 +124,24 @@ impl IterValidate for ValidationResult {
                 Err(e1)
             }
         }
+    }
+
+    fn valid() -> Self {
+        Ok(())
+    }
+
+    fn single<S: ToString>(
+        message: S,
+        path: &ValidationPath,
+        cause: Option<anyhow::Error>,
+        invalid_value: Option<Value>,
+    ) -> Self {
+        Err(ValidationErrors::single(
+            message,
+            path,
+            cause,
+            invalid_value,
+        ))
     }
 }
 
