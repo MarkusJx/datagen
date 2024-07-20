@@ -1,16 +1,15 @@
-use std::fmt::{write, Display, Formatter};
+use std::fmt::{Display, Formatter};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time;
 use time::Duration;
 
 use anyhow::anyhow;
-use futures::stream::iter;
 use futures::{stream, StreamExt};
 use indexmap::IndexMap;
 use log::debug;
 use reqwest::header::{HeaderMap, HeaderName};
-use reqwest::{Client, RequestBuilder};
+use reqwest::{Client, IntoUrl, RequestBuilder};
 use serde::{Deserialize, Serialize};
 use tokio::runtime::Builder;
 
@@ -69,7 +68,7 @@ pub(crate) struct UploadArgs {
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(untagged, deny_unknown_fields)]
-enum StringOrMap {
+pub enum StringOrMap {
     String(String),
     Map(IndexMap<String, String>),
 }
@@ -78,14 +77,13 @@ impl Display for StringOrMap {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             StringOrMap::String(s) => write!(f, "{}", s),
-            StringOrMap::Map(map) => write!(f, "{}", map),
+            StringOrMap::Map(map) => write!(f, "{:?}", map),
         }
     }
 }
 
 struct RequestCreator {
     method: HttpMethod,
-    url: StringOrMap,
     timeout: Option<Duration>,
     client: Client,
     auth: Box<dyn Authentication>,
@@ -96,7 +94,6 @@ impl From<&UploadArgs> for RequestCreator {
     fn from(args: &UploadArgs) -> Self {
         Self {
             method: args.method.clone().unwrap_or_default(),
-            url: args.url.clone(),
             timeout: args.timeout.map(Duration::from_millis),
             client: Client::new(),
             auth: NoAuth::from_args(args.auth.clone()),
@@ -106,7 +103,7 @@ impl From<&UploadArgs> for RequestCreator {
 }
 
 impl RequestCreator {
-    async fn get_builder(&self, url: String) -> anyhow::Result<RequestBuilder> {
+    async fn get_builder<U: IntoUrl>(&self, url: U) -> anyhow::Result<RequestBuilder> {
         let mut builder = self
             .method
             .get_builder(&self.client, url)
@@ -147,37 +144,46 @@ impl UploadArgs {
         Ok(map)
     }
 
+    fn split_top_level_array<'a>(
+        &'a self,
+        value: &Arc<GeneratedSchema>,
+        url: &'a String,
+    ) -> anyhow::Result<Vec<(&String, Arc<GeneratedSchema>)>> {
+        if self.split_top_level_array.unwrap_or_default() {
+            if let GeneratedSchema::Array(arr) = value.as_ref() {
+                return Ok(arr
+                    .iter()
+                    .map(|schema| (url, schema.clone()))
+                    .collect::<Vec<_>>());
+            }
+        }
+
+        Ok(vec![(url, value.clone())])
+    }
+
     fn split(
         &self,
         value: &Arc<GeneratedSchema>,
-        url: StringOrMap,
-    ) -> anyhow::Result<Vec<(String, Arc<GeneratedSchema>)>> {
-        match url {
-            StringOrMap::String(string) => {
-                if self.split_top_level_array.unwrap_or_default() {
-                    if let GeneratedSchema::Array(arr) = value.as_ref() {
-                        return Ok(arr
-                            .iter()
-                            .map(|schema| (string.clone(), schema.clone()))
-                            .collect::<Vec<_>>());
-                    }
-                }
-
-                Ok(vec![(string, value.clone())])
-            }
+    ) -> anyhow::Result<Vec<(&String, Arc<GeneratedSchema>)>> {
+        match &self.url {
+            StringOrMap::String(string) => self.split_top_level_array(value, string),
             StringOrMap::Map(urls) => {
                 if let GeneratedSchema::Object(obj) = value.as_ref() {
-                    obj.iter()
+                    Ok(obj
+                        .iter()
                         .map(|(key, schema)| {
-                            if let Some(url) = urls.get(key) {
-                                Ok((url.clone(), schema.clone()))
-                            } else {
-                                Err(anyhow!("No URL found for key {}", key))
-                            }
+                            let Some(url) = urls.get(key) else {
+                                anyhow::bail!("No URL found for key {}", key);
+                            };
+
+                            self.split_top_level_array(schema, url)
                         })
-                        .collect::<anyhow::Result<Vec<_>>>()
+                        .collect::<anyhow::Result<Vec<_>>>()?
+                        .into_iter()
+                        .flatten()
+                        .collect::<Vec<_>>())
                 } else {
-                    return Err(anyhow!("URL is a map, but value is not an object"));
+                    Err(anyhow!("URL is a map, but value is not an object"))
                 }
             }
         }
@@ -199,7 +205,7 @@ impl UploadArgs {
         progress_callback: PluginSerializeCallback,
     ) -> anyhow::Result<()> {
         let headers = self.get_headers()?;
-        let split = self.split(value, self.url.clone())?;
+        let split = self.split(value)?;
         let creator = RequestCreator::from(self);
         let serializer = self.serializer.clone().unwrap_or_default();
         let upload_in = self.upload_in.unwrap_or_default();
