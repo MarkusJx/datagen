@@ -123,6 +123,20 @@ pub trait IterValidate {
             Err(e) => Self::single(message, path, Some(e.into()), invalid_value),
         }
     }
+
+    /// Create a validation result with a single message
+    ///
+    /// # Arguments
+    /// * `message` - The error message
+    ///
+    /// # Returns
+    /// A validation result with a single error
+    fn message<S: ToString>(message: S) -> Self
+    where
+        Self: Sized,
+    {
+        Self::single(message, &ValidationPath::root(), None, None)
+    }
 }
 
 impl IterValidate for ValidationResult {
@@ -228,6 +242,22 @@ impl ValidationErrors {
     /// Check if the list of validation errors is empty
     pub fn is_empty(&self) -> bool {
         self.errors.is_empty()
+    }
+
+    /// Convert an error to a validation result
+    pub fn from_error<E: Error>(error: E) -> Self {
+        Self::single(error, &ValidationPath::root(), None, None)
+    }
+
+    /// Create a validation error with a single message
+    ///
+    /// # Arguments
+    /// * `message` - The error message
+    ///
+    /// # Returns
+    /// A validation errors with a single error
+    pub fn message<S: ToString>(message: S) -> Self {
+        Self::single(message, &ValidationPath::root(), None, None)
     }
 }
 
