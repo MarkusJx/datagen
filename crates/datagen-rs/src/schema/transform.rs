@@ -3,6 +3,7 @@ use crate::transform::filter::FilterTransform;
 use crate::transform::plugin_transform::PluginTransform;
 use crate::transform::random_remove::RandomRemoveTransform;
 use crate::transform::regex_filter::RegexFilter;
+use crate::transform::remove_all::RemoveAllTransform;
 use crate::transform::sort::SortTransform;
 use crate::transform::string_case_transform::ToLowerCase;
 use crate::transform::string_case_transform::ToUpperCase;
@@ -53,6 +54,7 @@ pub enum Transform {
     Sort(SortTransform),
     Plugin(PluginTransform),
     RandomRemove(RandomRemoveTransform),
+    RemoveAll(RemoveAllTransform),
 }
 
 #[derive(Debug, Clone)]
@@ -122,6 +124,7 @@ pub mod generate {
                 Transform::Sort(sort) => sort.transform(schema, value),
                 Transform::Plugin(plugin) => plugin.transform(schema, value),
                 Transform::RandomRemove(random_remove) => random_remove.transform(schema, value),
+                Transform::RemoveAll(remove_all) => remove_all.transform(schema, value),
             }
         }
     }
@@ -163,6 +166,7 @@ pub mod validate {
                 Transform::Sort(sort) => sort.validate(path),
                 Transform::Plugin(plugin) => plugin.validate(path),
                 Transform::RandomRemove(random_remove) => random_remove.validate(path),
+                Transform::RemoveAll(remove_all) => remove_all.validate(path),
             }
         }
     }

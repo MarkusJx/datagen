@@ -49,10 +49,24 @@ pub trait IterValidate {
         self.concat(Self::validate(iterable, mapper))
     }
 
+    /// Create a valid validation result
+    ///
+    /// # Returns
+    /// `Ok(())`
     fn valid() -> Self
     where
         Self: Sized;
 
+    /// Create a single validation error
+    ///
+    /// # Arguments
+    /// * `message` - The error message
+    /// * `path` - The path of the error
+    /// * `cause` - The cause of the error
+    /// * `invalid_value` - The invalid json value
+    ///
+    /// # Returns
+    /// A validation result with a single error
     fn single<S: ToString>(
         message: S,
         path: &ValidationPath,
@@ -62,18 +76,37 @@ pub trait IterValidate {
     where
         Self: Sized;
 
+    /// Ensure a condition is true
+    ///
+    /// # Arguments
+    /// * `condition` - The condition to ensure
+    /// * `message` - The error message
+    /// * `path` - The path of the error
+    ///
+    /// # Returns
+    /// A valid result if the condition is true, otherwise a single error
     fn ensure<S>(condition: bool, message: S, path: &ValidationPath) -> Self
     where
         Self: Sized,
         S: ToString,
     {
-        if condition.into() {
+        if condition {
             Self::valid()
         } else {
             Self::single(message, path, None, None)
         }
     }
 
+    /// Ensure a result is ok
+    ///
+    /// # Arguments
+    /// * `result` - The result to ensure is ok
+    /// * `message` - The error message
+    /// * `path` - The path of the error
+    /// * `invalid_value` - The invalid json value
+    ///
+    /// # Returns
+    /// A valid result if the result is ok, otherwise a single error
     fn ensure_ok<S, R, E>(
         result: Result<R, E>,
         message: S,
@@ -227,7 +260,13 @@ impl Display for ValidationErrors {
             .collect::<Vec<_>>()
             .join("\n");
 
-        write!(f, "Found {} schema violations:\n{}", self.len(), cause)
+        write!(
+            f,
+            "Found {} schema violation{}:\n{}",
+            self.len(),
+            if self.len() > 1 { "s" } else { "" },
+            cause
+        )
     }
 }
 

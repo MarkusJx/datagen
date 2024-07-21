@@ -21,7 +21,7 @@ export default function useLocalStorage<T>(
 
   useEffect(() => {
     const item = localStorage.getItem(key);
-    setValue(item ? JSON.parse(item) : defaultValue ?? null);
+    setValue(item ? JSON.parse(item) : (defaultValue ?? null));
     setInitialized(true);
   }, []);
 

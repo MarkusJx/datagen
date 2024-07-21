@@ -8,6 +8,7 @@ use crate::plugins::plugin::Plugin;
 use crate::plugins::plugin_list::PluginList;
 #[cfg(any(feature = "schema", any(feature = "serialize", feature = "generate")))]
 use crate::schema::schema_definition::Schema;
+use crate::validation::validate::Validate;
 #[cfg(feature = "serialize")]
 use anyhow::Context;
 #[cfg(feature = "schema")]
@@ -109,6 +110,8 @@ pub fn generate_random_data(
     mut schema: Schema,
     additional_plugins: Option<HashMap<String, Arc<dyn Plugin>>>,
 ) -> anyhow::Result<String> {
+    #[cfg(feature = "validate-schema")]
+    schema.validate_root()?;
     let plugins = PluginList::from_schema(&mut schema, additional_plugins)?;
     let options = Arc::new(schema.options.unwrap_or_default());
     let root = CurrentSchema::root(options.clone(), plugins.clone());

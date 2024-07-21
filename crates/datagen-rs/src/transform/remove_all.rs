@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "schema", derive(JsonSchema))]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serialize", serde(rename_all = "camelCase", untagged))]
-pub enum RemoveAll {
+pub enum RemoveAllTransform {
     Include { include: Vec<String> },
     Exclude { exclude: Vec<String> },
 }
@@ -16,11 +16,11 @@ pub enum RemoveAll {
 pub mod generate {
     use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::GeneratedSchema;
-    use crate::transform::remove_all::RemoveAll;
+    use crate::transform::remove_all::RemoveAllTransform;
     use crate::util::traits::generate::TransformTrait;
     use std::sync::Arc;
 
-    impl TransformTrait for RemoveAll {
+    impl TransformTrait for RemoveAllTransform {
         fn transform(
             self,
             _schema: DatagenContextRef,
@@ -32,11 +32,11 @@ pub mod generate {
 
             let mut object = object.clone();
             match self {
-                RemoveAll::Include { include } => {
-                    object.retain(|key, _| include.contains(key));
+                RemoveAllTransform::Include { include } => {
+                    object.retain(|key, _| !include.contains(key));
                 }
-                RemoveAll::Exclude { exclude } => {
-                    object.retain(|key, _| !exclude.contains(key));
+                RemoveAllTransform::Exclude { exclude } => {
+                    object.retain(|key, _| exclude.contains(key));
                 }
             }
 
@@ -47,18 +47,18 @@ pub mod generate {
 
 #[cfg(feature = "validate-schema")]
 pub mod validate {
-    use crate::transform::remove_all::RemoveAll;
+    use crate::transform::remove_all::RemoveAllTransform;
     use crate::validation::path::ValidationPath;
     use crate::validation::result::{IterValidate, ValidationResult};
     use crate::validation::validate::Validate;
 
-    impl Validate for RemoveAll {
+    impl Validate for RemoveAllTransform {
         fn validate(&self, path: &ValidationPath) -> ValidationResult {
             match self {
-                RemoveAll::Include { include } => {
+                RemoveAllTransform::Include { include } => {
                     ValidationResult::ensure(!include.is_empty(), "include must not be empty", path)
                 }
-                RemoveAll::Exclude { exclude } => {
+                RemoveAllTransform::Exclude { exclude } => {
                     ValidationResult::ensure(!exclude.is_empty(), "exclude must not be empty", path)
                 }
             }

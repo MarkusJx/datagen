@@ -27,6 +27,7 @@ generate = [
     "datagen-rs/plugin",
     "datagen-rs/generate",
     "datagen-rs/serialize",
+    "datagen-rs/validate-schema",
     "dep:datagen-rs-progress-plugin",
     "dep:js-sys",
     "dep:serde-wasm-bindgen"

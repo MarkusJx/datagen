@@ -25,6 +25,7 @@ use crate::schema::serializer::Serializer;
 use crate::schema::transform::MaybeValidTransform;
 #[cfg(feature = "plugin")]
 use crate::schema::transform::Transform;
+#[cfg(feature = "plugin")]
 use crate::util::traits::GetTransform;
 use anyhow::anyhow;
 #[cfg(feature = "native-plugin")]
