@@ -1,0 +1,19 @@
+{
+  "type": "anyOf",
+  "values": [
+    {
+      "type": "anyOf",
+      "values": [
+        1,
+        2
+      ]
+    },
+    {
+      "type": "anyOf",
+      "values": [
+        3,
+        4
+      ]
+    }
+  ]
+}

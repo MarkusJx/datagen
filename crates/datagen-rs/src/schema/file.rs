@@ -1,4 +1,5 @@
 use crate::schema::transform::MaybeValidTransform;
+use crate::util::traits::GetTransform;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
@@ -24,13 +25,18 @@ pub enum FileMode {
     Random,
 }
 
+impl GetTransform for File {
+    fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
+        self.transform.clone()
+    }
+}
+
 #[cfg(feature = "generate")]
 pub mod generate {
     use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::generate::IntoGenerated;
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::schema::file::{File, FileMode};
-    use crate::schema::transform::MaybeValidTransform;
     use crate::util::sequential_vec::SequentialVec;
     use once_cell::sync::Lazy;
     use serde_json::Value;
@@ -61,9 +67,36 @@ pub mod generate {
 
             Ok(GeneratedSchema::Value(value))
         }
+    }
+}
 
-        fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
-            self.transform.clone()
+#[cfg(feature = "validate-schema")]
+pub mod validate {
+    use crate::schema::file::File;
+    use crate::validation::path::ValidationPath;
+    use crate::validation::result::{IterValidate, ValidationErrors, ValidationResult};
+    use crate::validation::validate::ValidateGenerateSchema;
+    use serde_json::Value;
+
+    impl ValidateGenerateSchema for File {
+        fn validate_generate_schema(&self, path: &ValidationPath) -> ValidationResult {
+            std::fs::File::open(&self.path)
+                .map_err(|e| {
+                    ValidationErrors::single(
+                        format!("Failed to open file at path '{}'", self.path),
+                        path,
+                        Some(e.into()),
+                        Some(Value::String(self.path.clone())),
+                    )
+                })
+                .and_then(|f| {
+                    ValidationResult::ensure_ok(
+                        serde_json::from_reader::<std::fs::File, Value>(f),
+                        format!("Failed to parse JSON from file at path: {}", self.path),
+                        path,
+                        Some(Value::String(self.path.clone())),
+                    )
+                })
         }
     }
 }

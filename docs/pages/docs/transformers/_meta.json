@@ -2,6 +2,7 @@
   "filter": "filter",
   "filterNonNull": "filterNonNull",
   "randomRemove": "randomRemove",
+  "removeAll": "removeAll",
   "regexFilter": "regexFilter",
   "sort": "sort",
   "toUpperCase": "toUpperCase",

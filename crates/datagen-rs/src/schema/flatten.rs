@@ -3,6 +3,7 @@ use crate::schema::object::Object;
 use crate::schema::plugin::Plugin;
 use crate::schema::reference::Reference;
 use crate::schema::transform::MaybeValidTransform;
+use crate::util::traits::GetTransform;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
@@ -34,13 +35,24 @@ pub enum FlattenableValue {
     Plugin(Plugin),
 }
 
+impl GetTransform for Flatten {
+    fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
+        self.transform.clone()
+    }
+}
+
+impl GetTransform for FlattenableValue {
+    fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
+        None
+    }
+}
+
 #[cfg(feature = "generate")]
 pub mod generate {
     use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::generate::{IntoGenerated, IntoGeneratedArc};
     use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
     use crate::schema::flatten::{Flatten, FlattenableValue};
-    use crate::schema::transform::MaybeValidTransform;
     use anyhow::anyhow;
     use indexmap::IndexMap;
     use std::any::{Any, TypeId};
@@ -57,10 +69,6 @@ pub mod generate {
                 FlattenableValue::Plugin(plugin) => plugin.into_random(schema),
                 FlattenableValue::Array(array) => array.into_random(schema),
             }
-        }
-
-        fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
-            None
         }
     }
 
@@ -108,9 +116,32 @@ pub mod generate {
                 ))
             }
         }
+    }
+}
 
-        fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
-            self.transform.clone()
+#[cfg(feature = "validate-schema")]
+pub mod validate {
+    use crate::schema::flatten::{Flatten, FlattenableValue};
+    use crate::validation::path::ValidationPath;
+    use crate::validation::result::{IterValidate, ValidationResult};
+    use crate::validation::validate::{Validate, ValidateGenerateSchema};
+
+    impl ValidateGenerateSchema for FlattenableValue {
+        fn validate_generate_schema(&self, path: &ValidationPath) -> ValidationResult {
+            match self {
+                FlattenableValue::Object(object) => object.validate(path),
+                FlattenableValue::Array(array) => array.validate(path),
+                FlattenableValue::Reference(reference) => reference.validate(path),
+                FlattenableValue::Plugin(plugin) => plugin.validate(path),
+            }
+        }
+    }
+
+    impl ValidateGenerateSchema for Flatten {
+        fn validate_generate_schema(&self, path: &ValidationPath) -> ValidationResult {
+            ValidationResult::validate(self.values.iter(), |i, value| {
+                value.validate(&path.append("values", i))
+            })
         }
     }
 }

@@ -1,4 +1,5 @@
 use crate::schema::transform::MaybeValidTransform;
+use crate::util::traits::GetTransform;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
@@ -19,13 +20,21 @@ pub enum Bool {
     },
 }
 
+impl GetTransform for Bool {
+    fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
+        match self {
+            Bool::Constant { transform, .. } => transform.clone(),
+            Bool::Random { transform, .. } => transform.clone(),
+        }
+    }
+}
+
 #[cfg(feature = "generate")]
 pub mod generate {
     use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::generate::IntoGenerated;
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::schema::bool::Bool;
-    use crate::schema::transform::MaybeValidTransform;
     use rand::Rng;
 
     impl IntoGenerated for Bool {
@@ -39,11 +48,37 @@ pub mod generate {
                 }
             })
         }
+    }
+}
 
-        fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
+#[cfg(feature = "validate-schema")]
+pub mod validate {
+    use crate::schema::bool::Bool;
+    use crate::validation::path::ValidationPath;
+    use crate::validation::result::{IterValidate, ValidationResult};
+    use crate::validation::validate::ValidateGenerateSchema;
+
+    impl ValidateGenerateSchema for Bool {
+        fn validate_generate_schema(&self, path: &ValidationPath) -> ValidationResult {
             match self {
-                Bool::Constant { transform, .. } => transform.clone(),
-                Bool::Random { transform, .. } => transform.clone(),
+                Bool::Constant { .. } => Ok(()),
+                Bool::Random { probability, .. } => {
+                    if let Some(probability) = probability {
+                        if *probability < 0.0 || *probability > 1.0 {
+                            return ValidationResult::single(
+                                format!(
+                                    "Probability must be between 0.0 and 1.0, got {}",
+                                    probability
+                                ),
+                                path,
+                                None,
+                                None,
+                            );
+                        }
+                    }
+
+                    Ok(())
+                }
             }
         }
     }

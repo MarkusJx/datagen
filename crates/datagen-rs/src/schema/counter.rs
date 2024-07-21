@@ -1,4 +1,5 @@
 use crate::schema::transform::MaybeValidTransform;
+use crate::util::traits::GetTransform;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
@@ -18,13 +19,18 @@ pub struct Counter {
     pub start: Option<i64>,
 }
 
+impl GetTransform for Counter {
+    fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
+        self.transform.clone()
+    }
+}
+
 #[cfg(feature = "generate")]
 pub mod generate {
     use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::generate::IntoGenerated;
     use crate::generate::generated_schema::GeneratedSchema;
     use crate::schema::counter::Counter;
-    use crate::schema::transform::MaybeValidTransform;
     use std::{
         collections::HashMap,
         ops::AddAssign,
@@ -71,9 +77,19 @@ pub mod generate {
 
             Ok(GeneratedSchema::Integer(value))
         }
+    }
+}
 
-        fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
-            self.transform.clone()
+#[cfg(feature = "validate-schema")]
+pub mod validate {
+    use crate::schema::counter::Counter;
+    use crate::validation::path::ValidationPath;
+    use crate::validation::result::ValidationResult;
+    use crate::validation::validate::ValidateGenerateSchema;
+
+    impl ValidateGenerateSchema for Counter {
+        fn validate_generate_schema(&self, _path: &ValidationPath) -> ValidationResult {
+            Ok(())
         }
     }
 }

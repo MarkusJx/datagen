@@ -9,6 +9,7 @@ mod basic_auth;
 mod bearer_auth;
 mod no_auth;
 mod oidc_auth;
+mod upload;
 mod util;
 
 fn create_schema(plugin_args: Value) -> anyhow::Result<String> {

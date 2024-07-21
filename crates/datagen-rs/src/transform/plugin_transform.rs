@@ -35,3 +35,17 @@ pub mod generate {
         }
     }
 }
+
+#[cfg(feature = "validate-schema")]
+pub mod validate {
+    use crate::transform::plugin_transform::PluginTransform;
+    use crate::validation::path::ValidationPath;
+    use crate::validation::result::ValidationResult;
+    use crate::validation::validate::Validate;
+
+    impl Validate for PluginTransform {
+        fn validate(&self, _path: &ValidationPath) -> ValidationResult {
+            Ok(())
+        }
+    }
+}

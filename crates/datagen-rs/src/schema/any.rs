@@ -11,6 +11,8 @@ use crate::schema::object::Object;
 use crate::schema::plugin::Plugin;
 use crate::schema::reference::Reference;
 use crate::schema::string::StringSchema;
+use crate::schema::transform::MaybeValidTransform;
+use crate::util::traits::GetTransform;
 #[cfg(feature = "schema")]
 use schemars::gen::SchemaGenerator;
 #[cfg(feature = "schema")]
@@ -58,13 +60,27 @@ pub enum Any {
     Include(Include),
 }
 
+impl GetTransform for MaybeValidAny {
+    fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
+        match self {
+            MaybeValidAny::Valid(inner) => inner.get_transform(),
+            MaybeValidAny::Invalid(_) => None,
+        }
+    }
+}
+
+impl GetTransform for Any {
+    fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
+        None
+    }
+}
+
 #[cfg(feature = "generate")]
 pub mod generate {
     use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::generate::IntoGeneratedArc;
     use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
     use crate::schema::any::{Any, MaybeValidAny};
-    use crate::schema::transform::MaybeValidTransform;
     use std::sync::Arc;
 
     impl IntoGeneratedArc for Any {
@@ -88,10 +104,6 @@ pub mod generate {
                 Any::Include(include) => include.into_random(schema),
             }
         }
-
-        fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
-            None
-        }
     }
 
     impl IntoGeneratedArc for MaybeValidAny {
@@ -100,13 +112,6 @@ pub mod generate {
             schema: DatagenContextRef,
         ) -> anyhow::Result<Arc<GeneratedSchema>> {
             self.into_inner(&schema)?.into_generated_arc(schema)
-        }
-
-        fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
-            match self {
-                MaybeValidAny::Valid(inner) => inner.get_transform(),
-                MaybeValidAny::Invalid(_) => None,
-            }
         }
     }
 
@@ -119,6 +124,48 @@ pub mod generate {
                     schema.path()?.to_string(),
                     serde_json::to_string_pretty(&err).unwrap_or_default()
                 )),
+            }
+        }
+    }
+}
+
+#[cfg(feature = "validate-schema")]
+pub mod validate {
+    use crate::schema::any::{Any, MaybeValidAny};
+    use crate::validation::path::ValidationPath;
+    use crate::validation::result::{IterValidate, ValidationResult};
+    use crate::validation::validate::{Validate, ValidateGenerateSchema};
+
+    impl ValidateGenerateSchema for MaybeValidAny {
+        fn validate_generate_schema(&self, path: &ValidationPath) -> ValidationResult {
+            match self {
+                MaybeValidAny::Valid(inner) => inner.validate_generate_schema(path),
+                MaybeValidAny::Invalid(err) => ValidationResult::single(
+                    "Failed to parse schema",
+                    path,
+                    None,
+                    Some(err.clone()),
+                ),
+            }
+        }
+    }
+
+    impl ValidateGenerateSchema for Any {
+        fn validate_generate_schema(&self, path: &ValidationPath) -> ValidationResult {
+            match self {
+                Any::Number(number) => number.validate(path),
+                Any::Integer(integer) => integer.validate(path),
+                Any::Counter(counter) => counter.validate(path),
+                Any::Bool(bool) => bool.validate(path),
+                Any::String(string) => string.validate(path),
+                Any::AnyOf(any_of) => any_of.validate(path),
+                Any::Reference(reference) => reference.validate(path),
+                Any::Plugin(plugin) => plugin.validate(path),
+                Any::Array(array) => array.as_ref().validate(path),
+                Any::Object(object) => object.as_ref().validate(path),
+                Any::Flatten(flatten) => flatten.validate(path),
+                Any::File(file) => file.validate(path),
+                Any::Include(include) => include.validate(path),
             }
         }
     }

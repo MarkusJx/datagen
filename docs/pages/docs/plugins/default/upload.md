@@ -12,7 +12,7 @@ The plugin has the following parameters:
 
 | Name                  | Type                                                                        | Description                                                                                                                                                | Default    |
 | --------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| `url`                 | `String`                                                                    | The URL to upload the data to.                                                                                                                             | unset      |
+| `url`                 | [`URL`](#url)                                                               | The URL to upload the data to.                                                                                                                             | unset      |
 | `method`              | [`HttpMethod`](#httpmethod)                                                 | The HTTP method to use.                                                                                                                                    | `post`     |
 | `serializer`          | [`serializer`](https://markusjx.github.io/datagen/docs/options/#serializer) | The serializer to use.                                                                                                                                     | `json`     |
 | `returnNull`          | `bool`                                                                      | Whether to discard the serialized value. If set to `true`, an empty string will be returned by `datagen`                                                   | `false`    |
@@ -23,6 +23,20 @@ The plugin has the following parameters:
 | `timeout`             | `u64`                                                                       | The timeout in milliseconds.                                                                                                                               | `infinite` |
 | `auth`                | [`AuthArgs`](#authargs)                                                     | The authentication method to use.                                                                                                                          | `none`     |
 | `uploadIn`            | [`UploadIn`](#uploadin)                                                     | The data to upload.                                                                                                                                        | `body`     |
+
+### `URL`
+
+The `URL` type is used to specify the URL to upload the data to.
+
+It is defined as follows: `String | Map<String, String>`.
+
+If a string is provided, it will be used as the URL.
+If a map is provided, the first type in the generated schema
+must be an [`object`](../../generators/object.mdx) where each key in the map
+is a field in the object and the value is the URL to use for that field.
+If `splitTopLevelArray` is set to `true`, any top-level array in the
+object will be split into multiple requests, with each element in the array
+being uploaded to the URL specified in the map.
 
 ### `HttpMethod`
 
@@ -210,3 +224,59 @@ The following values are available:
 Note that the `/auth` prefix at the end of the hostname is only required for
 Keycloak instances with version 16 or lower. Starting from version 17, the
 `/auth` prefix must be omitted.
+
+### Upload data with basic authentication
+
+```json
+{
+  "type": "string",
+  "value": "test",
+  "options": {
+    "serializer": {
+      "type": "plugin",
+      "pluginName": "upload_plugin",
+      "args": {
+        "url": "http://localhost:8080/upload",
+        "auth": {
+          "type": "basic",
+          "username": "my-username",
+          "password": "my-password"
+        }
+      }
+    }
+  }
+}
+```
+
+### Upload data with multiple URLs
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "a": {
+      "type": "string",
+      "value": "test"
+    },
+    "b": {
+      "type": "string",
+      "value": "test"
+    }
+  },
+  "options": {
+    "serializer": {
+      "type": "plugin",
+      "pluginName": "upload_plugin",
+      "args": {
+        "url": {
+          "a": "http://localhost:8080/upload/a",
+          "b": "http://localhost:8080/upload/b"
+        }
+      }
+    }
+  }
+}
+```
+
+This will upload the content of the `a` field to `http://localhost:8080/upload/a`
+and the content of the `b` field to `http://localhost:8080/upload/b`.

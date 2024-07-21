@@ -153,3 +153,23 @@ pub mod generate {
         }
     }
 }
+
+#[cfg(feature = "validate-schema")]
+pub mod validate {
+    use crate::transform::string_case_transform::{ToLowerCase, ToUpperCase};
+    use crate::validation::path::ValidationPath;
+    use crate::validation::result::ValidationResult;
+    use crate::validation::validate::Validate;
+
+    impl Validate for ToUpperCase {
+        fn validate(&self, _path: &ValidationPath) -> ValidationResult {
+            Ok(())
+        }
+    }
+
+    impl Validate for ToLowerCase {
+        fn validate(&self, _path: &ValidationPath) -> ValidationResult {
+            Ok(())
+        }
+    }
+}

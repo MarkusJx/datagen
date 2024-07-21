@@ -1,4 +1,11 @@
+use crate::schema::transform::MaybeValidTransform;
 use log::error;
+
+/// Trait for getting a transform from a schema.
+pub trait GetTransform {
+    /// Get the transform from the schema.
+    fn get_transform(&self) -> Option<Vec<MaybeValidTransform>>;
+}
 
 #[cfg(feature = "map-schema")]
 pub mod generate {

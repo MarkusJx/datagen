@@ -1,4 +1,4 @@
-use reqwest::{Client, RequestBuilder};
+use reqwest::{Client, IntoUrl, RequestBuilder};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Default, Clone)]
@@ -17,7 +17,7 @@ impl Default for &HttpMethod {
 }
 
 impl HttpMethod {
-    pub(crate) fn get_builder(&self, client: &Client, url: String) -> RequestBuilder {
+    pub(crate) fn get_builder<U: IntoUrl>(&self, client: &Client, url: U) -> RequestBuilder {
         match self {
             HttpMethod::Post => client.post(url),
             HttpMethod::Put => client.put(url),

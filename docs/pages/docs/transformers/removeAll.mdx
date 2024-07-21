@@ -1,0 +1,80 @@
+import RunCode from '../../../components/run/RunCode';
+
+# removeAll
+
+The `removeAll` transformer removes all specified fields from an object.
+
+It takes one of the following arguments:
+
+- `include`: An array of strings, specifying the fields to remove.
+- `exclude`: An array of strings, specifying the fields to keep.
+
+Only one of `include` and `exclude` can be specified.
+
+## Examples
+
+### Include fields to remove
+
+<RunCode>
+```json
+{
+  "type": "object",
+  "properties": {
+    "a": {
+      "type": "integer",
+      "min": 0,
+      "max": 100
+    },
+    "b": {
+      "type": "integer",
+      "min": 0,
+      "max": 100
+    },
+    "c": {
+      "type": "integer",
+      "min": 0,
+      "max": 100
+    }
+  },
+  "transform": [
+    {
+      "type": "removeAll",
+      "include": ["a", "b"]
+    }
+  ]
+}
+```
+</RunCode>
+
+### Exclude fields to remove
+
+<RunCode>
+```json
+{
+  "type": "object",
+  "properties": {
+    "a": {
+      "type": "integer",
+      "min": 0,
+      "max": 100
+    },
+    "b": {
+      "type": "integer",
+      "min": 0,
+      "max": 100
+    },
+    "c": {
+      "type": "integer",
+      "min": 0,
+      "max": 100
+    }
+  },
+  "transform": [
+    {
+      "type": "removeAll",
+      "exclude": ["a", "b"]
+    }
+  ]
+}
+```
+</RunCode>

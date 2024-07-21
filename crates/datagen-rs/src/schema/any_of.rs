@@ -1,5 +1,6 @@
 use crate::schema::any_value::AnyValue;
 use crate::schema::transform::MaybeValidTransform;
+use crate::util::traits::GetTransform;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
 #[cfg(feature = "serialize")]
@@ -15,13 +16,18 @@ pub struct AnyOf {
     pub transform: Option<Vec<MaybeValidTransform>>,
 }
 
+impl GetTransform for AnyOf {
+    fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
+        self.transform.clone()
+    }
+}
+
 #[cfg(feature = "generate")]
 pub mod generate {
     use crate::generate::datagen_context::DatagenContextRef;
     use crate::generate::generated_schema::generate::IntoGeneratedArc;
     use crate::generate::generated_schema::{GeneratedSchema, IntoRandom};
     use crate::schema::any_of::AnyOf;
-    use crate::schema::transform::MaybeValidTransform;
     use rand::seq::SliceRandom;
     use rand::Rng;
     use std::cmp::Ordering;
@@ -62,9 +68,21 @@ pub mod generate {
                 Ok(Arc::new(GeneratedSchema::Array(values)))
             }
         }
+    }
+}
 
-        fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
-            self.transform.clone()
+#[cfg(feature = "validate-schema")]
+pub mod validate {
+    use crate::schema::any_of::AnyOf;
+    use crate::validation::path::ValidationPath;
+    use crate::validation::result::{IterValidate, ValidationResult};
+    use crate::validation::validate::{Validate, ValidateGenerateSchema};
+
+    impl ValidateGenerateSchema for AnyOf {
+        fn validate_generate_schema(&self, path: &ValidationPath) -> ValidationResult {
+            ValidationResult::validate(self.values.iter(), |i, value| {
+                value.validate(&path.append("values", i))
+            })
         }
     }
 }

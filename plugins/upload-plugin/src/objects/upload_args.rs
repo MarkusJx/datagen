@@ -1,3 +1,4 @@
+use std::fmt::{Display, Formatter};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time;
@@ -8,7 +9,7 @@ use futures::{stream, StreamExt};
 use indexmap::IndexMap;
 use log::debug;
 use reqwest::header::{HeaderMap, HeaderName};
-use reqwest::{Client, RequestBuilder};
+use reqwest::{Client, IntoUrl, RequestBuilder};
 use serde::{Deserialize, Serialize};
 use tokio::runtime::Builder;
 
@@ -34,7 +35,7 @@ pub(crate) struct UploadArgs {
     pub return_null: Option<bool>,
     /// The URL to upload the data to.
     /// This is required.
-    pub url: String,
+    pub url: StringOrMap,
     /// The HTTP method to use when uploading the data.
     /// Defaults to `post`.
     pub method: Option<HttpMethod>,
@@ -65,9 +66,24 @@ pub(crate) struct UploadArgs {
     pub headers: Option<IndexMap<String, String>>,
 }
 
+#[derive(Serialize, Deserialize, Clone)]
+#[serde(untagged, deny_unknown_fields)]
+pub enum StringOrMap {
+    String(String),
+    Map(IndexMap<String, String>),
+}
+
+impl Display for StringOrMap {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            StringOrMap::String(s) => write!(f, "{}", s),
+            StringOrMap::Map(map) => write!(f, "{:?}", map),
+        }
+    }
+}
+
 struct RequestCreator {
     method: HttpMethod,
-    url: String,
     timeout: Option<Duration>,
     client: Client,
     auth: Box<dyn Authentication>,
@@ -78,7 +94,6 @@ impl From<&UploadArgs> for RequestCreator {
     fn from(args: &UploadArgs) -> Self {
         Self {
             method: args.method.clone().unwrap_or_default(),
-            url: args.url.clone(),
             timeout: args.timeout.map(Duration::from_millis),
             client: Client::new(),
             auth: NoAuth::from_args(args.auth.clone()),
@@ -88,10 +103,10 @@ impl From<&UploadArgs> for RequestCreator {
 }
 
 impl RequestCreator {
-    async fn get_builder(&self) -> anyhow::Result<RequestBuilder> {
+    async fn get_builder<U: IntoUrl>(&self, url: U) -> anyhow::Result<RequestBuilder> {
         let mut builder = self
             .method
-            .get_builder(&self.client, self.url.clone())
+            .get_builder(&self.client, url)
             .add_auth(self.auth.as_ref())
             .await?;
 
@@ -129,14 +144,49 @@ impl UploadArgs {
         Ok(map)
     }
 
-    fn split(&self, value: &Arc<GeneratedSchema>) -> Vec<Arc<GeneratedSchema>> {
+    fn split_top_level_array<'a>(
+        &'a self,
+        value: &Arc<GeneratedSchema>,
+        url: &'a String,
+    ) -> anyhow::Result<Vec<(&String, Arc<GeneratedSchema>)>> {
         if self.split_top_level_array.unwrap_or_default() {
             if let GeneratedSchema::Array(arr) = value.as_ref() {
-                return arr.to_vec();
+                return Ok(arr
+                    .iter()
+                    .map(|schema| (url, schema.clone()))
+                    .collect::<Vec<_>>());
             }
         }
 
-        vec![value.clone()]
+        Ok(vec![(url, value.clone())])
+    }
+
+    fn split(
+        &self,
+        value: &Arc<GeneratedSchema>,
+    ) -> anyhow::Result<Vec<(&String, Arc<GeneratedSchema>)>> {
+        match &self.url {
+            StringOrMap::String(string) => self.split_top_level_array(value, string),
+            StringOrMap::Map(urls) => {
+                if let GeneratedSchema::Object(obj) = value.as_ref() {
+                    Ok(obj
+                        .iter()
+                        .map(|(key, schema)| {
+                            let Some(url) = urls.get(key) else {
+                                anyhow::bail!("No URL found for key {}", key);
+                            };
+
+                            self.split_top_level_array(schema, url)
+                        })
+                        .collect::<anyhow::Result<Vec<_>>>()?
+                        .into_iter()
+                        .flatten()
+                        .collect::<Vec<_>>())
+                } else {
+                    Err(anyhow!("URL is a map, but value is not an object"))
+                }
+            }
+        }
     }
 
     pub(crate) fn serialize_generated(
@@ -155,7 +205,7 @@ impl UploadArgs {
         progress_callback: PluginSerializeCallback,
     ) -> anyhow::Result<()> {
         let headers = self.get_headers()?;
-        let split = self.split(value);
+        let split = self.split(value)?;
         let creator = RequestCreator::from(self);
         let serializer = self.serializer.clone().unwrap_or_default();
         let upload_in = self.upload_in.unwrap_or_default();
@@ -171,7 +221,7 @@ impl UploadArgs {
             .unwrap()
             .block_on(async move {
                 stream::iter(split)
-                    .map(|d| {
+                    .map(|(url, d)| {
                         let headers = headers.clone();
                         let creator = &creator;
                         let serializer = &serializer;
@@ -182,7 +232,7 @@ impl UploadArgs {
 
                         async move {
                             creator
-                                .get_builder()
+                                .get_builder(url)
                                 .await?
                                 .headers(headers)
                                 .add_data(upload_in, serializer, d)?

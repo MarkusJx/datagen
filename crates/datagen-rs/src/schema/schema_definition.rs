@@ -1,5 +1,7 @@
 use crate::schema::any_value::AnyValue;
 use crate::schema::serializer::Serializer;
+use crate::schema::transform::MaybeValidTransform;
+use crate::util::traits::GetTransform;
 use indexmap::IndexMap;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
@@ -65,4 +67,24 @@ pub struct Schema {
     pub value: AnyValue,
     /// The schema options.
     pub options: Option<SchemaOptions>,
+}
+
+impl GetTransform for Schema {
+    fn get_transform(&self) -> Option<Vec<MaybeValidTransform>> {
+        None
+    }
+}
+
+#[cfg(feature = "validate-schema")]
+pub mod validate {
+    use crate::schema::schema_definition::Schema;
+    use crate::validation::path::ValidationPath;
+    use crate::validation::result::ValidationResult;
+    use crate::validation::validate::{Validate, ValidateGenerateSchema};
+
+    impl ValidateGenerateSchema for Schema {
+        fn validate_generate_schema(&self, path: &ValidationPath) -> ValidationResult {
+            self.value.validate(path)
+        }
+    }
 }

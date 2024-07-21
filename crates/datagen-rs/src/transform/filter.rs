@@ -100,3 +100,17 @@ pub mod generate {
         }
     }
 }
+
+#[cfg(feature = "validate-schema")]
+pub mod validate {
+    use crate::transform::filter::FilterTransform;
+    use crate::validation::path::ValidationPath;
+    use crate::validation::result::ValidationResult;
+    use crate::validation::validate::Validate;
+
+    impl Validate for FilterTransform {
+        fn validate(&self, path: &ValidationPath) -> ValidationResult {
+            self.field.validate(path)
+        }
+    }
+}
