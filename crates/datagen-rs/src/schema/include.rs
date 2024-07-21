@@ -71,7 +71,7 @@ pub mod validate {
         fn validate_generate_schema(&self, path: &ValidationPath) -> ValidationResult {
             self.as_schema()
                 .map_err(|e| {
-                    ValidationErrors::single("Invalid include schema", &path, Some(e), None)
+                    ValidationErrors::single("Invalid include schema", path, Some(e), None)
                 })
                 .and_then(|schema| schema.validate(path))
         }

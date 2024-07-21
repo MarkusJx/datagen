@@ -66,29 +66,8 @@ pub mod validate {
     impl ValidateGenerateSchema for Integer {
         fn validate_generate_schema(&self, path: &ValidationPath) -> ValidationResult {
             match self {
-                Integer::Constant { value, .. } => {
-                    return ValidationResult::ensure(
-                        *value <= i64::MAX && *value >= i64::MIN,
-                        "Integer value out of range",
-                        path,
-                    );
-                }
+                Integer::Constant { .. } => {}
                 Integer::Random { min, max, .. } => {
-                    if let Some(min) = min {
-                        return ValidationResult::ensure(
-                            *min <= i64::MAX,
-                            "Integer min value out of range",
-                            path,
-                        );
-                    }
-                    if let Some(max) = max {
-                        return ValidationResult::ensure(
-                            *max <= i64::MAX,
-                            "Integer min value greater than max value",
-                            path,
-                        );
-                    }
-
                     if let (Some(min), Some(max)) = (min, max) {
                         return ValidationResult::ensure(
                             min <= max,

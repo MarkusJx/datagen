@@ -63,13 +63,13 @@ pub mod validate {
     impl Validate for RegexFilter {
         fn validate(&self, path: &ValidationPath) -> ValidationResult {
             if self.pattern.is_empty() {
-                return ValidationResult::single("pattern must not be empty", &path, None, None);
+                return ValidationResult::single("pattern must not be empty", path, None, None);
             }
 
             ValidationResult::ensure_ok(
                 regex::Regex::new(&self.pattern),
                 "invalid regex pattern",
-                &path,
+                path,
                 Some(Value::String(self.pattern.clone())),
             )
         }

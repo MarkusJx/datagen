@@ -107,7 +107,7 @@ pub mod validate {
                 })
                 .concat(if let Some(chance) = self.chance {
                     ValidationResult::ensure(
-                        chance >= 0.0 && chance <= 1.0,
+                        (0.0..=1.0).contains(&chance),
                         "chance must be between 0 and 1",
                         path,
                     )

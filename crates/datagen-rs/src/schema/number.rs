@@ -110,7 +110,7 @@ pub mod validate {
                         if min > max {
                             return ValidationResult::single(
                                 "Number::Random min must be less than or equal to max",
-                                &path,
+                                path,
                                 None,
                                 None,
                             );

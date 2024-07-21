@@ -95,37 +95,27 @@ pub mod generate {
 pub mod validate {
     use crate::transform::to_string::ToStringTransform;
     use crate::validation::path::ValidationPath;
-    use crate::validation::result::{ValidationErrors, ValidationResult};
+    use crate::validation::result::{IterValidate, ValidationResult};
     use crate::validation::validate::Validate;
     use handlebars::Handlebars;
+    use serde_json::Value;
 
     impl Validate for ToStringTransform {
         fn validate(&self, path: &ValidationPath) -> ValidationResult {
             match self {
                 ToStringTransform::Format { format, .. } => {
-                    if format.is_empty() {
-                        return Err(ValidationErrors::single(
-                            "format must not be empty",
-                            &path,
-                            None,
-                            None,
-                        ));
-                    }
+                    ValidationResult::ensure(format.is_empty(), "format must not be empty", path)?;
 
                     let mut hbs = Handlebars::new();
-                    if let Err(e) = hbs.register_template_string("template", format) {
-                        return Err(ValidationErrors::single(
-                            "invalid handlebars template",
-                            &path,
-                            Some(e.into()),
-                            None,
-                        ));
-                    }
+                    ValidationResult::ensure_ok(
+                        hbs.register_template_string("template", format),
+                        "invalid handlebars template",
+                        path,
+                        Some(Value::String(format.clone())),
+                    )
                 }
-                ToStringTransform::Default => {}
+                ToStringTransform::Default => Ok(()),
             }
-
-            Ok(())
         }
     }
 }

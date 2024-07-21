@@ -8,6 +8,7 @@ use crate::plugins::plugin::Plugin;
 use crate::plugins::plugin_list::PluginList;
 #[cfg(any(feature = "schema", any(feature = "serialize", feature = "generate")))]
 use crate::schema::schema_definition::Schema;
+#[cfg(all(feature = "validate-schema", feature = "generate"))]
 use crate::validation::validate::Validate;
 #[cfg(feature = "serialize")]
 use anyhow::Context;
