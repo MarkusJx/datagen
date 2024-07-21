@@ -32,7 +32,7 @@ It is defined as follows: `String | Map<String, String>`.
 
 If a string is provided, it will be used as the URL.
 If a map is provided, the first type in the generated schema
-must be an [`object`](/docs/generators/object.mdx) where each key in the map
+must be an [`object`](../../generators/object.mdx) where each key in the map
 is a field in the object and the value is the URL to use for that field.
 If `splitTopLevelArray` is set to `true`, any top-level array in the
 object will be split into multiple requests, with each element in the array
