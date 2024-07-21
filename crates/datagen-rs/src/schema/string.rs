@@ -114,7 +114,7 @@ pub mod generate {
     use fake::faker::address::en::{
         CityName, CountryCode, CountryName, Latitude, Longitude, StateName, StreetName, ZipCode,
     };
-    use fake::faker::chrono::en::{DateTime, DateTimeAfter, DateTimeBefore, DateTimeBetween};
+    use fake::faker::chrono::en::{DateTimeAfter, DateTimeBefore, DateTimeBetween};
     use fake::faker::internet::en::{FreeEmail, Username};
     use fake::faker::name::en::{FirstName, LastName, Name};
     use fake::faker::phone_number::en::PhoneNumber;
@@ -239,7 +239,7 @@ pub mod generate {
                                 .ok_or(anyhow!("Failed to set seconds of 'to' date"))?
                         {
                             return Err(anyhow!(
-                                "'From' date must be at least one minute before the 'to' date"
+                                "'from' date must be at least one minute before the 'to' date"
                             ));
                         }
 
@@ -259,7 +259,7 @@ pub mod generate {
                         )
                         .fake()
                     } else {
-                        DateTime().fake()
+                        DateTimeBetween(DateTime::UNIX_EPOCH, Utc::now()).fake()
                     };
 
                     if let Some(format) = format {
@@ -281,8 +281,10 @@ pub mod generate {
 pub mod validate {
     use crate::schema::string::{FormatArg, StringGenerator, StringSchema};
     use crate::validation::path::ValidationPath;
-    use crate::validation::result::{IterValidate, ValidationResult};
+    use crate::validation::result::{IterValidate, ValidationErrors, ValidationResult};
     use crate::validation::validate::{Validate, ValidateGenerateSchema};
+    use chrono::format::StrftimeItems;
+    use chrono::{DateTime, Timelike};
 
     impl ValidateGenerateSchema for StringSchema {
         fn validate_generate_schema(&self, path: &ValidationPath) -> ValidationResult {
@@ -315,19 +317,48 @@ pub mod validate {
                         )
                     })
                     .concat(to.as_ref().map_or(Ok(()), |to| {
-                        ValidationResult::ensure(
-                            chrono::DateTime::parse_from_rfc3339(to).is_ok(),
+                        ValidationResult::ensure_ok(
+                            chrono::DateTime::parse_from_rfc3339(to),
                             "to must be a valid RFC 3339 date",
                             &path.append_single("to"),
+                            Some(serde_json::Value::String(to.clone())),
                         )
                     }))
+                    .concat(
+                        to.as_ref()
+                            .and_then(|from| to.as_ref().map(|to| (from, to)))
+                            .map_or(Ok(()), |(from, to)| {
+                                let Ok(min) = DateTime::parse_from_rfc3339(from) else {
+                                    return Ok(());
+                                };
+
+                                let Ok(max) = DateTime::parse_from_rfc3339(to) else {
+                                    return Ok(());
+                                };
+
+                                ValidationResult::ensure(
+                                    min.with_second(0).ok_or(ValidationErrors::message(
+                                        "Failed to set min second",
+                                    ))? >= max.with_second(0).ok_or(ValidationErrors::message(
+                                        "Failed to set max second",
+                                    ))?,
+                                    "from must be at least one minute before to",
+                                    &path.append_single("from"),
+                                )
+                            }),
+                    )
                     .concat(format.as_ref().map_or(Ok(()), |format| {
                         ValidationResult::ensure(
-                            format.is_empty()
-                                || chrono::DateTime::parse_from_str("2021-01-01 00:00:00", format)
-                                    .is_ok(),
-                            "format must be a valid date format",
+                            !format.is_empty(),
+                            "format must not be empty",
                             &path.append_single("format"),
+                        )?;
+
+                        ValidationResult::ensure_ok(
+                            StrftimeItems::new(format).parse(),
+                            "invalid date format",
+                            &path.append_single("format"),
+                            Some(serde_json::Value::String(format.clone())),
                         )
                     })),
                 _ => Ok(()),

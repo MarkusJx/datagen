@@ -3,6 +3,7 @@ use crate::generate::generated_schema::generate::IntoGenerated;
 use crate::generate::generated_schema::GeneratedSchema;
 use crate::schema::string::StringGenerator;
 use crate::tests::util::root_schema;
+use crate::validation::validate::Validate;
 use chrono::{DateTime, Datelike, NaiveDateTime, Timelike};
 
 #[test]
@@ -47,7 +48,7 @@ fn test_date_time_between_invalid() {
     assert!(generated.is_err());
     assert_eq!(
         generated.unwrap_err().to_string(),
-        "'From' date must be at least one minute before the 'to' date"
+        "'from' date must be at least one minute before the 'to' date"
     );
 }
 
@@ -94,4 +95,46 @@ fn test_date_time_format() {
     assert_eq!(parsed.month(), 12);
     assert_eq!(parsed.day(), 19);
     assert_eq!(parsed.hour(), 16);
+}
+
+#[test]
+fn test_validate_date_time_format_valid() {
+    let res = StringGenerator::DateTime {
+        from: None,
+        to: None,
+        format: Some("%Y-%m-%d %H:%M:%S".to_string()),
+    }
+    .validate_root();
+
+    assert!(res.is_ok());
+}
+
+#[test]
+fn test_validate_date_time_from_to_valid() {
+    let res = StringGenerator::DateTime {
+        from: Some("2020-12 16:39:01".to_string()),
+        to: Some("2020-12 16:39:01".to_string()),
+        format: None,
+    }
+    .validate_root();
+
+    assert!(res.is_err());
+    let err = res.unwrap_err();
+    assert_eq!(err.len(), 2);
+    assert_eq!(
+        err[0].to_string(),
+        r#"from must be a valid RFC 3339 date at from
+Caused by:
+  input contains invalid characters
+Invalid value was:
+  "2020-12 16:39:01""#
+    );
+    assert_eq!(
+        err[1].to_string(),
+        r#"to must be a valid RFC 3339 date at to
+Caused by:
+  input contains invalid characters
+Invalid value was:
+  "2020-12 16:39:01""#
+    );
 }
