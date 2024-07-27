@@ -1,0 +1,61 @@
+plugins {
+    id 'java'
+    id 'application'
+    id "com.diffplug.spotless" version "6.22.0"
+}
+
+group = 'com.github.markusjx'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+    maven {
+        url 'http://localhost:8081/repository/maven-snapshots/'
+        allowInsecureProtocol = true
+    }
+}
+
+spotless {
+    format 'misc', {
+        target '*.gradle', '*.md', '.gitignore'
+
+        trimTrailingWhitespace()
+        indentWithSpaces(4)
+        endWithNewline()
+    }
+    java {
+        googleJavaFormat('1.18.1').aosp().reflowLongStrings()
+        formatAnnotations()
+    }
+}
+
+dependencies {
+    implementation files('../build/libs/datagen-1.0-SNAPSHOT.jar')
+//    implementation 'com.github.markusjx:datagen-native:1.0-SNAPSHOT:x86_64-pc-windows-msvc'
+    implementation 'com.github.markusjx:datagen-native:1.0-SNAPSHOT:x86_64-unknown-linux-gnu'
+    implementation 'com.github.markusjx:datagen-native:1.0-SNAPSHOT:x86_64-pc-windows-msvc'
+    implementation 'jakarta.validation:jakarta.validation-api:3.1.0-M1'
+    implementation 'jakarta.annotation:jakarta.annotation-api:3.0.0-M1'
+    implementation 'com.github.MarkusJx:jni-bindgen:master-SNAPSHOT'
+    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'org.jetbrains:annotations:15.0'
+
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+compileJava.dependsOn rootProject.jar
+
+test {
+    useJUnitPlatform()
+}
+
+apply plugin : "java"
+ext {
+    javaMainClass = 'com.github.markusjx.datagen.examples.Main'
+}
+
+application {
+    mainClass = javaMainClass
+}

@@ -7,11 +7,8 @@ import com.github.markusjx.jnibindgen.NativeExecutionException;
 import com.google.gson.Gson;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
-import java.io.File;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Datagen {
-    private static final AtomicBoolean LIBRARY_LOADED = new AtomicBoolean(false);
     private final Gson gson;
 
     public Datagen() {
@@ -23,12 +20,13 @@ public class Datagen {
     }
 
     public Datagen(@Nullable String libraryPath, @Nullable Gson gson) {
-        loadLibrary(libraryPath);
+        LibraryLoader.loadLibrary(libraryPath);
         this.gson = gson != null ? gson : new Gson();
     }
 
     public @NotNull String generateAsString(
-            @NotNull String schema, @Nullable GenerateCallback callback)
+            @NotNull String schema, @Nullable GenerateCallback callback
+    )
             throws NativeExecutionException {
         return DatagenImpl.generateRandomData(schema, callback);
     }
@@ -39,7 +37,8 @@ public class Datagen {
     }
 
     public @NotNull String generateAsString(
-            @Nullable AnySchema<?> schema, @Nullable GenerateCallback callback)
+            @Nullable AnySchema<?> schema, @Nullable GenerateCallback callback
+    )
             throws NativeExecutionException {
         return DatagenImpl.generateRandomData(gson.toJson(schema), callback);
     }
@@ -50,7 +49,9 @@ public class Datagen {
     }
 
     public <T> @NotNull T generate(
-            @NotNull String schema, @NotNull Class<T> clazz, @Nullable GenerateCallback callback)
+            @NotNull String schema, @NotNull Class<T> clazz,
+            @Nullable GenerateCallback callback
+    )
             throws NativeExecutionException {
         return gson.fromJson(generateAsString(schema, callback), clazz);
     }
@@ -63,7 +64,8 @@ public class Datagen {
     public <T> @NotNull T generate(
             @Nullable AnySchema<?> schema,
             @NotNull Class<T> clazz,
-            @Nullable GenerateCallback callback)
+            @Nullable GenerateCallback callback
+    )
             throws NativeExecutionException {
         return gson.fromJson(generateAsString(schema, callback), clazz);
     }
@@ -75,18 +77,5 @@ public class Datagen {
 
     public @NotNull String getSchema() throws NativeExecutionException {
         return DatagenImpl.getSchema();
-    }
-
-    private static void loadLibrary(@Nullable String path) {
-        synchronized (LIBRARY_LOADED) {
-            if (!LIBRARY_LOADED.get()) {
-                if (path != null && path.contains(File.separator)) {
-                    System.load(path);
-                } else {
-                    System.loadLibrary(path == null ? "datagen_java" : path);
-                }
-                LIBRARY_LOADED.set(true);
-            }
-        }
     }
 }

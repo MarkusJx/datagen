@@ -1,1 +1,5 @@
 rootProject.name = 'datagen'
+include 'examples'
+include 'datagen-native'
+include 'base'
+
