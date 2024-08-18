@@ -293,8 +293,8 @@ impl PluginList {
                         return Self::find_transformers_in_any(any);
                     }
                 }
-                    .map(|t| Self::transformers_to_vec(&t, &[]))
-                    .unwrap_or_default(),
+                .map(|t| Self::transformers_to_vec(&t, &[]))
+                .unwrap_or_default(),
             },
             MaybeValidAny::Invalid(_) => vec![],
         })
