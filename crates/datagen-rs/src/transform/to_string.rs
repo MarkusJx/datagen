@@ -104,7 +104,7 @@ pub mod validate {
         fn validate(&self, path: &ValidationPath) -> ValidationResult {
             match self {
                 ToStringTransform::Format { format, .. } => {
-                    ValidationResult::ensure(format.is_empty(), "format must not be empty", path)?;
+                    ValidationResult::ensure(!format.is_empty(), "format must not be empty", path)?;
 
                     let mut hbs = Handlebars::new();
                     ValidationResult::ensure_ok(

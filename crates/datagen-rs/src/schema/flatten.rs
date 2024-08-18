@@ -1,4 +1,5 @@
 use crate::schema::array::Array;
+use crate::schema::include::Include;
 use crate::schema::object::Object;
 use crate::schema::plugin::Plugin;
 use crate::schema::reference::Reference;
@@ -21,6 +22,9 @@ pub struct Flatten {
     /// not both, otherwise an error will be thrown.
     /// If no values are provided, null will be returned.
     pub values: Vec<FlattenableValue>,
+    /// Whether to remove null values from the flattened object or array.
+    /// If not specified, the default is false.
+    pub remove_null: Option<bool>,
     pub transform: Option<Vec<MaybeValidTransform>>,
 }
 
@@ -33,6 +37,7 @@ pub enum FlattenableValue {
     Array(Array),
     Reference(Reference),
     Plugin(Plugin),
+    Include(Include),
 }
 
 impl GetTransform for Flatten {
@@ -68,17 +73,25 @@ pub mod generate {
                 FlattenableValue::Reference(reference) => reference.into_random(schema),
                 FlattenableValue::Plugin(plugin) => plugin.into_random(schema),
                 FlattenableValue::Array(array) => array.into_random(schema),
+                FlattenableValue::Include(include) => include.into_random(schema),
             }
         }
     }
 
     impl IntoGenerated for Flatten {
         fn into_generated(self, schema: DatagenContextRef) -> anyhow::Result<GeneratedSchema> {
-            let generated = self
+            let mut generated = self
                 .values
                 .into_iter()
                 .map(|value| value.into_generated_arc(schema.clone()))
                 .collect::<anyhow::Result<Vec<_>>>()?;
+
+            if self.remove_null.unwrap_or(false) {
+                generated = generated
+                    .into_iter()
+                    .filter(|value| !matches!(value.as_ref(), GeneratedSchema::None))
+                    .collect::<Vec<_>>();
+            }
 
             let type_id = if let Some(gen) = generated.first() {
                 match gen.as_ref() {
@@ -133,6 +146,7 @@ pub mod validate {
                 FlattenableValue::Array(array) => array.validate(path),
                 FlattenableValue::Reference(reference) => reference.validate(path),
                 FlattenableValue::Plugin(plugin) => plugin.validate(path),
+                FlattenableValue::Include(include) => include.validate(path),
             }
         }
     }
