@@ -9,7 +9,7 @@ use futures::{stream, StreamExt};
 use indexmap::IndexMap;
 use log::debug;
 use reqwest::header::{HeaderMap, HeaderName};
-use reqwest::{Client, IntoUrl, RequestBuilder};
+use reqwest::{Client, ClientBuilder, IntoUrl, RequestBuilder};
 use serde::{Deserialize, Serialize};
 use tokio::runtime::Builder;
 
@@ -64,6 +64,8 @@ pub(crate) struct UploadArgs {
     /// The headers to send with the request.
     /// If not specified, no additional headers will be sent.
     pub headers: Option<IndexMap<String, String>>,
+    /// Whether to disable certificate verification
+    pub disable_certificate_verification: Option<bool>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -90,15 +92,20 @@ struct RequestCreator {
     num_parallel_requests: usize,
 }
 
-impl From<&UploadArgs> for RequestCreator {
-    fn from(args: &UploadArgs) -> Self {
-        Self {
+impl TryFrom<&UploadArgs> for RequestCreator {
+    type Error = anyhow::Error;
+
+    fn try_from(args: &UploadArgs) -> anyhow::Result<Self> {
+        Ok(Self {
             method: args.method.clone().unwrap_or_default(),
             timeout: args.timeout.map(Duration::from_millis),
-            client: Client::new(),
+            client: ClientBuilder::new()
+                .danger_accept_invalid_certs(args.disable_certificate_verification.unwrap_or(false))
+                .build()
+                .context("Failed to build client")?,
             auth: NoAuth::from_args(args.auth.clone()),
             num_parallel_requests: args.num_parallel_requests.unwrap_or(1),
-        }
+        })
     }
 }
 
@@ -206,7 +213,7 @@ impl UploadArgs {
     ) -> anyhow::Result<()> {
         let headers = self.get_headers()?;
         let split = self.split(value)?;
-        let creator = RequestCreator::from(self);
+        let creator = RequestCreator::try_from(self)?;
         let serializer = self.serializer.clone().unwrap_or_default();
         let upload_in = self.upload_in.unwrap_or_default();
 
