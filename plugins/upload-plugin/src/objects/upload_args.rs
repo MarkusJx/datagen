@@ -9,7 +9,7 @@ use futures::{stream, StreamExt};
 use indexmap::IndexMap;
 use log::debug;
 use reqwest::header::{HeaderMap, HeaderName};
-use reqwest::{Client, ClientBuilder, IntoUrl, RequestBuilder};
+use reqwest::{Certificate, Client, ClientBuilder, IntoUrl, RequestBuilder};
 use serde::{Deserialize, Serialize};
 use tokio::runtime::Builder;
 
@@ -66,6 +66,16 @@ pub(crate) struct UploadArgs {
     pub headers: Option<IndexMap<String, String>>,
     /// Whether to disable certificate verification
     pub disable_certificate_verification: Option<bool>,
+    /// The root CA to use for certificate verification.
+    #[serde(rename = "rootCA")]
+    pub root_ca: Option<VecOrString>,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+#[serde(untagged, deny_unknown_fields)]
+pub enum VecOrString {
+    Vec(Vec<String>),
+    String(String),
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -96,17 +106,50 @@ impl TryFrom<&UploadArgs> for RequestCreator {
     type Error = anyhow::Error;
 
     fn try_from(args: &UploadArgs) -> anyhow::Result<Self> {
+        let mut client_builder = ClientBuilder::new();
+
         if args.disable_certificate_verification.unwrap_or(false) {
             log::warn!("Disabling certificate verification");
+            client_builder = client_builder.danger_accept_invalid_certs(true);
+        }
+
+        if let Some(root_ca) = args.root_ca.as_ref() {
+            let root_ca = match root_ca {
+                VecOrString::Vec(vec) => vec,
+                VecOrString::String(string) => &vec![string.clone()],
+            };
+
+            for ca in root_ca {
+                debug!("Adding root CA file {}", ca);
+
+                let data = std::fs::read(ca)
+                    .with_context(|| format!("Failed to read root CA file {}", ca))?;
+
+                let bundle = Certificate::from_pem_bundle(&data)
+                    .with_context(|| format!("Failed to parse root CA file as PEM bundle {}", ca));
+
+                match bundle {
+                    Ok(bundle) => {
+                        for cert in bundle {
+                            client_builder = client_builder.add_root_certificate(cert);
+                        }
+                    }
+                    Err(e) => {
+                        let cert = Certificate::from_pem(&data)
+                            .with_context(|| {
+                                format!("Failed to parse root CA file as PEM file {}", ca)
+                            })
+                            .context(e)?;
+                        client_builder = client_builder.add_root_certificate(cert);
+                    }
+                }
+            }
         }
 
         Ok(Self {
             method: args.method.clone().unwrap_or_default(),
             timeout: args.timeout.map(Duration::from_millis),
-            client: ClientBuilder::new()
-                .danger_accept_invalid_certs(args.disable_certificate_verification.unwrap_or(false))
-                .build()
-                .context("Failed to build client")?,
+            client: client_builder.build().context("Failed to build client")?,
             auth: NoAuth::from_args(args.auth.clone()),
             num_parallel_requests: args.num_parallel_requests.unwrap_or(1),
         })
@@ -229,8 +272,7 @@ impl UploadArgs {
         debug!("Uploading data to {}", self.url);
         Builder::new_multi_thread()
             .enable_all()
-            .build()
-            .unwrap()
+            .build()?
             .block_on(async move {
                 stream::iter(split)
                     .map(|(url, d)| {
