@@ -98,8 +98,9 @@ pub mod generate {
                 match gen.as_ref() {
                     GeneratedSchema::Object(o) => o.type_id(),
                     GeneratedSchema::Array(a) => a.type_id(),
-                    _ => {
-                        return Err(anyhow!("Flatten values must be objects or arrays")
+                    invalid => {
+                        return Err(anyhow!(r#"Flatten values must be objects or arrays. Actual type: {}
+                        If a null value is passed, you can remove the null value by setting the 'removeNull' option to true"#, invalid.name())
                             .context(anyhow!("Invalid schema at {}", schema.path()?)))
                     }
                 }

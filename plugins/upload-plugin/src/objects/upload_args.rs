@@ -4,7 +4,7 @@ use std::sync::Arc;
 use std::time;
 use time::Duration;
 
-use anyhow::anyhow;
+use anyhow::{anyhow, Context};
 use futures::{stream, StreamExt};
 use indexmap::IndexMap;
 use log::debug;
@@ -231,22 +231,22 @@ impl UploadArgs {
                         debug!("Uploading next chunk");
 
                         async move {
-                            creator
+                            let res = creator
                                 .get_builder(url)
                                 .await?
                                 .headers(headers)
                                 .add_data(upload_in, serializer, d)?
                                 .send()
                                 .await
-                                .map_err(|e| anyhow!(e.to_string()))?
-                                .error_for_status()
                                 .map_err(|e| anyhow!(e.to_string()))
                                 .and_then(|res| {
                                     let current_count = counter_ref.fetch_add(1, Ordering::SeqCst);
                                     callback_ref(current_count, num_splits)?;
                                     debug!("Uploaded chunk {current_count}/{num_splits}");
                                     Ok(res)
-                                })
+                                })?;
+
+                            Ok((res.status(), res.text().await.ok()))
                         }
                     })
                     .buffered(creator.num_parallel_requests)
@@ -255,14 +255,13 @@ impl UploadArgs {
             })
             .into_iter()
             .try_for_each(|res| {
-                res.and_then(|ok| {
+                res.and_then(|(status_code, body)| {
                     if let Some(expected) = self.expected_status_code {
-                        if ok.status() != expected {
+                        if status_code != expected {
                             return Err(anyhow!(
-                                "Expected status code {}, got {}",
-                                expected,
-                                ok.status()
-                            ));
+                                "Expected status code {expected}, got {status_code}"
+                            ))
+                            .context(anyhow!("Response body:\n{}", body.unwrap_or_default()));
                         }
                     }
 
