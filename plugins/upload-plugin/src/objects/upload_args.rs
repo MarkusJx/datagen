@@ -9,7 +9,7 @@ use futures::{stream, StreamExt};
 use indexmap::IndexMap;
 use log::debug;
 use reqwest::header::{HeaderMap, HeaderName};
-use reqwest::{Certificate, Client, ClientBuilder, IntoUrl, RequestBuilder};
+use reqwest::{Client, ClientBuilder, IntoUrl, RequestBuilder};
 use serde::{Deserialize, Serialize};
 use tokio::runtime::Builder;
 
