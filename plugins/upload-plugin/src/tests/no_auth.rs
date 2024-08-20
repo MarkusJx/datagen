@@ -218,7 +218,11 @@ fn test_status_code_not_matching() {
     .unwrap_err();
 
     mock.assert();
-    assert!(format!("{:?}", res).contains("Expected status code 201, got 200 OK"), "{:?}", res);
+    assert!(
+        format!("{:?}", res).contains("Expected status code 201, got 200 OK"),
+        "{:?}",
+        res
+    );
 }
 
 #[test]
