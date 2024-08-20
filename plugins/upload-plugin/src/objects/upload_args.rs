@@ -9,7 +9,7 @@ use futures::{stream, StreamExt};
 use indexmap::IndexMap;
 use log::debug;
 use reqwest::header::{HeaderMap, HeaderName};
-use reqwest::{Client, ClientBuilder, IntoUrl, RequestBuilder};
+use reqwest::{Certificate, Client, ClientBuilder, IntoUrl, RequestBuilder};
 use serde::{Deserialize, Serialize};
 use tokio::runtime::Builder;
 
@@ -96,6 +96,10 @@ impl TryFrom<&UploadArgs> for RequestCreator {
     type Error = anyhow::Error;
 
     fn try_from(args: &UploadArgs) -> anyhow::Result<Self> {
+        if args.disable_certificate_verification.unwrap_or(false) {
+            log::warn!("Disabling certificate verification");
+        }
+
         Ok(Self {
             method: args.method.clone().unwrap_or_default(),
             timeout: args.timeout.map(Duration::from_millis),
