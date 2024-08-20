@@ -213,6 +213,7 @@ impl UploadArgs {
         let num_splits = split.len();
         let callback_ref = &progress_callback;
         let counter = AtomicUsize::new(0);
+        let counter_ref = &counter;
 
         debug!("Uploading data to {}", self.url);
         Builder::new_multi_thread()
@@ -227,8 +228,7 @@ impl UploadArgs {
                         let serializer = &serializer;
                         let upload_in = &upload_in;
 
-                        let current_count = counter.fetch_add(1, Ordering::SeqCst);
-                        debug!("Uploading chunk {}/{}", current_count, num_splits);
+                        debug!("Uploading next chunk");
 
                         async move {
                             creator
@@ -242,7 +242,9 @@ impl UploadArgs {
                                 .error_for_status()
                                 .map_err(|e| anyhow!(e.to_string()))
                                 .and_then(|res| {
+                                    let current_count = counter_ref.fetch_add(1, Ordering::SeqCst);
                                     callback_ref(current_count, num_splits)?;
+                                    debug!("Uploaded chunk {current_count}/{num_splits}");
                                     Ok(res)
                                 })
                         }

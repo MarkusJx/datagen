@@ -15,6 +15,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "schema", derive(JsonSchema))]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serialize", serde(rename_all = "camelCase"))]
 pub struct Flatten {
     /// The values to flatten.
     /// These can be objects, references, or generators.
@@ -97,7 +98,10 @@ pub mod generate {
                 match gen.as_ref() {
                     GeneratedSchema::Object(o) => o.type_id(),
                     GeneratedSchema::Array(a) => a.type_id(),
-                    _ => return Err(anyhow!("Flatten values must be objects or arrays")),
+                    _ => {
+                        return Err(anyhow!("Flatten values must be objects or arrays")
+                            .context(anyhow!("Invalid schema at {}", schema.path()?)))
+                    }
                 }
             } else {
                 return Ok(GeneratedSchema::None);
@@ -108,7 +112,8 @@ pub mod generate {
                     generated.into_iter()
                         .map(|value| match value.as_ref() {
                             GeneratedSchema::Array(array) => Ok(array.clone()),
-                            _ => Err(anyhow!("Flatten values must all either be objects or arrays (the first value was an array, this one is not)")),
+                            other => Err(anyhow!("Flatten values must all either be objects or arrays (the first value was an array, this one is of type {})", other.name())
+                                .context(anyhow!("Invalid schema at {}", schema.path()?))),
                         })
                         .collect::<anyhow::Result<Vec<_>>>()?
                         .into_iter()
@@ -120,7 +125,8 @@ pub mod generate {
                     generated.into_iter()
                         .map(|value| match value.as_ref() {
                             GeneratedSchema::Object(object) => Ok(object.clone()),
-                            _ => Err(anyhow!("Flatten values must all either be objects or arrays (the first value was an object, this one is not)")),
+                            other => Err(anyhow!("Flatten values must all either be objects or arrays (the first value was an object, this one is of type {})", other.name())
+                                .context(anyhow!("Invalid schema at {}", schema.path()?))),
                         })
                         .collect::<anyhow::Result<Vec<_>>>()?
                         .into_iter()
