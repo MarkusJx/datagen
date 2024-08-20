@@ -218,7 +218,7 @@ fn test_status_code_not_matching() {
     .unwrap_err();
 
     mock.assert();
-    assert_eq!(res.to_string(), "Expected status code 201, got 200 OK");
+    assert!(format!("{:?}", res).contains("Expected status code 201, got 200 OK"), "{:?}", res);
 }
 
 #[test]

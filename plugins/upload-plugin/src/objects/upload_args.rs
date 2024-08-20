@@ -263,6 +263,9 @@ impl UploadArgs {
                             ))
                             .context(anyhow!("Response body:\n{}", body.unwrap_or_default()));
                         }
+                    } else if !status_code.is_success() {
+                        return Err(anyhow!("Returned status was not ok: {status_code}")
+                            .context(anyhow!("Response body:\n{}", body.unwrap_or_default())));
                     }
 
                     Ok(())

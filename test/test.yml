@@ -85,7 +85,7 @@ testcases:
         assertions:
           - result.code ShouldEqual 1
           - result.timeseconds ShouldBeLessThan 10
-          - result.systemout ShouldContainSubstring "HTTP status server error (500 Internal Server Error)"
+          - 'result.systemout ShouldContainSubstring "Returned status was not ok: 500"'
 
       # Verify
       - type: http

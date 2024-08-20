@@ -50,15 +50,12 @@ fn test_bearer_auth_invalid_token() {
             "token": "invalid",
         }
     }))
-    .unwrap_err()
-    .to_string();
+    .unwrap_err();
 
     mock.assert();
-    assert_eq!(
-        err,
-        format!(
-            "HTTP status client error (401 Unauthorized) for url ({}/)",
-            server.url()
-        )
+    assert!(
+        format!("{:?}", err).contains("Returned status was not ok: 401 Unauthorized"),
+        "{:?}",
+        err
     );
 }
