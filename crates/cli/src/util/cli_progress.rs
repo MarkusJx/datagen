@@ -1,6 +1,7 @@
 use colored::Colorize;
 use derive_more::Display;
 use indicatif::{ProgressBar, ProgressState, ProgressStyle};
+use log::LevelFilter;
 use num_format::{Locale, ToFormattedString};
 use std::fmt::Write;
 use std::sync::{Arc, Mutex};
@@ -33,11 +34,19 @@ impl CliProgress {
 
     pub fn increase(&mut self, current: usize, total: usize) {
         if self.pb.is_none() {
-            println!(
-                "{}ing {} records",
-                self.ty,
-                format!("~{}", total.to_formatted_string(&Locale::en)).bright_cyan()
-            );
+            if LevelFilter::Info <= log::max_level() {
+                log::info!(
+                    "{}ing {} records",
+                    self.ty,
+                    format!("~{}", total.to_formatted_string(&Locale::en))
+                );
+            } else {
+                println!(
+                    "{}ing {} records",
+                    self.ty,
+                    format!("~{}", total.to_formatted_string(&Locale::en)).bright_cyan()
+                );
+            }
 
             let len = total.to_string().len() + 1;
             let pb = ProgressBar::new(total as _);
@@ -83,14 +92,27 @@ impl CliProgress {
         if let Some(pb) = self.pb.as_ref() {
             if ok {
                 pb.finish_with_message("Done");
-                println!(
-                    "Success - {}ed {} records in {}",
-                    self.ty,
-                    pb.position().to_formatted_string(&Locale::en).bright_blue(),
-                    format!("{:.1?}", pb.elapsed()).bright_blue()
-                );
+                if LevelFilter::Info <= log::max_level() {
+                    log::info!(
+                        "Successfully {}ed {} records in {:.1?}",
+                        self.ty.to_string().to_ascii_lowercase(),
+                        pb.position().to_formatted_string(&Locale::en),
+                        pb.elapsed()
+                    );
+                } else {
+                    println!(
+                        "Success - {}ed {} records in {}",
+                        self.ty,
+                        pb.position().to_formatted_string(&Locale::en).bright_blue(),
+                        format!("{:.1?}", pb.elapsed()).bright_blue()
+                    );
+                }
             } else {
-                pb.finish_with_message("Error");
+                pb.abandon_with_message("Error");
+                log::error!(
+                    "Failed to {}e data",
+                    self.ty.to_string().to_ascii_lowercase()
+                );
             }
         }
     }

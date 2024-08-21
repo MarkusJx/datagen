@@ -296,7 +296,7 @@ impl UploadArgs {
                                 .and_then(|res| {
                                     let current_count = counter_ref.fetch_add(1, Ordering::SeqCst);
                                     callback_ref(current_count, num_splits)?;
-                                    debug!("Uploaded chunk {current_count}/{num_splits}");
+                                    log::info!("Uploaded chunk {current_count}/{num_splits}");
                                     Ok(res)
                                 })?;
 
