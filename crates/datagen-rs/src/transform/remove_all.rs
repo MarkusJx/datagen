@@ -43,7 +43,7 @@ pub mod generate {
                 GeneratedSchema::None => Ok(GeneratedSchema::None.into()),
                 invalid => Err(anyhow::anyhow!(
                     "removeAll can only be applied to objects. Actual type was {}",
-                    invalid.name()
+                    invalid.name(),
                 )
                 .context(anyhow::anyhow!("Invalid schema at {}", schema.path()?))),
             }

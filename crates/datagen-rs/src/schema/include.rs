@@ -20,6 +20,8 @@ use std::fs::File;
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serialize", serde(rename_all = "camelCase"))]
 pub struct Include {
+    /// The path of the file to include.
+    /// Must be relative to the working directory.
     pub path: String,
 }
 

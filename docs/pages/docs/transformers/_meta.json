@@ -8,5 +8,6 @@
   "toUpperCase": "toUpperCase",
   "toLowerCase": "toLowerCase",
   "toString": "toString",
+  "chooseFromArray": "chooseFromArray",
   "plugin": "plugin"
 }
