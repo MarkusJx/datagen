@@ -21,6 +21,8 @@ pub enum StringGenerator {
     LastName,
     FullName,
     Username,
+    CompanyName,
+    Industry,
     City,
     Country,
     CountryCode,
@@ -115,6 +117,7 @@ pub mod generate {
         CityName, CountryCode, CountryName, Latitude, Longitude, StateName, StreetName, ZipCode,
     };
     use fake::faker::chrono::en::{DateTimeAfter, DateTimeBefore, DateTimeBetween};
+    use fake::faker::company::en::{CompanyName, Industry};
     use fake::faker::internet::en::{FreeEmail, Username};
     use fake::faker::name::en::{FirstName, LastName, Name};
     use fake::faker::phone_number::en::PhoneNumber;
@@ -145,6 +148,8 @@ pub mod generate {
                 StringGenerator::LastName => GeneratedSchema::String(LastName().fake()),
                 StringGenerator::FullName => GeneratedSchema::String(Name().fake()),
                 StringGenerator::Username => GeneratedSchema::String(Username().fake()),
+                StringGenerator::CompanyName => GeneratedSchema::String(CompanyName().fake()),
+                StringGenerator::Industry => GeneratedSchema::String(Industry().fake()),
                 StringGenerator::City => GeneratedSchema::String(CityName().fake()),
                 StringGenerator::Country => GeneratedSchema::String(CountryName().fake()),
                 StringGenerator::CountryCode => GeneratedSchema::String(CountryCode().fake()),
