@@ -146,11 +146,12 @@ impl TryFrom<&UploadArgs> for RequestCreator {
             }
         }
 
+        let client = client_builder.build().context("Failed to build client")?;
         Ok(Self {
             method: args.method.clone().unwrap_or_default(),
             timeout: args.timeout.map(Duration::from_millis),
-            client: client_builder.build().context("Failed to build client")?,
-            auth: NoAuth::from_args(args.auth.clone()),
+            client: client.clone(),
+            auth: NoAuth::from_args(args.auth.clone(), client),
             num_parallel_requests: args.num_parallel_requests.unwrap_or(1),
         })
     }

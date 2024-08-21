@@ -4,19 +4,22 @@ use crate::auth::oidc::oidc_token::OidcToken;
 use async_trait::async_trait;
 use oauth2::AuthType;
 use openidconnect::core::CoreProviderMetadata;
-use openidconnect::reqwest::async_http_client;
 use openidconnect::{ClientId, ClientSecret, IssuerUrl};
 use tokio::sync::Mutex;
 
+use super::auth_client::AuthClient;
+
 pub(crate) struct OidcAuth {
     args: OidcAuthArgs,
+    client: AuthClient,
     token: Mutex<Option<OidcToken>>,
 }
 
 impl OidcAuth {
-    pub(crate) fn new(args: OidcAuthArgs) -> Self {
+    pub(crate) fn new(args: OidcAuthArgs, client: reqwest::Client) -> Self {
         Self {
             args,
+            client: client.into(),
             token: Mutex::new(None),
         }
     }
@@ -24,7 +27,7 @@ impl OidcAuth {
     async fn init(&self) -> anyhow::Result<OidcToken> {
         let metadata = CoreProviderMetadata::discover_async(
             IssuerUrl::new(self.args.discovery_url.clone())?,
-            async_http_client,
+            |req| self.client.request(req),
         )
         .await?;
 
@@ -41,7 +44,11 @@ impl OidcAuth {
                 .unwrap_or(AuthType::RequestBody),
         );
 
-        let (token, client) = self.args.method.get_token(client, &self.args).await?;
+        let (token, client) = self
+            .args
+            .method
+            .get_token(client, &self.client, &self.args)
+            .await?;
 
         OidcToken::new(token, client)
     }
@@ -52,7 +59,11 @@ impl OidcAuth {
             token_lock.replace(self.init().await?);
         }
 
-        token_lock.as_mut().unwrap().get_token(&self.args).await
+        token_lock
+            .as_mut()
+            .unwrap()
+            .get_token(&self.client, &self.args)
+            .await
     }
 }
 
