@@ -1,4 +1,5 @@
 use crate::schema::array::Array;
+use crate::schema::include::Include;
 use crate::schema::object::Object;
 use crate::schema::plugin::Plugin;
 use crate::schema::reference::Reference;
@@ -14,6 +15,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "schema", derive(JsonSchema))]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serialize", serde(rename_all = "camelCase"))]
 pub struct Flatten {
     /// The values to flatten.
     /// These can be objects, references, or generators.
@@ -21,6 +23,9 @@ pub struct Flatten {
     /// not both, otherwise an error will be thrown.
     /// If no values are provided, null will be returned.
     pub values: Vec<FlattenableValue>,
+    /// Whether to remove null values from the flattened object or array.
+    /// If not specified, the default is false.
+    pub remove_null: Option<bool>,
     pub transform: Option<Vec<MaybeValidTransform>>,
 }
 
@@ -33,6 +38,7 @@ pub enum FlattenableValue {
     Array(Array),
     Reference(Reference),
     Plugin(Plugin),
+    Include(Include),
 }
 
 impl GetTransform for Flatten {
@@ -68,23 +74,35 @@ pub mod generate {
                 FlattenableValue::Reference(reference) => reference.into_random(schema),
                 FlattenableValue::Plugin(plugin) => plugin.into_random(schema),
                 FlattenableValue::Array(array) => array.into_random(schema),
+                FlattenableValue::Include(include) => include.into_random(schema),
             }
         }
     }
 
     impl IntoGenerated for Flatten {
         fn into_generated(self, schema: DatagenContextRef) -> anyhow::Result<GeneratedSchema> {
-            let generated = self
+            let mut generated = self
                 .values
                 .into_iter()
                 .map(|value| value.into_generated_arc(schema.clone()))
                 .collect::<anyhow::Result<Vec<_>>>()?;
 
+            if self.remove_null.unwrap_or(false) {
+                generated = generated
+                    .into_iter()
+                    .filter(|value| !matches!(value.as_ref(), GeneratedSchema::None))
+                    .collect::<Vec<_>>();
+            }
+
             let type_id = if let Some(gen) = generated.first() {
                 match gen.as_ref() {
                     GeneratedSchema::Object(o) => o.type_id(),
                     GeneratedSchema::Array(a) => a.type_id(),
-                    _ => return Err(anyhow!("Flatten values must be objects or arrays")),
+                    invalid => {
+                        return Err(anyhow!(r#"Flatten values must be objects or arrays. Actual type: {}
+                        If a null value is passed, you can remove the null value by setting the 'removeNull' option to true"#, invalid.name())
+                            .context(anyhow!("Invalid schema at {}", schema.path()?)))
+                    }
                 }
             } else {
                 return Ok(GeneratedSchema::None);
@@ -95,7 +113,8 @@ pub mod generate {
                     generated.into_iter()
                         .map(|value| match value.as_ref() {
                             GeneratedSchema::Array(array) => Ok(array.clone()),
-                            _ => Err(anyhow!("Flatten values must all either be objects or arrays (the first value was an array, this one is not)")),
+                            other => Err(anyhow!("Flatten values must all either be objects or arrays (the first value was an array, this one is of type {})", other.name())
+                                .context(anyhow!("Invalid schema at {}", schema.path()?))),
                         })
                         .collect::<anyhow::Result<Vec<_>>>()?
                         .into_iter()
@@ -107,7 +126,8 @@ pub mod generate {
                     generated.into_iter()
                         .map(|value| match value.as_ref() {
                             GeneratedSchema::Object(object) => Ok(object.clone()),
-                            _ => Err(anyhow!("Flatten values must all either be objects or arrays (the first value was an object, this one is not)")),
+                            other => Err(anyhow!("Flatten values must all either be objects or arrays (the first value was an object, this one is of type {})", other.name())
+                                .context(anyhow!("Invalid schema at {}", schema.path()?))),
                         })
                         .collect::<anyhow::Result<Vec<_>>>()?
                         .into_iter()
@@ -133,6 +153,7 @@ pub mod validate {
                 FlattenableValue::Array(array) => array.validate(path),
                 FlattenableValue::Reference(reference) => reference.validate(path),
                 FlattenableValue::Plugin(plugin) => plugin.validate(path),
+                FlattenableValue::Include(include) => include.validate(path),
             }
         }
     }

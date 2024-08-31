@@ -232,7 +232,7 @@ test('serialize data with invalid plugin', async (t) => {
     {
       code: 'GenericFailure',
       message:
-        /Failed to call function 'serialize' on plugin 'testPlugin'\s+Caused by:[\s\w:]+Plugin 'testPlugin' does not support operation 'serialize'/gm,
+        /Failed to serialize data using plugin 'testPlugin'\s+Caused by:[\s\w':]+Plugin 'testPlugin' does not support operation 'serialize'/gm,
     }
   );
 });
@@ -385,7 +385,7 @@ test('serialize data with throwing plugin', async (t) => {
     {
       code: 'GenericFailure',
       message:
-        /Failed to call function 'serialize' on plugin 'testPlugin'\s+Caused by:[\s\w:]+test/gm,
+        /Failed to serialize data using plugin 'testPlugin'\s+Caused by:[\s\w':]+test/gm,
     }
   );
 });
@@ -441,7 +441,7 @@ test('transform data with throwing plugin (async)', async (t) => {
     {
       code: 'GenericFailure',
       message:
-        /Failed to call function 'transform' on plugin 'testPlugin'\s+Caused by:[\s\w:]+test/gm,
+        /Failed to call function 'transform' on plugin 'testPlugin'\s+Caused by:[\s\w:']+test/gm,
     }
   );
 });
@@ -472,7 +472,7 @@ test('serialize data with throwing plugin (async)', async (t) => {
     {
       code: 'GenericFailure',
       message:
-        /Failed to call function 'serialize' on plugin 'testPlugin'\s+Caused by:[\s\w:]+test/gm,
+        /Failed to serialize data using plugin 'testPlugin'\s+Caused by:[\s\w':]+test/gm,
     }
   );
 });

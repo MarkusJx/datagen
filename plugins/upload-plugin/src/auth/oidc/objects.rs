@@ -1,4 +1,3 @@
-use oauth2::reqwest::async_http_client;
 use oauth2::{
     DeviceAuthorizationResponse, DeviceAuthorizationUrl, EmptyExtraDeviceAuthorizationFields,
     ResourceOwnerPassword, ResourceOwnerUsername, Scope,
@@ -6,6 +5,8 @@ use oauth2::{
 use openidconnect::core::{CoreClient, CoreResponseType, CoreTokenResponse};
 use openidconnect::{AuthType, AuthenticationFlow};
 use serde::{Deserialize, Serialize};
+
+use super::auth_client::AuthClient;
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -46,6 +47,7 @@ impl OidcLoginMethod {
     pub(crate) async fn get_token(
         &self,
         mut client: CoreClient,
+        auth_client: &AuthClient,
         args: &OidcAuthArgs,
     ) -> anyhow::Result<(CoreTokenResponse, CoreClient)> {
         let scopes = args
@@ -59,7 +61,7 @@ impl OidcLoginMethod {
                 client
                     .exchange_client_credentials()
                     .add_scopes(scopes)
-                    .request_async(async_http_client)
+                    .request_async(|req| auth_client.request(req))
                     .await?
             }
             OidcLoginMethod::Password { username, password } => {
@@ -69,7 +71,7 @@ impl OidcLoginMethod {
                         &ResourceOwnerPassword::new(password.clone()),
                     )
                     .add_scopes(scopes)
-                    .request_async(async_http_client)
+                    .request_async(|req| auth_client.request(req))
                     .await?
             }
             OidcLoginMethod::DeviceCode {
@@ -83,7 +85,7 @@ impl OidcLoginMethod {
                 let dc: DeviceAuthorizationResponse<EmptyExtraDeviceAuthorizationFields> = client
                     .exchange_device_code()?
                     .add_scopes(scopes)
-                    .request_async(async_http_client)
+                    .request_async(|req| auth_client.request(req))
                     .await?;
 
                 println!("device_code: {:?}", dc.device_code());
@@ -97,7 +99,7 @@ impl OidcLoginMethod {
                 client
                     .exchange_device_access_token(&dc)
                     .request_async(
-                        async_http_client,
+                        |req| auth_client.request(req),
                         tokio::time::sleep,
                         timeout.map(tokio::time::Duration::from_secs),
                     )

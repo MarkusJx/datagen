@@ -126,7 +126,8 @@ impl Backend for SQLiteBackend {
         };
 
         let data = self.fill_cache(&table_name)?;
-        data.pop().ok_or(anyhow!("Failed to find data"))
+        data.pop()
+            .ok_or(anyhow!("Failed to find address in SQLite database"))
     }
 
     #[cfg(test)]

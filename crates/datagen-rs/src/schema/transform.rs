@@ -1,4 +1,5 @@
 use crate::schema::reference::Reference;
+use crate::transform::choose_from_array::ChooseFromArray;
 use crate::transform::filter::FilterTransform;
 use crate::transform::plugin_transform::PluginTransform;
 use crate::transform::random_remove::RandomRemoveTransform;
@@ -55,6 +56,7 @@ pub enum Transform {
     Plugin(PluginTransform),
     RandomRemove(RandomRemoveTransform),
     RemoveAll(RemoveAllTransform),
+    ChooseFromArray(ChooseFromArray),
 }
 
 #[derive(Debug, Clone)]
@@ -125,6 +127,9 @@ pub mod generate {
                 Transform::Plugin(plugin) => plugin.transform(schema, value),
                 Transform::RandomRemove(random_remove) => random_remove.transform(schema, value),
                 Transform::RemoveAll(remove_all) => remove_all.transform(schema, value),
+                Transform::ChooseFromArray(choose_from_array) => {
+                    choose_from_array.transform(schema, value)
+                }
             }
         }
     }
@@ -167,6 +172,7 @@ pub mod validate {
                 Transform::Plugin(plugin) => plugin.validate(path),
                 Transform::RandomRemove(random_remove) => random_remove.validate(path),
                 Transform::RemoveAll(remove_all) => remove_all.validate(path),
+                Transform::ChooseFromArray(_) => Ok(()),
             }
         }
     }

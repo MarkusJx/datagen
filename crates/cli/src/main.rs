@@ -1,6 +1,7 @@
 mod util;
 
 use crate::util::cli_progress::{CliProgressRef, CliProgressTrait, CliProgressType};
+use crate::util::logger::init_logger;
 #[cfg(feature = "embedded-plugins")]
 use crate::util::plugins::load_plugins;
 use clap::{Parser, Subcommand};
@@ -16,9 +17,6 @@ use datagen_rs::validation::validate::Validate;
 use datagen_rs_node_runner::runner::node_runner::NodeRunner;
 use datagen_rs_progress_plugin::{PluginWithSchemaResult, ProgressPlugin};
 use log::LevelFilter;
-use log4rs::append::console::ConsoleAppender;
-use log4rs::config::{Appender, Root};
-use log4rs::Config;
 use std::collections::HashMap;
 use std::process::exit;
 use std::sync::Arc;
@@ -48,9 +46,19 @@ enum Commands {
         #[arg(short, long, default_value("false"))]
         no_validate: bool,
     },
+    /// Validate a schema file
     Validate {
         /// The path to the schema file to use
         schema_file: String,
+    },
+    /// Get the effective schema.
+    EffectiveSchema {
+        /// The path to the schema file to use
+        schema_file: String,
+        /// An optional path to write the effective schema to.
+        /// If not specified, the data will be written to stdout.
+        /// NOTE: Flatten values will not be included in the effective schema.
+        out_file: Option<String>,
     },
 }
 
@@ -161,20 +169,7 @@ fn main() {
             log_level,
             no_validate,
         } => {
-            log4rs::init_config(
-                Config::builder()
-                    .appender(
-                        Appender::builder()
-                            .build("stdout", Box::new(ConsoleAppender::builder().build())),
-                    )
-                    .build(
-                        Root::builder()
-                            .appender("stdout")
-                            .build(log_level.unwrap_or(LevelFilter::Off)),
-                    )
-                    .unwrap(),
-            )
-            .unwrap();
+            init_logger(log_level);
 
             let mut progress_bar = CliProgressRef::with_type(CliProgressType::Generate);
 
@@ -207,5 +202,26 @@ fn main() {
                 println!("{} The schema is valid.", "Success!".bright_green());
             }
         },
+        Commands::EffectiveSchema {
+            schema_file,
+            out_file,
+        } => {
+            let mut schema = read_schema(schema_file).expect("Failed to read schema");
+
+            #[cfg(feature = "embedded-plugins")]
+            let plugins = load_plugins(&schema).expect("Failed to load embedded plugins");
+            #[cfg(not(feature = "embedded-plugins"))]
+            let plugins = HashMap::new();
+
+            PluginList::from_schema(&mut schema, Some(plugins)).expect("Failed to get plugin list");
+            let serialized =
+                serde_json::to_string_pretty(&schema).expect("Failed to serialize schema");
+
+            if let Some(out) = out_file {
+                std::fs::write(out, serialized).expect("Failed to write effective schema");
+            } else {
+                println!("{serialized}");
+            }
+        }
     }
 }

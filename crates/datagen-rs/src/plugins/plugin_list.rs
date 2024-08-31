@@ -234,6 +234,10 @@ impl PluginList {
                     FlattenableValue::Reference(reference) => Self::map_transform(reference),
                     FlattenableValue::Plugin(gen) => Self::map_transform(gen),
                     FlattenableValue::Array(array) => Self::find_array_transformers(array)?,
+                    FlattenableValue::Include(include) => {
+                        let mut any = include.as_schema()?;
+                        Self::find_transformers_in_any(&mut any)?
+                    }
                 })
             })
             .collect::<anyhow::Result<Vec<_>>>()?
@@ -273,7 +277,25 @@ impl PluginList {
                 Any::Flatten(flatten) => Self::find_flatten_transformers(flatten)?,
                 rest => match rest {
                     Any::String(str) => str.get_transform(),
-                    Any::AnyOf(any_of) => any_of.get_transform(),
+                    Any::AnyOf(any_of) => {
+                        let mut transform = any_of
+                            .get_transform()
+                            .map(|v| Self::transformers_to_vec(&v, &[]))
+                            .unwrap_or_default();
+
+                        let values = any_of
+                            .values
+                            .iter_mut()
+                            .map(Self::find_transformers)
+                            .collect::<anyhow::Result<Vec<_>>>()?
+                            .into_iter()
+                            .flatten()
+                            .collect::<Vec<_>>();
+
+                        transform.extend(values);
+
+                        return Ok(transform);
+                    }
                     Any::Reference(reference) => reference.get_transform(),
                     Any::Integer(integer) => GetTransform::get_transform(integer),
                     Any::Number(number) => GetTransform::get_transform(number),

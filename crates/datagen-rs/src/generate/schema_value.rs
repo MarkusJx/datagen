@@ -14,7 +14,7 @@ pub(crate) type SchemaProperties = BTreeMap<String, VecDeque<Arc<GeneratedSchema
 
 #[cfg_attr(not(feature = "serialize"), derive(Debug))]
 #[cfg_attr(feature = "serialize", derive(Serialize))]
-#[cfg_attr(not(feature = "map_schema"), allow(dead_code))]
+#[cfg_attr(not(feature = "map-schema"), allow(dead_code))]
 pub(crate) struct SchemaValue {
     pub properties: Arc<Mutex<SchemaProperties>>,
     pub path: SchemaPath,

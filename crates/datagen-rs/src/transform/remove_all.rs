@@ -23,24 +23,30 @@ pub mod generate {
     impl TransformTrait for RemoveAllTransform {
         fn transform(
             self,
-            _schema: DatagenContextRef,
+            schema: DatagenContextRef,
             value: Arc<GeneratedSchema>,
         ) -> anyhow::Result<Arc<GeneratedSchema>> {
-            let GeneratedSchema::Object(object) = value.as_ref() else {
-                anyhow::bail!("removeAll can only be applied to objects");
-            };
+            match value.as_ref() {
+                GeneratedSchema::Object(object) => {
+                    let mut object = object.clone();
+                    match self {
+                        RemoveAllTransform::Include { include } => {
+                            object.retain(|key, _| !include.contains(key));
+                        }
+                        RemoveAllTransform::Exclude { exclude } => {
+                            object.retain(|key, _| exclude.contains(key));
+                        }
+                    }
 
-            let mut object = object.clone();
-            match self {
-                RemoveAllTransform::Include { include } => {
-                    object.retain(|key, _| !include.contains(key));
+                    Ok(GeneratedSchema::Object(object).into())
                 }
-                RemoveAllTransform::Exclude { exclude } => {
-                    object.retain(|key, _| exclude.contains(key));
-                }
+                GeneratedSchema::None => Ok(GeneratedSchema::None.into()),
+                invalid => Err(anyhow::anyhow!(
+                    "removeAll can only be applied to objects. Actual type was {}",
+                    invalid.name(),
+                )
+                .context(anyhow::anyhow!("Invalid schema at {}", schema.path()?))),
             }
-
-            Ok(GeneratedSchema::Object(object).into())
         }
     }
 }

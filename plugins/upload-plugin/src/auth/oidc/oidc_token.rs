@@ -5,8 +5,9 @@ use std::time::Duration;
 use crate::auth::oidc::objects::OidcAuthArgs;
 use chrono::{DateTime, Utc};
 use openidconnect::core::{CoreClient, CoreIdToken, CoreIdTokenVerifier, CoreTokenResponse};
-use openidconnect::reqwest::async_http_client;
 use openidconnect::{AccessToken, Nonce, OAuth2TokenResponse, RefreshToken};
+
+use super::auth_client::AuthClient;
 
 pub(crate) struct OidcToken {
     access_token: AccessToken,
@@ -27,29 +28,33 @@ impl OidcToken {
         })
     }
 
-    pub async fn get_token(&mut self, args: &OidcAuthArgs) -> anyhow::Result<String> {
+    pub async fn get_token(
+        &mut self,
+        client: &AuthClient,
+        args: &OidcAuthArgs,
+    ) -> anyhow::Result<String> {
         if Self::is_expired(&self.expires_at) {
-            self.refresh(args).await?;
+            self.refresh(client, args).await?;
         }
 
         Ok(self.access_token.secret().clone())
     }
 
-    async fn refresh(&mut self, args: &OidcAuthArgs) -> anyhow::Result<()> {
+    async fn refresh(&mut self, client: &AuthClient, args: &OidcAuthArgs) -> anyhow::Result<()> {
         if self
             .refresh_expires_at
             .as_ref()
             .map(Self::is_expired)
             .unwrap_or(true)
         {
-            self.re_fetch_tokens(args).await?;
+            self.re_fetch_tokens(client, args).await?;
             return Ok(());
         }
 
         let token = self
             .client
             .exchange_refresh_token(self.refresh_token.as_ref().unwrap())
-            .request_async(async_http_client)
+            .request_async(|req| client.request(req))
             .await?;
 
         self.access_token = token.access_token().clone();
@@ -58,8 +63,16 @@ impl OidcToken {
         Ok(())
     }
 
-    async fn re_fetch_tokens(&mut self, args: &OidcAuthArgs) -> anyhow::Result<()> {
-        let token = args.method.get_token(self.client.clone(), args).await?.0;
+    async fn re_fetch_tokens(
+        &mut self,
+        client: &AuthClient,
+        args: &OidcAuthArgs,
+    ) -> anyhow::Result<()> {
+        let token = args
+            .method
+            .get_token(self.client.clone(), client, args)
+            .await?
+            .0;
 
         self.access_token = token.access_token().clone();
         self.expires_at = Self::get_access_token_expiry(&token)?;

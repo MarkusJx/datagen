@@ -1,3 +1,4 @@
+pub mod choose_from_array;
 pub mod filter;
 pub mod plugin_transform;
 pub mod random_remove;

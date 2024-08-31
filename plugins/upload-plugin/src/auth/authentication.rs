@@ -21,7 +21,7 @@ impl AnyAuth for RequestBuilder {
 pub(crate) trait Authentication: Send + Sync {
     async fn add_auth(&self, builder: RequestBuilder) -> anyhow::Result<RequestBuilder>;
 
-    fn from_args(args: Option<AuthArgs>) -> Box<dyn Authentication>
+    fn from_args(args: Option<AuthArgs>, client: reqwest::Client) -> Box<dyn Authentication>
     where
         Self: Sized,
     {
@@ -30,7 +30,7 @@ pub(crate) trait Authentication: Send + Sync {
                 Box::new(BasicAuth { username, password })
             }
             Some(AuthArgs::Bearer { token }) => Box::new(BearerAuth { token }),
-            Some(AuthArgs::Oidc(args)) => Box::new(OidcAuth::new(args)),
+            Some(AuthArgs::Oidc(args)) => Box::new(OidcAuth::new(args, client)),
             None => Box::new(NoAuth),
         }
     }

@@ -58,7 +58,7 @@ pub mod generate {
     use crate::plugins::plugin::PluginSerializeCallback;
     use crate::plugins::plugin_list::PluginList;
     use crate::schema::serializer::Serializer;
-    use anyhow::anyhow;
+    use anyhow::{anyhow, Context};
     use std::io::Read;
     use std::sync::Arc;
     use xml::{EmitterConfig, ParserConfig};
@@ -113,7 +113,10 @@ pub mod generate {
                 Serializer::Plugin { plugin_name, args } => plugins
                     .ok_or(anyhow!("A plugin serializer is not allowed at this point"))?
                     .get(plugin_name)?
-                    .serialize(&generated, args.clone().unwrap_or_default()),
+                    .serialize(&generated, args.clone().unwrap_or_default())
+                    .with_context(|| {
+                        anyhow!("Failed to serialize data using plugin '{plugin_name}'")
+                    }),
             }
         }
 
@@ -127,12 +130,13 @@ pub mod generate {
                 Serializer::Plugin { plugin_name, args } => plugins
                     .ok_or(anyhow!("A plugin serializer is not allowed at this point"))?
                     .get(plugin_name)?
-                    .serialize_with_progress(
-                        &generated,
-                        args.clone().unwrap_or_default(),
-                        callback,
-                    ),
-                _ => self.serialize_generated(generated, plugins),
+                    .serialize_with_progress(&generated, args.clone().unwrap_or_default(), callback)
+                    .with_context(|| {
+                        anyhow!("Failed to serialize data using plugin '{plugin_name}'")
+                    }),
+                _ => self
+                    .serialize_generated(generated, plugins)
+                    .context("Failed to serialize data"),
             }
         }
     }

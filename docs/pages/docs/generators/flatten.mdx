@@ -9,6 +9,8 @@ multiple objects or arrays into a single object or array. It has one parameter:
   [`arrays`](array.mdx), or [`references`](reference.mdx). These values must all
   return either objects or arrays, not both, otherwise an error will be thrown.
   If no values are provided, null will be returned.
+- `removeNull`: Whether to remove null values from the flattened object or array.
+  If not specified, the default is `false`. If set to `false` and a null value is passed, an error will be thrown.
 
 ## Example
 

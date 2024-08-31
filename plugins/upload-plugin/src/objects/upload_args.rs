@@ -4,12 +4,12 @@ use std::sync::Arc;
 use std::time;
 use time::Duration;
 
-use anyhow::anyhow;
+use anyhow::{anyhow, Context};
 use futures::{stream, StreamExt};
 use indexmap::IndexMap;
 use log::debug;
 use reqwest::header::{HeaderMap, HeaderName};
-use reqwest::{Client, IntoUrl, RequestBuilder};
+use reqwest::{Certificate, Client, ClientBuilder, IntoUrl, RequestBuilder};
 use serde::{Deserialize, Serialize};
 use tokio::runtime::Builder;
 
@@ -64,6 +64,18 @@ pub(crate) struct UploadArgs {
     /// The headers to send with the request.
     /// If not specified, no additional headers will be sent.
     pub headers: Option<IndexMap<String, String>>,
+    /// Whether to disable certificate verification
+    pub disable_certificate_verification: Option<bool>,
+    /// The root CA to use for certificate verification.
+    #[serde(rename = "rootCA")]
+    pub root_ca: Option<VecOrString>,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+#[serde(untagged, deny_unknown_fields)]
+pub enum VecOrString {
+    Vec(Vec<String>),
+    String(String),
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -90,15 +102,58 @@ struct RequestCreator {
     num_parallel_requests: usize,
 }
 
-impl From<&UploadArgs> for RequestCreator {
-    fn from(args: &UploadArgs) -> Self {
-        Self {
+impl TryFrom<&UploadArgs> for RequestCreator {
+    type Error = anyhow::Error;
+
+    fn try_from(args: &UploadArgs) -> anyhow::Result<Self> {
+        let mut client_builder = ClientBuilder::new();
+
+        if args.disable_certificate_verification.unwrap_or(false) {
+            log::warn!("Disabling certificate verification");
+            client_builder = client_builder.danger_accept_invalid_certs(true);
+        }
+
+        if let Some(root_ca) = args.root_ca.as_ref() {
+            let root_ca = match root_ca {
+                VecOrString::Vec(vec) => vec,
+                VecOrString::String(string) => &vec![string.clone()],
+            };
+
+            for ca in root_ca {
+                debug!("Adding root CA file {}", ca);
+
+                let data = std::fs::read(ca)
+                    .with_context(|| format!("Failed to read root CA file {}", ca))?;
+
+                let bundle = Certificate::from_pem_bundle(&data)
+                    .with_context(|| format!("Failed to parse root CA file as PEM bundle {}", ca));
+
+                match bundle {
+                    Ok(bundle) => {
+                        for cert in bundle {
+                            client_builder = client_builder.add_root_certificate(cert);
+                        }
+                    }
+                    Err(e) => {
+                        let cert = Certificate::from_pem(&data)
+                            .with_context(|| {
+                                format!("Failed to parse root CA file as PEM file {}", ca)
+                            })
+                            .context(e)?;
+                        client_builder = client_builder.add_root_certificate(cert);
+                    }
+                }
+            }
+        }
+
+        let client = client_builder.build().context("Failed to build client")?;
+        Ok(Self {
             method: args.method.clone().unwrap_or_default(),
             timeout: args.timeout.map(Duration::from_millis),
-            client: Client::new(),
-            auth: NoAuth::from_args(args.auth.clone()),
+            client: client.clone(),
+            auth: NoAuth::from_args(args.auth.clone(), client),
             num_parallel_requests: args.num_parallel_requests.unwrap_or(1),
-        }
+        })
     }
 }
 
@@ -206,19 +261,19 @@ impl UploadArgs {
     ) -> anyhow::Result<()> {
         let headers = self.get_headers()?;
         let split = self.split(value)?;
-        let creator = RequestCreator::from(self);
+        let creator = RequestCreator::try_from(self)?;
         let serializer = self.serializer.clone().unwrap_or_default();
         let upload_in = self.upload_in.unwrap_or_default();
 
         let num_splits = split.len();
         let callback_ref = &progress_callback;
         let counter = AtomicUsize::new(0);
+        let counter_ref = &counter;
 
         debug!("Uploading data to {}", self.url);
         Builder::new_multi_thread()
             .enable_all()
-            .build()
-            .unwrap()
+            .build()?
             .block_on(async move {
                 stream::iter(split)
                     .map(|(url, d)| {
@@ -227,24 +282,25 @@ impl UploadArgs {
                         let serializer = &serializer;
                         let upload_in = &upload_in;
 
-                        let current_count = counter.fetch_add(1, Ordering::SeqCst);
-                        debug!("Uploading chunk {}/{}", current_count, num_splits);
+                        debug!("Uploading next chunk");
 
                         async move {
-                            creator
+                            let res = creator
                                 .get_builder(url)
                                 .await?
                                 .headers(headers)
                                 .add_data(upload_in, serializer, d)?
                                 .send()
                                 .await
-                                .map_err(|e| anyhow!(e.to_string()))?
-                                .error_for_status()
                                 .map_err(|e| anyhow!(e.to_string()))
                                 .and_then(|res| {
+                                    let current_count = counter_ref.fetch_add(1, Ordering::SeqCst);
                                     callback_ref(current_count, num_splits)?;
+                                    log::info!("Uploaded chunk {current_count}/{num_splits}");
                                     Ok(res)
-                                })
+                                })?;
+
+                            Ok((res.status(), res.text().await.ok()))
                         }
                     })
                     .buffered(creator.num_parallel_requests)
@@ -253,15 +309,17 @@ impl UploadArgs {
             })
             .into_iter()
             .try_for_each(|res| {
-                res.and_then(|ok| {
+                res.and_then(|(status_code, body)| {
                     if let Some(expected) = self.expected_status_code {
-                        if ok.status() != expected {
+                        if status_code != expected {
                             return Err(anyhow!(
-                                "Expected status code {}, got {}",
-                                expected,
-                                ok.status()
-                            ));
+                                "Expected status code {expected}, got {status_code}"
+                            ))
+                            .context(anyhow!("Response body:\n{}", body.unwrap_or_default()));
                         }
+                    } else if !status_code.is_success() {
+                        return Err(anyhow!("Returned status was not ok: {status_code}")
+                            .context(anyhow!("Response body:\n{}", body.unwrap_or_default())));
                     }
 
                     Ok(())

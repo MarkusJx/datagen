@@ -9,9 +9,18 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "schema", derive(JsonSchema))]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serialize", serde(rename_all = "camelCase"))]
 pub struct AnyOf {
+    /// The values to choose from
     pub values: Vec<AnyValue>,
+    /// The number of values to return. Defaults to 1.
+    /// If more than 1 specified, an array will be returned.
+    /// The actual number of values returned is [1;num),
+    /// if allowNull is false, [0;num) otherwise.
+    /// Returns an error if num > values.length.
     pub num: Option<i64>,
+    /// Whether to allow `null` to be returned.
+    /// Will choose a value from the values + null.
     pub allow_null: Option<bool>,
     pub transform: Option<Vec<MaybeValidTransform>>,
 }
@@ -52,6 +61,16 @@ pub mod generate {
                     num = rand::thread_rng().gen_range(min..=self.values.len() as i64)
                 }
                 _ => {}
+            }
+
+            if num > self.values.len() as _ {
+                return Err(
+                    anyhow::anyhow!(
+                        "Maximum number of elements requested by anyOf is greater than the number of values: {num} vs {}",
+                        self.values.len()
+                    )
+                    .context(anyhow::anyhow!("Invalid schema at {}", schema.path()?))
+                );
             }
 
             let values = self
