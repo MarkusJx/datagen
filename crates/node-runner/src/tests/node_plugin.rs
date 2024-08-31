@@ -242,6 +242,7 @@ fn test_serialize_not_implemented() {
         err,
         anyhow::Error::msg("Plugin does not have a 'serialize' function")
             .context("Could not receive result from function")
-            .context("Failed to call function 'serialize' on plugin 'empty'"),
+            .context("Failed to call function 'serialize' on plugin 'empty'")
+            .context("Failed to serialize data using plugin 'empty'"),
     );
 }
