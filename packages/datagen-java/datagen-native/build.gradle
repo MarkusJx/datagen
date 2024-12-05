@@ -1,0 +1,102 @@
+import java.util.regex.Pattern
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
+plugins {
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'java'
+}
+
+group = 'com.github.markusjx'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+    maven {
+        url 'http://localhost:8081/repository/maven-snapshots/'
+        allowInsecureProtocol = true
+    }
+}
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+def tasks = fileTree("${project.projectDir}/../../../target").matching {
+    include '**/release/datagen_java.dll', '**/release/libdatagen_java.so', '**/release/libdatagen_java.dylib'
+}.files.stream().map { File f ->
+    def matcher = Pattern.compile(".+[/\\\\]target[/\\\\](.+-.+-.+)[/\\\\]release[/\\\\]((?>lib)?datagen_java\\.(?>dll|so|dylib))").matcher(f.path)
+    if (!matcher.find()) {
+        return null
+    }
+
+    def classifier = matcher.group(1)
+    def classifierCamelCase = Pattern.compile("-([a-z0-9])")
+            .matcher(classifier.substring(0, 1).toUpperCase() + classifier.substring(1).replace('_', '-'))
+            .replaceAll(mr -> mr.group(1).toUpperCase())
+    [tasks.register("native-jar-${classifier}", ShadowJar) {
+        from f
+        from(sourceSets.main.output)
+        relocate 'com.github.markusjx.datagen.DatagenNative', "com.github.markusjx.datagen.DatagenNative${classifierCamelCase}"
+        archiveClassifier = classifier
+    }, classifier]
+}.filter {
+    it != null
+}.toList()
+
+jar {
+    dependsOn(tasks.stream().map { it[0] }.toList())
+}
+
+publishing {
+    publications {
+        tasks.stream()
+        .map { task -> {
+            mavenJava(MavenPublication) {
+                artifactId = 'datagen-native'
+                artifact task[0]
+                version = '1.0-SNAPSHOT'
+                versionMapping {
+                    usage('java-api') {
+                        fromResolutionOf('runtimeClasspath')
+                    }
+                    usage('java-runtime') {
+                        fromResolutionResult()
+                    }
+                }
+                pom {
+                    name = 'datagen-native'
+                    description = 'A random data generator'
+                    url = 'https://markusjx.github.io/datagen/'
+                    licenses {
+                        license {
+                            name = 'MIT License'
+                            url = 'https://opensource.org/license/mit'
+                        }
+                    }
+                    developers {
+                        developer {
+                            id = 'MarkusJx'
+                        }
+                    }
+                }
+            }
+        }}
+        .toList()
+    }
+    repositories {
+        maven {
+            allowInsecureProtocol = true
+            url = 'http://localhost:8081/repository/maven-snapshots/'
+            credentials {
+                username 'admin'
+                password 'admin'
+            }
+        }
+    }
+}

@@ -10,6 +10,8 @@ members = [
     "./plugins/openaddresses-plugin",
     "./plugins/progress-plugin",
     "./plugins/upload-plugin",
+    "./packages/datagen",
+    "crates/datagen-java",
     "./plugins/sql-plugin",
     "./packages/datagen"
 ]
